@@ -26,7 +26,7 @@
 /*
    ROOTDIR: The directory below which the xsokoban data files, such as
 	    the bitmaps, score file, and saved games, are stored.  I
-	    suggest "/usr/local/lib/xsokoban" as a value for this
+	    suggest "/usr/local/share/xsokoban" as a value for this
 	    variable in the installed version, but you know best...
 */
 #ifndef ROOTDIR
