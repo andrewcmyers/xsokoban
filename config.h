@@ -139,7 +139,7 @@
    to an public xsokoban server maintained by Andrew Myers. The xsokoban
    home page is at
     
-       http://www.pmg.lcs.mit.edu/~andru/xsokoban.html
+       http://xsokoban.lcs.mit.edu/~andru/xsokoban.html
     
    In order to create your own WWW xsokoban score server, a few small
    shell scripts must be used; they are not provided in this
