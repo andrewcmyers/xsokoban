@@ -25,6 +25,7 @@ static unsigned long white;
 static XWindowAttributes wa;
 static GC gc, scroll_gc;
 static XFontStruct *finfo, *score_finfo;
+static char *selected_user;
 
 static u_short rank[MAXSCOREENTRIES];
 
@@ -228,8 +229,11 @@ static void PositionThumb(Window thumb)
     /* subtract 1 to fudge thumb into place */
 }
 
-/* Display scores. Return E_ENDGAME if user wanted to quit from here. */
-short DisplayScores_(Display *dpy, Window win)
+/* Display scores. Return E_ENDGAME if user wanted to quit from here.
+   If user middle-clicked on a level, and "newlev" is non-zero, put
+   the level clicked-on into "newlev".
+*/
+short DisplayScores_(Display *dpy, Window win, short *newlev)
 {
     Status status;
     XEvent xev;
@@ -237,6 +241,8 @@ short DisplayScores_(Display *dpy, Window win)
     short ret = 0;
     Boolean dragging = _false_;
     Boolean scores_dirty = _false_;
+
+    selected_user = username;
 
     if (!initted) {
 	char *msg = InitDisplayScores(dpy, win);
@@ -369,6 +375,33 @@ short DisplayScores_(Display *dpy, Window win)
 	    if (xev.xbutton.window == scrollbar) {
 		dragging = _true_;
 	    }
+	    if (xev.xbutton.window == win) {
+		int i = (xev.xbutton.y - yclip +
+			 vposn - font_height/2)/font_height;
+		if (i < 0) i = 0;
+		if (i >= scoreentries) i = scoreentries - 1;
+		switch (xev.xbutton.button) {
+		  case Button1:
+		    {
+			char *tmp = scoretable[i].user;
+			if (0 != strcmp(tmp, selected_user)) {
+			    selected_user = tmp;
+			    scores_dirty = _true_;
+			}
+			break;
+		    }
+		  case Button2:
+		    if (newlev) {
+			*newlev = scoretable[i].lv;
+			goto done;
+		    } else {
+			XBell(dpy, 0);
+		    }
+		    break;
+		  default:
+		    break;
+	      }
+	    }
 	    break;
 	  case ButtonRelease:
 	    dragging = _false_;
@@ -410,13 +443,13 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     
     for (i = first_index; i <= last_index && i < scoreentries; i++) {
 	char buf[500];
-	int y = yclip + i * font_height - vposn + font_height;
+	int y = yclip + (i+1) * font_height - vposn;
 	if (i < last_index &&
 	    scoretable[i + 1].lv != scoretable[i].lv) {
 	    XSetForeground(dpy, scroll_gc, separation_color);
 	    XDrawLine(dpy, win, scroll_gc, 0, y + 2, wa->width, y + 2);
 	}
-	if (0 == strcmp(scoretable[i].user, username)) {
+	if (0 == strcmp(scoretable[i].user, selected_user)) {
 	    XSetForeground(dpy, scroll_gc, text_highlight);
 	} else {
 	    XSetForeground(dpy, scroll_gc, text_color);
@@ -433,7 +466,7 @@ static void DrawScores(XWindowAttributes *wa, Window win)
 
 static void DrawPanel(XWindowAttributes *wa, Window panel)
 {
-    char *msg = "Press <Return> to continue, \"q\" to quit";
+    char *msg = "Press <Return> to continue, \"q\" to quit the game.";
     XSetForeground(dpy, gc, panel_bg[2]);
     XFillRectangle(dpy, panel, gc,
 		   0, 0, wa->width - bevel_width, bevel_width);
