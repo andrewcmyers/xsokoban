@@ -9,6 +9,11 @@
 #include <string.h>
 
 #include "config_local.h"
+
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
 #include "externs.h"
 
 #define TRY(name,expr) if (0>(expr)) { perror(name); return 0; }
