@@ -53,20 +53,23 @@ number of times.
 .PP
 The rest of the functions are bound to the keyboard:
 .TP 8
+.B ?
+Display a help screen.
+.TP 8
 .B q
-Quits the game.
+Quit the game.
 .TP 8
 .B s
-Saves and quits.
+Save and quit.
 .TP 8
 .B u
-Undoes the last move. Same as right mouse button.
+Undo the last action. Same as right mouse button.
 .TP 8
 .B U
-Restarts a level.
+Restart a level.
 .TP 8
 .B ^R
-Redraws the screen.
+Redraw the screen.
 .TP 8
 .B h,j,k,l
 Act just like the arrow keys, as in
