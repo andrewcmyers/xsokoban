@@ -788,8 +788,8 @@ static void UndoChange()
 {
     if (move_stack_sp <= 0) {
 	int ret;
-	InitMoveStack();
 	ret = ReadScreen();
+	InitMoveStack();
 	moves = pushes = 0;
 	if (ret) {
 	    fprintf(stderr, "Can't read screen file\n");
