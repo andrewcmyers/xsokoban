@@ -10,5 +10,3 @@ OBJS=		display.o main.o resources.o play.o score.o screen.o \
 		save.o scoredisp.o qtelnet.o
 
 ComplexProgramTarget(xsokoban)
-
-install:: install.man

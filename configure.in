@@ -83,18 +83,21 @@ AC_SUBST(LIBS)
 AC_SUBST(INCS)
 
 ##############
-# DEC bogosity
-
-AC_HAVE_LIBRARY(-ldnet_stub)
-
-##############
 # Figure out SUPERUSER
 (cat config.h; echo "superuser=SUPERUSER;www=WWW") > tmp.$$.c
 $CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
 . ./tmp2.$$
 SUPERUSER="$superuser"
-echo "game owner is $SUPERUSER"
+echo "checking for owner of game"
+awk -F: '{if ($1 == "'$SUPERUSER'") exit 1}' /etc/passwd &&
+    echo "  \"$SUPERUSER\" is not a username. Edit \"config.h\" and change SUPERUSER." &&
+    exit 1
 AC_SUBST(SUPERUSER)
+
+##############
+# DEC bogosity
+
+AC_HAVE_LIBRARY(-ldnet_stub)
 
 ####################################
 # Turn on all compiler warning flags
