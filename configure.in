@@ -9,7 +9,6 @@ AC_CONFIG_HEADER(config_local.h)
 
 AC_WITH(gcc,CC=gcc)
 
-AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CPP
 
