@@ -1,4 +1,4 @@
-.TH XSOKOBAN 6 "2 November 1993" "MIT Lab for Computer Science"
+.TH XSOKOBAN 6 "3 January 1994" "MIT Lab for Computer Science"
 .SH NAME
 xsokoban \- Pushing objects around...
 .SH SYNOPSIS
@@ -78,12 +78,25 @@ Restart a level.
 Redraw the screen.
 .TP 8
 .B h,j,k,l
-Act just like the arrow keys, as in
+Move the man just like the arrow keys, as in
 .IR vi (1).
+.TP 8
+.B S
+View the score file.
+
+Scores in
+.I xsokoban
+are saved in the score file if they are of high
+enough rank. A score is ranked according to how many scores are better
+than it; there are no scores superior to a rank 1 score, only one score
+superior to a rank 2 score, and so on. If two scores are identical, the
+first one entered is ranked higher.
+
 .SH OPTIONS
 .TP 8
-.B \-s
-Show the scores
+.B \-s [level]
+Print the scores on standard output. The optional level will restrict
+the printout to scores on just that level.
 .TP 8
 .B \-c 
 Create a new score file (can be ran only by the owner of the game).
@@ -97,7 +110,7 @@ Start at level
 provided that levels below it are completed. 
 .TP 8
 .B \-display <display>
-Run the game on named display.
+Run the game on the named display.
 .TP 8
 .B {\-w | \-walls}
 Use fancy walls. (This is the default unless an option bitmap set is used)
@@ -134,9 +147,13 @@ Kevin Solie - simultaneously developed X implementation (merged in).
 .br
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
 .br
-Andrew Myers - Improved mouse UI and score ranking
+Andrew Myers - Improved mouse UI, score ranking, and color support
+
+Code has also been donated by many 
+.I xsokoban
+users. Thanks for all your contributions and suggestions!
 .SH RESOURCES
-.I Xsokoban
+.I xsokoban
 understands the following resources.
 .TP 8
 .B fancyWalls : boolean
@@ -163,6 +180,34 @@ Use color as pointer color.
 .B bitmapDir : string
 Look for bitmaps in path specified by string.
 .TP 8
+.B border.color: color
+Color of borders in the score display
+.B text.font: font
+Font of text in the score display
+.B text.color: color
+Color of text in the score display
+.B text.highlight: color
+Color of highlighted text in the score display
+.B text.indent: int
+Indenting of text in the score display
+.B scrollbar.width: int
+Width of the scrollbar in the score display
+.B scrollbar.background: color
+Color of the scrollbar background
+.B scrollbar.thumb.height: int, scrollbar.thumb.width: int
+Size of the scrollbar thumb
+.B scrollbar.thumb.color: color
+Color of the scrollbar thumb
+.B panel.height: int
+Height of the help panel in the score display
+.B panel.font: font
+Font of the help panel in the score display
+.B bevel.width
+Width of the Motif-like bevels
+.B sep.color: color
+Color of the lines separating different score levels
+
+
 .SH SPECIAL BITMAPS
 In order to define your own bitmaps for
 .I xsokoban
@@ -231,6 +276,6 @@ To use the fancy walls option, you need the following additional files.
 .B centerwall.xbm
 -- A wall will connections on all four sides.
 .SH BUGS
-Auto bitmap resizing code doesn't take into account text displays.
+Auto bitmap resizing code doesn't take into account font sizes.
 .br
 Feedback on user error is poor (only beeps).

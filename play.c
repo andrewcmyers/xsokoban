@@ -141,12 +141,22 @@ short Play(void)
 	    if(!cntrl)
 	      ret = E_ENDGAME;
 	    break;
+	  case XK_S:
+	    if (shift || cntrl) {
+	      ret = DisplayScores();
+	      if (!ret) RedisplayScreen();
+	    }
+	    break;
 	  case XK_s:
 	    /* save */
-	    if(!cntrl) {
+	    if(!cntrl && !shift) {
 	      ret = SaveGame();
 	      if(ret == 0)
 		ret = E_SAVED;
+	    }
+	    if (shift || cntrl) {
+	      ret = DisplayScores();
+	      if (!ret) RedisplayScreen();
 	    }
 	    break;
 	  case XK_question:
@@ -343,37 +353,6 @@ void DoMove(short moveaction)
   ppos.x = tpos1.x;
   ppos.y = tpos1.y;
   SyncScreen();
-}
-
-/* Function used by the help pager.  We ONLY want to flip pages if a key
- * key is pressed.. We want to exit the help pager if ENTER is pressed.
- * As above, <shift> and <control> and other such fun keys are NOT counted
- * as a keypress.
- */
-Boolean WaitForEnter(void)
-{
-  KeySym keyhit;
-  char buf[1];
-  int bufs = 1;
-  XComposeStatus compose;
-
-  while (1) {
-    XNextEvent(dpy, &xev);
-    switch(xev.type) {
-      case Expose:
-	RedisplayScreen();
-	break;
-      case KeyPress:
-	buf[0] = '\0';
-	XLookupString(&xev.xkey, buf, bufs, &keyhit, &compose);
-	if(buf[0]) {
-	  return (keyhit == XK_Return) ? _true_ : _false_;
-	}
-	break;
-      default:
-	break;
-    }
-  }
 }
 
 /* find the shortest path to the target via a fill search algorithm */

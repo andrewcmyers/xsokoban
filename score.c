@@ -11,11 +11,8 @@
 #include "externs.h"
 #include "globals.h"
 
-static short scoreentries;
-static struct st_entry {
-  char user[MAXUSERNAME];
-  unsigned short lv, pad1, mv, pad2, ps, pad3;
-} scoretable[MAXSCOREENTRIES];
+short scoreentries;
+struct st_entry scoretable[MAXSCOREENTRIES];
 
 static FILE *scorefile;
 static long sfdbn;

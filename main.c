@@ -246,6 +246,7 @@ short GameLoop(void)
       ret2 = Score(_false_);
       Error(ret2);
       scorelevel = 0;
+      DisplayScores();
     }
     if(ret == 0) {
       level++;

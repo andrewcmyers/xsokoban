@@ -20,6 +20,7 @@ h_line help_pages[] = {
   { 12, 240, 0, "^r: redraw screen             ?: this help message"}, 
   { 12, 255, 0, " u: undo last action          U: restart this level"},
   { 12, 270, 0, " s: save game and quit        q: quit game"},
+  { 12, 285, 0, " S: view score file"},
   { 12, 380, 0, "Player:       Goal:       Wall:     Object:"},
   { 12, 420, 0, "Object on a goal:         Player on a goal:"},
   {0, 0, 0, NULL}

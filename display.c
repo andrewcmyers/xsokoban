@@ -298,15 +298,10 @@ static Boolean TryPixmapFile(char *template, Pixmap *pix, char *bitpath,
     int ret;
     XpmAttributes attr;
     XWindowAttributes wa;
-    if (Success != (ret = XGetWindowAttributes(dpy, win, &wa)))
-#if 0
-    {
+    if (!XGetWindowAttributes(dpy, win, &wa)) {
 	fprintf(stderr, "What? Can't get attributes of window\n");
 	abort();
     }
-#else
-    ;
-#endif
     attr.valuemask = XpmCloseness | XpmExactColors | XpmColorKey | XpmColormap |
 		    XpmDepth;
     attr.colormap = wa.colormap;
@@ -408,10 +403,8 @@ static void DrawPixmap(Drawable w, Pixmap p, int mapchar, int x, int y)
 void MakeHelpWindows(void)
 {
   register int i;
-  char *title =
-    "    Sokoban  --  X version by Joseph L. Traub  --  Help page %d";
-  char *next =
-     "     Press Enter to exit  --   Any other key for next page.";
+  char *title = "    Sokoban  --  X version 3.1 --  Help page %d";
+  char *next = "     Press <Return> to exit";
 
   for(i = 0; i < HELP_PAGES; i++) {
     XFillRectangle(dpy, help[i], drgc, 0, 0, HELP_W, HELP_H);
@@ -587,6 +580,38 @@ void DisplayHelp(void)
   DrawString(0, HELPLINE, "Press ? for help.");
 }
 
+/* Function used by the help pager.  We ONLY want to flip pages if a key
+ * key is pressed.. We want to exit the help pager if ENTER is pressed.
+ * As above, <shift> and <control> and other such fun keys are NOT counted
+ * as a keypress.
+ */
+Boolean WaitForEnter(void)
+{
+  KeySym keyhit;
+  char buf[1];
+  int bufs = 1;
+  XComposeStatus compose;
+  XEvent xev;
+
+  while (1) {
+    XNextEvent(dpy, &xev);
+    switch(xev.type) {
+      case Expose:
+	RedisplayScreen();
+	break;
+      case KeyPress:
+	buf[0] = '\0';
+	XLookupString(&xev.xkey, buf, bufs, &keyhit, &compose);
+	if(buf[0]) {
+	  return (keyhit == XK_Return) ? _true_ : _false_;
+	}
+	break;
+      default:
+	break;
+    }
+  }
+}
+
 /* Displays the first help page, and flips help pages (one per key press)
  * until a return is pressed.
  */
@@ -611,6 +636,12 @@ void ShowHelp(void)
     }
   }
 }
+
+short DisplayScores()
+{
+    return DisplayScores_(dpy, win);
+}
+
 
 /* since the 'press ? for help' is ALWAYS displayed, just beep when there is
  * a problem.
