@@ -25,6 +25,7 @@ xsokoban/score.c
 xsokoban/score.h
 xsokoban/scoredisp.c
 xsokoban/screen.c
+xsokoban/www.h
 xsokoban/xsokoban.man
 xsokoban/patchlevel.h
 xsokoban/bitmaps/defaults/centerwall.xpm
