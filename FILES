@@ -1,4 +1,3 @@
-xsokoban
 xsokoban/Imakefile
 xsokoban/Makefile
 xsokoban/Makefile.in
@@ -23,14 +22,9 @@ xsokoban/resources.c
 xsokoban/save.c
 xsokoban/score.c
 xsokoban/scoredisp.c
-xsokoban/scores
 xsokoban/screen.c
-xsokoban/screens
 xsokoban/xsokoban.man
 xsokoban/patchlevel.h
-xsokoban/saves
-xsokoban/bitmaps
-xsokoban/bitmaps/defaults
 xsokoban/bitmaps/defaults/centerwall.xpm
 xsokoban/bitmaps/defaults/east_twall.xpm
 xsokoban/bitmaps/defaults/eastwall.xpm

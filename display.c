@@ -462,9 +462,9 @@ void MakeHelpWindows(void)
   int i;
   int ypos = 0;
 #if WWW
-  char *title = "    Sokoban  --  X+WWW version 3.2b --  Help page %d";
+  char *title = "    Sokoban  --  X+WWW version 3.2c --  Help page %d";
 #else
-  char *title = "    Sokoban  --  X version 3.2b --  Help page %d";
+  char *title = "    Sokoban  --  X version 3.2c --  Help page %d";
 #endif
   char *next = "     Press <Return> to exit";
 
