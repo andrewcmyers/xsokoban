@@ -204,7 +204,7 @@ There is more information about
 in the WWW, at
 .br
 .sp
-http://www.pmg.lcs.mit.edu/~andru/xsokoban.html
+http://xsokoban.lcs.mit.edu/xsokoban.html
 .sp
 A global score file is also located there.
 
