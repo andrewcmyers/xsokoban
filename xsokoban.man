@@ -67,6 +67,10 @@ Display a help screen.
 .B q
 Quit the current level.
 .TP 8
+.B h,j,k,l
+Move the man just like the arrow keys, as in
+.IR vi (1).
+.TP 8
 .B s
 Save and quit.
 .TP 8
@@ -76,12 +80,14 @@ Undo the last action. Same as right mouse button.
 .B U
 Restart a level.
 .TP 8
+.B c
+Snapshot the current position
+.TP 8
+.B ^U
+Restore to the last snapshot
+.TP 8
 .B ^R
 Redraw the screen.
-.TP 8
-.B h,j,k,l
-Move the man just like the arrow keys, as in
-.IR vi (1).
 .TP 8
 .B S
 View the score file.

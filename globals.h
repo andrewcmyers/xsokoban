@@ -71,6 +71,9 @@ typedef struct {
 #define wX(x) (((x)/bit_width) - ((MAXCOL - cols)/2))
 #define wY(x) (((x)/bit_height) - ((MAXROW - rows)/2))
 
+#define MOVE_HISTORY_SIZE 4096
+/* The number of moves that are remembered for temp saves and
+   verifies. */
 
 /*** Global state ***/
 typedef char Map[MAXROW+1][MAXCOL+1];
@@ -88,6 +91,11 @@ extern XrmDatabase rdb;
 extern Colormap cmap;
 extern char *progname, *bitpath, *username;
 extern Boolean display_alloc;
+
+char move_history[MOVE_HISTORY_SIZE];
+/* The characters "move_history[0..moves-1]" describe the entire
+   sequence of moves applied to this level so far, in a format
+   compatible with "Verify".  */
 
 extern short scoreentries;
 extern struct st_entry {

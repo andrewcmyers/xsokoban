@@ -60,6 +60,7 @@ static short action, lastaction;
 
 static Boolean shift = _false_;
 static Boolean cntrl = _false_;
+static Boolean displaying = _true_;
 static KeySym oldmove;
 static int findmap[MAXROW+1][MAXCOL+1];
 
@@ -82,11 +83,16 @@ static void RecordChange(void);
 static void UndoChange(void);
 static void InitMoveStack(void);
 
+static int tempsave;
+/* The move index at which a temporary save request was made */
 
-/* play a particular level.
- * All we do here is wait for input, and dispatch to appropriate routines
- * to deal with it nicely.
- */
+Boolean ApplyMoves(int moveseqlen, char *moveseq);
+/* forward decl */
+
+/* Play a particular level.
+   All we do here is wait for input, and dispatch to appropriate routines
+   to deal with it nicely.
+*/
 short Play(void)
 {
   short ret;
@@ -95,9 +101,11 @@ short Play(void)
   KeySym sym;
   XComposeStatus compose;
   
+  displaying = _true_;
   ClearScreen();
   ShowScreen();
   InitMoveStack();
+  tempsave = moves;
   ret = 0;
   while (ret == 0) {
     XNextEvent(dpy, &xev);
@@ -170,7 +178,7 @@ short Play(void)
 	  case XK_U:
 	    /* Do a full screen reset */
 	    if(!cntrl) {
-	      moves = pushes = 0;
+	      tempsave = moves = pushes = 0;
 	      ret = ReadScreen();
 	      InitMoveStack();
 	      if(ret == 0) {
@@ -182,8 +190,23 @@ short Play(void)
 	    if(!cntrl) {
 		UndoChange();
 		ShowScreen();
+	    } else {
+		Bool ok;
+		moves = pushes = 0;
+		ret = ReadScreen();
+		InitMoveStack();
+		ok = ApplyMoves(tempsave, move_history);
+		RecordChange();
+		assert(ok);
+		ShowScreen();
+		assert(tempsave == moves);
 	    }
 	    break;
+	  case XK_c:
+	    if (!cntrl) {
+		if (moves < MOVE_HISTORY_SIZE) tempsave = moves;
+		else tempsave = MOVE_HISTORY_SIZE - 1;
+	    }
 	  case XK_k:
 	  case XK_K:
 	  case XK_Up:
@@ -269,21 +292,25 @@ short TestMove(KeySym action)
     tpos1.x = ppos.x-1;
     tpos2.x = ppos.x-2;
     tpos1.y = tpos2.y = ppos.y;
+    if (moves < MOVE_HISTORY_SIZE) move_history[moves] = 'k';
   }
   if((action == XK_Down) || (action == XK_j) || (action == XK_J)) {
     tpos1.x = ppos.x+1;
     tpos2.x = ppos.x+2;
     tpos1.y = tpos2.y = ppos.y;
+    if (moves < MOVE_HISTORY_SIZE) move_history[moves] = 'j';
   }
   if((action == XK_Left) || (action == XK_h) || (action == XK_H)) {
     tpos1.y = ppos.y-1;
     tpos2.y = ppos.y-2;
     tpos1.x = tpos2.x = ppos.x;
+    if (moves < MOVE_HISTORY_SIZE) move_history[moves] = 'h';
   }
   if((action == XK_Right) || (action == XK_l) || (action == XK_L)) {
     tpos1.y = ppos.y+1;
     tpos2.y = ppos.y+2;
     tpos1.x = tpos2.x = ppos.x;
+    if (moves < MOVE_HISTORY_SIZE) move_history[moves] = 'l';
   }
   tc = map[tpos1.x][tpos1.y];
   if((tc == packet) || (tc == save)) {
@@ -340,15 +367,20 @@ void DoMove(short moveaction)
       break;
   }
   moves++;
-  DisplayMoves();
-  DisplayPushes();
-  DisplaySave();
-  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
-  MapChar(map[tpos1.x][tpos1.y], tpos1.x, tpos1.y, 1);
-  MapChar(map[tpos2.x][tpos2.y], tpos2.x, tpos2.y, 1);
+  if (displaying) {
+      DisplayMoves();
+      DisplayPushes();
+      DisplaySave();
+      MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
+      MapChar(map[tpos1.x][tpos1.y], tpos1.x, tpos1.y, 1);
+      MapChar(map[tpos2.x][tpos2.y], tpos2.x, tpos2.y, 1);
+      SyncScreen();
+#ifdef HAS_USLEEP
+      usleep(SLEEPLEN * 1000);
+#endif
+  }
   ppos.x = tpos1.x;
   ppos.y = tpos1.y;
-  SyncScreen();
 }
 
 /* find the shortest path to the target via a fill search algorithm */
@@ -725,7 +757,7 @@ static void InitMoveStack()
 {
     move_stack_sp = -1;
     move_stack[0].moves = moves;
-    move_stack[0].pushes = moves;
+    move_stack[0].pushes = pushes;
     move_stack[0].saved = savepack;
     memcpy(prev_map, map, sizeof(map));
 }
@@ -784,9 +816,9 @@ static void UndoChange()
 {
     if (move_stack_sp <= 0) {
 	int ret;
+	moves = pushes = 0;
 	ret = ReadScreen();
 	InitMoveStack();
-	moves = pushes = 0;
 	if (ret) {
 	    fprintf(stderr, "Can't read screen file\n");
 	    exit(-1);
@@ -811,3 +843,91 @@ static void UndoChange()
 	memcpy(prev_map, map, sizeof(map));
     }
 }
+
+char move_history[MOVE_HISTORY_SIZE];
+
+/* Verify: Determine whether the move sequence solves
+   the current level. Return "_true_" if so.  Set "moves" and "pushes"
+   appropriately.
+
+   "moveseqlen" must be the number of characters in "moveseq".
+
+   The format of "moveseq" is as described in "ApplyMoves".
+*/
+
+Boolean Verify(int moveseqlen, char *moveseq)
+{
+}
+
+/* ApplyMoves:
+
+    Receive a move sequence, and apply it to the current level as if
+    the player had made the moves, but without doing any screen updates.
+    Return _true_ if the move sequence is well-formed; _false_ if not.
+
+    "moveseqlen" must be the length in characters of "moveseq".
+
+    A well-formed move string "moveseq" is a sequence of the characters
+    "h,j,k,l" and "0-9".
+
+	[hjkl]: move the man by one in the appropriate direction
+	[1-9]: provide a count of how many times the next move
+		should be executed, divided by two. Thus, "1" means
+		repeat twice, "9" means repeat 18 times.  The next
+		move must be one of [hjkl].
+*/
+static Boolean SingleMove(char c)
+{
+    switch(c) {
+	case 'h': MakeMove(XK_h); break;
+	case 'j': MakeMove(XK_j); break;
+	case 'k': MakeMove(XK_k); break;
+	case 'l': MakeMove(XK_l); break;
+	default: return _false_;
+    }
+    return _true_;
+}
+
+Boolean ApplyMoves(int moveseqlen, char *moveseq)
+{
+    int i = 0;
+    char lastc = 0;
+    Bool olddisp = displaying;
+
+    displaying = _false_;
+    shift = _false_;
+    cntrl = _false_;
+
+    while (i < moveseqlen) {
+	char c = moveseq[i++];
+	if (lastc && c != lastc) RecordChange();
+	lastc = c;
+	switch (c) {
+	    case 'h': case 'j': case 'k': case 'l':
+		SingleMove(c);
+		break;
+	    case '1': case '2': case '3':
+	    case '4': case '5': case '6':
+	    case '7': case '8': case '9':
+		{
+		    int reps = c - '0';
+		    if (i == moveseqlen) {
+			displaying = olddisp;
+			return _false_;
+		    }
+		    while (reps--) {
+			if (!(SingleMove(c) && SingleMove(c))) {
+			    displaying = olddisp;
+			    return _false_;
+			}
+		    }
+		    i++;
+		}
+		break;
+	}
+    }
+    RecordChange();
+    displaying = olddisp;
+    return _true_;
+}
+

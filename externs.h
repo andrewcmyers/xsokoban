@@ -57,6 +57,10 @@ extern int rename(char *from, char *to);
 extern char *strdup(const char *);
 #endif
 
+#if defined(HAS_USLEEP)
+extern unsigned usleep(unsigned);
+#endif
+
 extern int fsync(int);
 
 /* The boolean typedef */
@@ -116,6 +120,7 @@ extern void MoveMan(int, int);
 extern void FindTarget(int, int, int);
 extern Boolean RunTo(int, int);
 extern void PushMan(int, int);
+extern Boolean Verify(int, char *);
 
 /* stuff from score.c */
 extern short OutputScore(int);

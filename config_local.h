@@ -41,3 +41,6 @@
 
 /* Does the system support "strdup" and have a prototype in <string.h>? */
 #define STRDUP_PROTO
+
+/* Does the system have "usleep"? */
+#define HAS_USLEEP
