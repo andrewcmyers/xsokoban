@@ -76,7 +76,7 @@ void main(int argc, char **argv)
 	ret = GetUserLevel(&userlevel);
 	if(ret == 0) {
 	    if(optlevel > 0) {
-#ifndef ANYLEVEL
+#if !ANYLEVEL
 		if (userlevel < optlevel) {
 		    if (superuser) {
 			/* superusers can play any level (but not score),
