@@ -81,3 +81,4 @@ extern unsigned short scorelevel, scoremoves, scorepushes;
 extern POS ppos;
 extern Display *dpy;
 extern unsigned int bit_width, bit_height;
+extern Atom wm_delete_window, wm_protocols;
