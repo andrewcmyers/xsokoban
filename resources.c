@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -47,6 +48,32 @@ Boolean GetColorResource(char *res, unsigned long *cP)
     return _false_;
   *cP = color.pixel;
   return _true_;
+}
+
+/* Uses the global "cmap" to look up colors. Call exit() if no color
+   can be found. XXX Yuck */
+unsigned long GetColorOrDefault(Display *dpy,
+				char *resource_name,
+				int depth,
+				char *default_name_8,
+				Boolean default_white_2)
+{
+    XColor c;
+    unsigned long pixel;
+    if (GetColorResource(resource_name, &pixel)) {
+	return pixel;
+    } else {
+	char *val;
+	if (depth >= 8)
+	  val = default_name_8;
+	else
+	  val = default_white_2 ? "white" : "black";
+	if (XParseColor(dpy, cmap, default_name_8, &c) &&
+	    XAllocColor(dpy, cmap, &c))
+	  return c.pixel;
+	fprintf(stderr, "Cannot obtain color for %s\n", resource_name);
+	exit(EXIT_FAILURE);
+    }
 }
 
 XFontStruct *GetFontResource(char *font)
