@@ -289,6 +289,7 @@ short DisplayScores_(Display *dpy, Window win)
 	if (scores_dirty) {
 	    if (0 == XPending(dpy)) {
 		scores_dirty = _false_;
+		PositionThumb(thumb);
 		XClearWindow(dpy, win);
 		DrawScores(&wa, win);
 		XSync(dpy, FALSE); /* make sure we don't get ahead */
@@ -370,7 +371,6 @@ short DisplayScores_(Display *dpy, Window win)
 		      thumb_range * vmax;
 		    TrimPosn();
 		    if (old_vposn != vposn) {
-			PositionThumb(thumb);
 			scores_dirty = _true_;
 		    }
 		}
