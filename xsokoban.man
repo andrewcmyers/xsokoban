@@ -7,6 +7,8 @@ xsokoban \- Pushing objects around...
 .BI \- nn
 .B | \-s[level] |
 .B \-r |
+.B \-u
+<username>
 .B \-c[scorefile-text]}
 .B \-C
 .B \-display
@@ -148,6 +150,10 @@ the printout to scores on just that level.
 .B \-r
 Restore a saved game.
 .TP 8
+.B \-u <username>
+Set the name of the user playing the game. By default, the user's login
+name is used.
+.TP 8
 .B \-c [scorefile-text]
 Create a new score file (can be ran only by the owner of the game).
 If the argument "scorefile-text" is supplied, the file of that name
@@ -157,7 +163,7 @@ to contain the scores described in that text file. If no argument is
 supplied, the score file is initialized to be empty.
 .TP 8
 .B \-C
-Create a new colormap for display purposes. Ordinarily
+Create a new X colormap for display purposes. Ordinarily
 .I xsokoban
 creates a new colormap automatically if the default colormap does
 not contain enough free slots to allow it to run properly.

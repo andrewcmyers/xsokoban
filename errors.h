@@ -40,13 +40,13 @@ char *errmess[] = {
                  [-v <level> <user> <bytes>]\n\n"
 
 char *usages[] = {
-  "\t-c[textfile]        : create a new score file (\"superuser\" only)\n",
-  "\t-r                  : restore a saved game.\n",
-  "\t-s [level]          : show high score table or a portion of it.\n",
   "\t-<nn>               : play level <nn> (<nn> must be greater than 0)\n",
-  "\t-u <user>           : change user name\n",
-  "\t-C                  : use own colormap for displaying\n",
+  "\t-s [level]          : show high score table or a portion of it.\n",
+  "\t-r                  : restore a saved game.\n",
+  "\t-u <user>           : set user name\n",
+  "\t-C                  : use new X colormap for displaying\n",
   "\t-display <disp>     : run on display <disp>\n",
+  "\t-c[textfile]        : create a new score file (game owner only)\n",
   "\t-w                  :\n",
   "\t-walls              : use fancy walls\n",
   "\t-rv                 :\n",
@@ -63,11 +63,11 @@ char *usages[] = {
   "\t-border <color>     : use <color> as border color\n",
   "\t-pr <color>         :\n",
   "\t-pointer <color>    : use <color> as the pointer foreground color\n",
-  "\t-xrm <arg>          : specify that <arg> is an X resource\n\n",
-  "\t-D                  : print dates in seconds since 1970\n",
-  "\t-U                  : get user level\n",
+  "\t-xrm <arg>          : specify that <arg> is an X resource\n",
+  "\n\t-D                  : print dates in seconds since 1970\n",
+  "\t-U                  : print user's level\n",
   "\t-H                  : print -l style header on -s output\n",
-  "\t-L <line1> <line2>  : dump score file, lines in [line1,line2)\n",
-  "\t-v <level> <user> <bytes> : verify and score a solution. Soln on stdin.\n",
+  "\t-L <line1> <line2>  : print score file, only lines in [line1,line2)\n",
+  "\t-v <level> <user> <bytes> : verify and score a solution from stdin.\n",
   NULL
 };

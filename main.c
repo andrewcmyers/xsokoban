@@ -273,6 +273,7 @@ short CheckCommandLine(int *argcP, char **argv)
 	  break;
 	case 'u':
 	  option++;
+	  if (!argv[option]) return E_USAGE;
 	  username = FixUsername(argv[option]);
 	  break;
 	case 'U':
