@@ -100,29 +100,6 @@ char *GetColorShades(Display *dpy,
     return 0;
 }
 
-unsigned long GetColorOrDefault(Display *dpy,
-				XWindowAttributes *wa,
-				char *resource_name,
-				char *default_name_8,
-				Boolean default_white_2)
-{
-    XColor c;
-    unsigned long pixel;
-    if (GetColorResource(resource_name, &pixel)) {
-	return pixel;
-    } else {
-	char *val;
-	if (wa->depth >= 8)
-	  val = default_name_8;
-	else
-	  val = default_white_2 ? "white" : "black";
-	if (XParseColor(dpy, wa->colormap, default_name_8, &c) &&
-	    XAllocColor(dpy, wa->colormap, &c))
-	  return c.pixel;
-	fprintf(stderr, "Cannot obtain color for %s\n", resource_name);
-	exit(EXIT_FAILURE);
-    }
-}
 
 /* Return 0 on success, else return an error message. */
 char *InitDisplayScores(Display *dpy, Window win)
@@ -132,31 +109,32 @@ char *InitDisplayScores(Display *dpy, Window win)
     u_long value_mask;
     assert(status);
     bevel_darkening = GetIntResource("bevel.darkening", 16000);
-    sb_bg = GetColorOrDefault(dpy, &wa,
-			      "scrollbar.background", "gray", _true_);
+    sb_bg = GetColorOrDefault(dpy, "scrollbar.background",
+			      wa.depth, "gray", _true_);
     GetColorShades(dpy, &wa,
 		   "panel.background", "beige", _true_,
 		   panel_bg);
 		   
-    panel_fg = GetColorOrDefault(dpy, &wa,
-				 "panel.foreground", "black", _true_);
-    border_color = GetColorOrDefault(dpy, &wa,
-				     "border.color", "black", _false_);
-    text_color = GetColorOrDefault(dpy, &wa,
-				     "text.color", "black", _false_);
-    text_highlight = GetColorOrDefault(dpy, &wa,
-				       "text.highlight", "red3", _true_);
+    panel_fg = GetColorOrDefault(dpy, "panel.foreground",
+				 wa.depth, "black", _true_);
+    border_color = GetColorOrDefault(dpy, "border.color",
+				     wa.depth, "black", _false_);
+    text_color = GetColorOrDefault(dpy, "text.color",
+				   wa.depth, "black", _false_);
+    text_highlight = GetColorOrDefault(dpy, "text.highlight",
+				       wa.depth, "red3", _true_);
 				     
     text_indent = GetIntResource("text.indent", 3);
-    white = GetColorOrDefault(dpy, &wa, "highlight.color", "white", _true_);
+    white = GetColorOrDefault(dpy, "highlight.color",
+			      wa.depth, "white", _true_);
     border_width = GetIntResource("border.width", 1);
     sb_width = GetIntResource("scrollbar.width", 25);
     panel_height = GetIntResource("panel.height", 25);
     bevel_width = GetIntResource("bevel.width", 3);
     thumb_height = GetIntResource("scrollbar.thumb.height", sb_width);
     thumb_width = GetIntResource("scrollbar.thumb.width", sb_width);
-    separation_color = GetColorOrDefault(dpy, &wa, "sep.color", "gray",
-					 _false_);
+    separation_color = GetColorOrDefault(dpy, "sep.color", wa.depth,
+					 "gray", _false_);
     GetColorShades(dpy, &wa, "scrollbar.thumb.color", "gray", _true_,
 		   thumb_colors);
     finfo = GetFontResource("panel.font");
