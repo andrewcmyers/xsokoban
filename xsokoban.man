@@ -8,6 +8,7 @@ xsokoban \- Pushing objects around...
 .B \-r
 .B \-c
 .B \-nn
+.B \-C
 .B \-display
 <disp>
 .B {\-w | \-walls}
@@ -117,6 +118,12 @@ Restore a saved game.
 Start at level 
 .I nn, 
 provided that levels below it are completed. 
+.TP 8
+.B \-C
+Create a new colormap for display purposes. Ordinarily
+.I xsokoban
+creates a new colormap automatically if the default colormap does
+not contain enough free slots to allow it to run properly.
 .TP 8
 .B \-display <display>
 Run the game on the named display.
