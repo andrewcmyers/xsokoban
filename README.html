@@ -1,0 +1,45 @@
+This is the second release of XSokoban.
+
+This distribution contains all the files to compile and run the game,
+the original 50 sokoban screen files, 35 additional screen files
+that were sent to me as being gleaned from various public domain
+versions of sokoban, and a manual page that explains how the game works..
+
+Installation -
+  - Edit the header file config.h to define the appropriate paths, and
+    things for your system. Nearly EVERY define in this file MUST be
+    changed if your game is to run correctly.
+
+  - Compile by typing 'make'.  If something goes wrong, and you can track
+    down an error, send me a bug report (including what changes you needed
+    to make, and I will see about fixing it for later distributions)
+
+  - Create the scorefile by typing 'xsokoban -c'.  (If you have a sokoban
+    game already on your system, you should be able to just use that score
+    file by setting the config.h defines correctly).
+
+  - Play the game by typing 'xsokoban'.
+
+  - Have fun.
+
+Notes -
+  - The screen files need to be publically readable.
+
+  - The score file should be readable/writeable ONLY by the 'superuser' of the
+    program (see config.h).
+
+  - The save files should be readable/writeable ONLY by the 'superuser'.
+
+  - Because of this, the game needs to be run setuid of the person who is
+    'superuser'.
+
+Fixes/Bug Reports/Modifications -
+  - If you make any changes to this program, fix any bugs, add any neat
+    features, or whatever, please get ahold of me at jt1o@andrew.cmu.edu
+    so that I can add them in to the newest release.
+
+Future -
+  - I will be setting up a sokoban level designer sometime in the near future.
+
+--Joseph L. Traub
+  (jt1o@andrew.cmu.edu)
