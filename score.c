@@ -70,9 +70,11 @@ static char *subst_names(char const *template);
 static short FindPos();
 /* Find the position for a new score in the score table */ 
 
+#if !WWW
 static short FindUser();
 /* Search the score table to find a specific player, returning the
    index of the highest level that user has played, or -1 if none. */
+#endif
 
 static short GetUserLevel_WWW(short *lv);
 
@@ -112,8 +114,10 @@ static short ReadScore();
    "scoreentries", and "date_stamp" appropriately.
 */
 
+#if !WWW
 static short WriteScore();
 /* Update the score file to contain a new score. See comments below. */
+#endif
 
 static short WriteScore_WWW();
 /* Write a solution out to the WWW server */
@@ -234,7 +238,6 @@ short OutputScoreLines(int line1, int line2)
     DEBUG_SERVER("score file unlocked");
     if (ret == 0) {
 	int i;
-	int j = 0;
 	int top, bottom;
 	DeleteLowRanks();
 	if (line1 > scoreentries) line1 = scoreentries;
@@ -313,7 +316,7 @@ short MakeNewScore(char *textfile)
 
 short GetUserLevel(short *lv)
 {
-  short ret = 0, pos;
+  short ret = 0;
 
 #if WWW
   return GetUserLevel_WWW(lv);
@@ -324,6 +327,7 @@ short GetUserLevel(short *lv)
   if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
     ret = E_FOPENSCORE;
   else {
+    short pos;
     if ((ret = ReadScore()) == 0)
       *lv = ((pos = FindUser()) > -1) ? scoretable[pos].lv + 1 : 1;
   }
@@ -536,7 +540,7 @@ static short MakeScore()
     return 0;
 }
 
-
+#if !WWW
 static short FindUser()
 {
   short i;
@@ -546,6 +550,7 @@ static short FindUser()
     found = (strcmp(scoretable[i].user, username) == 0);
   return ((found) ? i - 1 : -1);
 }
+#endif
 
 static short FindPos()
 {
@@ -588,13 +593,12 @@ static short FindPos()
      here.
 */
 
+#if !WWW
+
 char const *tempnm = SCOREFILE "XXXXXX";
 
 static short WriteScore()
 {
-#if WWW
-  return WriteScore_WWW();
-#else
   short ret = 0;
   int tmp;
     
@@ -668,8 +672,8 @@ static short WriteScore()
     }
     if (ret != 0) (void)unlink(tempfile);
     return ret;
-#endif
 }
+#endif
 
 char *mos[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -1006,9 +1010,7 @@ short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */)
 {
     char *start, *text, *cmd = subst_names(WWWGETLINESPATH);
     char cmdbuf[256];
-    char line[256];
     short ret;
-    int i;
     sprintf(cmdbuf, cmd, *line1, *line2);
     start = text = qtelnet(WWWHOST, WWWPORT, cmdbuf);
     free(cmd);

@@ -47,7 +47,7 @@ int movelen;
 /* do all the setup foo, and make sure command line gets parsed. */
 void main(int argc, char **argv)
 {
-  short ret = 0, ret2 = 0;
+  short ret = 0;
 
   DEBUG_SERVER("starting");
 #ifdef VICE

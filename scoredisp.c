@@ -115,7 +115,7 @@ static char *InitDisplayScores(Display *dpy, Window win)
     Status status = XGetWindowAttributes(dpy, win, &wa);
     XGCValues gc_values;
     u_long value_mask;
-    assert(status);
+    if (!status) return "Cannot get window attributes";
     bevel_darkening = GetIntResource("bevel.darkening", 16000);
     sb_bg = GetColorOrDefault(dpy, "scrollbar.background",
 			      wa.depth, "gray", _true_);
@@ -272,7 +272,6 @@ static short InitialPosition(int *vposn)
 	int lines = (win_height - 1)/font_height + 2;
 	int bottom = fc2 + lines/2;
 	int top = bottom - lines;
-	int line1, line2;
 	short ret;
 
 	top = scoreentries - top;
@@ -280,7 +279,7 @@ static short InitialPosition(int *vposn)
 #if DEBUG_FETCH
 	fprintf(stderr, "Guess of bracketed area: %d - %d\n", bottom, top);
 #endif
-	if (ret = ValidateLines(top, bottom)) return ret;
+	if ((ret = ValidateLines(top, bottom))) return ret;
 	fc1 = fc2;
 	fc2 = FindCurrent();
     } while (fc1 != fc2);
@@ -358,7 +357,7 @@ short DisplayScores_(Display *dpy, Window win, short *newlev)
       score_finfo->max_bounds.descent;
     win_height = wa.height - panel_height - yclip;
     thumb_range = wa.height - panel_height - thumb_height;
-    if (ret = InitialPosition(&vposn)) return ret;
+    if ((ret = InitialPosition(&vposn))) return ret;
     vmax = font_height * (scoreentries + 2) - win_height;
     yclip = font_height * 3/2;
     /* coerce to int to make sure we do this in signed arithmetic */
@@ -510,7 +509,6 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     int first_index = vposn/font_height;
     int last_index = (vposn + win_height - 1)/font_height;
     int i;
-    int old_scoreentries = scoreentries;
     int top, bottom;
     char * header = "Rank                             User  Level   Moves  Pushes   Date";
     XSetForeground(dpy, gc, text_color);
