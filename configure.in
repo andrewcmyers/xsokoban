@@ -106,12 +106,14 @@ AC_COMPILE_CHECK([mktemp prototype],
 AC_DEFINE(MKTEMP_PROTO))
 
 AC_COMPILE_CHECK([perror prototype],
-[#include <errno.h>],
+[#include <errno.h>
+#include <stdio.h>],
 [perror("bleah"); ],
 AC_DEFINE(PERROR_PROTO))
 
 AC_COMPILE_CHECK([rename prototype],
-[#include <unistd.h>],
+[#include <unistd.h>
+#include <stdio.h>],
 [int x = rename("foo", "bar");],
 AC_DEFINE(RENAME_PROTO))
 
