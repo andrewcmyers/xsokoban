@@ -45,6 +45,14 @@ xsokoban-3.0/bitmaps/defaults/wall.xbm
 xsokoban-3.0/bitmaps/defaults/west_twall.xbm
 xsokoban-3.0/bitmaps/defaults/westwall.xbm
 xsokoban-3.0/screens/screen.1
+xsokoban-3.0/screens/screen.2
+xsokoban-3.0/screens/screen.3
+xsokoban-3.0/screens/screen.4
+xsokoban-3.0/screens/screen.5
+xsokoban-3.0/screens/screen.6
+xsokoban-3.0/screens/screen.7
+xsokoban-3.0/screens/screen.8
+xsokoban-3.0/screens/screen.9
 xsokoban-3.0/screens/screen.10
 xsokoban-3.0/screens/screen.11
 xsokoban-3.0/screens/screen.12
@@ -55,7 +63,6 @@ xsokoban-3.0/screens/screen.16
 xsokoban-3.0/screens/screen.17
 xsokoban-3.0/screens/screen.18
 xsokoban-3.0/screens/screen.19
-xsokoban-3.0/screens/screen.2
 xsokoban-3.0/screens/screen.20
 xsokoban-3.0/screens/screen.21
 xsokoban-3.0/screens/screen.22
@@ -66,7 +73,6 @@ xsokoban-3.0/screens/screen.26
 xsokoban-3.0/screens/screen.27
 xsokoban-3.0/screens/screen.28
 xsokoban-3.0/screens/screen.29
-xsokoban-3.0/screens/screen.3
 xsokoban-3.0/screens/screen.30
 xsokoban-3.0/screens/screen.31
 xsokoban-3.0/screens/screen.32
@@ -77,7 +83,6 @@ xsokoban-3.0/screens/screen.36
 xsokoban-3.0/screens/screen.37
 xsokoban-3.0/screens/screen.38
 xsokoban-3.0/screens/screen.39
-xsokoban-3.0/screens/screen.4
 xsokoban-3.0/screens/screen.40
 xsokoban-3.0/screens/screen.41
 xsokoban-3.0/screens/screen.42
@@ -88,7 +93,6 @@ xsokoban-3.0/screens/screen.46
 xsokoban-3.0/screens/screen.47
 xsokoban-3.0/screens/screen.48
 xsokoban-3.0/screens/screen.49
-xsokoban-3.0/screens/screen.5
 xsokoban-3.0/screens/screen.50
 xsokoban-3.0/screens/screen.51
 xsokoban-3.0/screens/screen.52
@@ -99,7 +103,6 @@ xsokoban-3.0/screens/screen.56
 xsokoban-3.0/screens/screen.57
 xsokoban-3.0/screens/screen.58
 xsokoban-3.0/screens/screen.59
-xsokoban-3.0/screens/screen.6
 xsokoban-3.0/screens/screen.60
 xsokoban-3.0/screens/screen.61
 xsokoban-3.0/screens/screen.62
@@ -110,7 +113,6 @@ xsokoban-3.0/screens/screen.66
 xsokoban-3.0/screens/screen.67
 xsokoban-3.0/screens/screen.68
 xsokoban-3.0/screens/screen.69
-xsokoban-3.0/screens/screen.7
 xsokoban-3.0/screens/screen.70
 xsokoban-3.0/screens/screen.71
 xsokoban-3.0/screens/screen.72
@@ -121,11 +123,14 @@ xsokoban-3.0/screens/screen.76
 xsokoban-3.0/screens/screen.77
 xsokoban-3.0/screens/screen.78
 xsokoban-3.0/screens/screen.79
-xsokoban-3.0/screens/screen.8
 xsokoban-3.0/screens/screen.80
 xsokoban-3.0/screens/screen.81
 xsokoban-3.0/screens/screen.82
 xsokoban-3.0/screens/screen.83
 xsokoban-3.0/screens/screen.84
 xsokoban-3.0/screens/screen.85
-xsokoban-3.0/screens/screen.9
+xsokoban-3.0/screens/screen.86
+xsokoban-3.0/screens/screen.87
+xsokoban-3.0/screens/screen.88
+xsokoban-3.0/screens/screen.89
+xsokoban-3.0/screens/screen.90
