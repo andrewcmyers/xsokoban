@@ -139,12 +139,12 @@ short Play(void)
 	  case XK_q:
 	    /* q is for quit */
 	    if(!cntrl)
-	      ret = E_ENDGAME;
+	      ret = E_ABORTLEVEL;
 	    break;
 	  case XK_S:
 	    if (shift || cntrl) {
-	      ret = DisplayScores();
-	      if (!ret) RedisplayScreen();
+		(void)DisplayScores(0);
+		RedisplayScreen();
 	    }
 	    break;
 	  case XK_s:
@@ -153,10 +153,6 @@ short Play(void)
 	      ret = SaveGame();
 	      if(ret == 0)
 		ret = E_SAVED;
-	    }
-	    if (shift || cntrl) {
-	      ret = DisplayScores();
-	      if (!ret) RedisplayScreen();
 	    }
 	    break;
 	  case XK_question:

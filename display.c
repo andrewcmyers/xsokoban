@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <sys/limits.h>
+#include <limits.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -642,9 +642,9 @@ void ShowHelp(void)
   }
 }
 
-short DisplayScores()
+short DisplayScores(short *newlev)
 {
-    return DisplayScores_(dpy, win);
+    return DisplayScores_(dpy, win, newlev);
 }
 
 

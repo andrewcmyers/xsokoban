@@ -56,6 +56,7 @@ the desired destination.
 The right button mouse undoes the last user action, and may be used any
 number of times.
 
+
 .PP
 The rest of the functions are bound to the keyboard:
 .TP 8
@@ -63,7 +64,7 @@ The rest of the functions are bound to the keyboard:
 Display a help screen.
 .TP 8
 .B q
-Quit the game.
+Quit the current level.
 .TP 8
 .B s
 Save and quit.
@@ -83,6 +84,14 @@ Move the man just like the arrow keys, as in
 .TP 8
 .B S
 View the score file.
+
+The score file can be viewed at any time during the playing of the
+game. Scores of the current user are initially highlighted. The left
+mouse button may be used to select other users to highlight. The
+scores are also displayed whenever a level is completed. When the
+score file is displayed between levels, the middle mouse button can be
+used to select a new level to play.  The <Return> key is used to play
+the next level, and the "q" key exits the game.
 
 Scores in
 .I xsokoban

@@ -80,7 +80,7 @@ extern void DisplaySave(void);
 extern void DisplayMoves(void);
 extern void DisplayPushes(void);
 extern void DisplayHelp(void);
-extern short DisplayScores(void);
+extern short DisplayScores(short *);
 extern void ShowHelp(void);
 extern void HelpMessage(void);
 extern void DestroyDisplay(void);
@@ -137,5 +137,5 @@ extern short SaveGame(void);
 extern short RestoreGame(void);
 
 /* stuff from scoredisp.c */
-extern short DisplayScores_(Display *, Window);
+extern short DisplayScores_(Display *, Window, short *);
 extern char *InitDisplayScores_(Display *, Window);

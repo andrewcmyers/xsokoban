@@ -227,34 +227,52 @@ short CheckCommandLine(int *argcP, char **argv)
 /* we just sit here and keep playing level after level after level after .. */
 short GameLoop(void)
 {
-  short ret = 0;
-
-  /* make sure X is all set up and ready for us */
-  ret = InitX();
-  if(ret != 0)
-    return ret;
-
-  /* get where we are starting from */
-  if(!optrestore)
-    ret = ReadScreen();
-
-  /* until we quit or get an error, just keep on going. */
-  while(ret == 0) {
-    ret = Play();
-    if((scorelevel > 0) && scoring) {
-      int ret2;
-      ret2 = Score(_false_);
-      Error(ret2);
-      scorelevel = 0;
-      DisplayScores();
-    }
-    if(ret == 0) {
-      level++;
-      moves = pushes = packets = savepack = 0;
+    short ret = 0;
+    
+    /* make sure X is all set up and ready for us */
+    ret = InitX();
+    if(ret != 0)
+      return ret;
+    
+    /* get where we are starting from */
+    if(!optrestore)
       ret = ReadScreen();
+    
+    /* until we quit or get an error, just keep on going. */
+    while(ret == 0) {
+	ret = Play();
+	if((scorelevel > 0) && scoring) {
+	    int ret2;
+	    ret2 = Score(_false_);
+	    Error(ret2);
+	    scorelevel = 0;
+	}
+	if (ret == 0 || ret == E_ABORTLEVEL) {
+	    short newlev = 0;
+	    short ret2;
+	    ret2 = DisplayScores(&newlev);
+	    if (ret2 == 0) {
+		if (newlev > 0 &&
+#if !ANYLEVEL
+		    newlev <= userlevel &&
+#endif
+		    TRUE) {
+		    level = newlev;
+		} else {
+		    if (ret == 0) level++;
+		}
+		ret = 0;
+	    } else {
+		ret = ret2;
+	    }
+		
+	}
+	if(ret == 0) {
+	    moves = pushes = packets = savepack = 0;
+	    ret = ReadScreen();
+	}
     }
-  }
-  return ret;
+    return ret;
 }
 
 /* Does this really need a comment :) */
@@ -303,7 +321,7 @@ void Error(short err)
         Usage();
       break;
     default:
-      if(err != E_ENDGAME)
+      if(err != E_ENDGAME && err != E_ABORTLEVEL)
 	fprintf(stderr, "%s: %s\n", progname, errmess[0]);
       break;
   }
