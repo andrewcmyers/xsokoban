@@ -1,3 +1,4 @@
+HERE="@somewhere.somedomain"
 ROOTDIR = "." 
 ANYLEVEL = 0
 WWW=1

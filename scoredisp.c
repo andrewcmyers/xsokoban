@@ -16,6 +16,8 @@
 #define EXIT_FAILURE -1
 #endif
 
+#define DEBUG_FETCH 0
+
 static void DrawPanel(XWindowAttributes *wa, Window panel);
 static void DrawScores(XWindowAttributes *wa, Window win);
 static void DrawThumb(Window thumb);
@@ -186,6 +188,14 @@ static void TrimPosn()
 }
 
 #if WWW
+void ComputeRanksLines(int line1, int line2)
+{
+    int i;
+    for (i = scoreentries - line2; i < scoreentries - line1; i++) {
+	if (VALID_ENTRY(i)) rank[i] = SolnRank(i, 0);
+    }
+}
+
 static short ValidateLines(int top, int bottom)
 {
     int i,j;
@@ -196,34 +206,35 @@ static short ValidateLines(int top, int bottom)
 	top -= bottom;
 	bottom = 0;
     }
-#if 0
+#if DEBUG_FETCH
     fprintf(stderr, "Validating: %d - %d\n", bottom, top);
 #endif
-    for (i = top; i >= bottom; i--) {
+    for (i = top; i > bottom; i--) {
 	if (i < scoreentries && !VALID_ENTRY(scoreentries - 1 - i)) break;
     }
-    for (j = bottom; j <= top; j++) {
+    for (j = bottom; j < i; j++) {
 	if (j < scoreentries && !VALID_ENTRY(scoreentries - 1 - j)) break;
     }
-    if (i < j) {
-	if (scoreentries) return 0;
-	i = top; j = bottom;
-    }
+#if DEBUG_FETCH
+    fprintf(stderr, "Now validating: %d - %d\n", j, i);
+#endif
+    if (i <= j) return 0;
     line2 = i + 1;
     line1 = j;
     assert (line1 < line2);
-#if 0
+#if DEBUG_FETCH
     fprintf(stderr, "Fetch request: %d - %d\n", line1, line2);
 #endif
     ret = FetchScoreLines_WWW(&line1, &line2);
-    for (i = scoreentries - line2; i < scoreentries - line1; i++) {
-	if (VALID_ENTRY(i)) rank[i] = SolnRank(i, 0);
-    }
+#if DEBUG_FETCH
+    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
+#endif
+    ComputeRanksLines(line1, line2);
     switch (ret) {
 	case 0:
 	    return 0;
 	case E_OUTOFDATE: /* try again! */
-#if 0
+#if DEBUG_FETCH
 	    fprintf(stderr, "Out of date, trying again...\n");
 #endif
 	    return ValidateLines(top, bottom);
@@ -234,7 +245,22 @@ static short ValidateLines(int top, int bottom)
 
 static short InitialPosition(int *vposn)
 {
-    int fc1, fc2 = FindCurrent();
+    int fc1, fc2;
+#if WWW
+    {
+    /* get the number of lines in the file */
+	int line1 = 0, line2 = 0;
+	short ret = FetchScoreLines_WWW(&line1, &line2);
+#if DEBUG_FETCH
+    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
+#endif
+	ComputeRanksLines(line1, line2);
+	if (ret == E_OUTOFDATE) ret = 0;
+	if (ret) return ret;
+    }
+    
+#endif
+    fc2 = FindCurrent();
 
 #if WWW
 /* We may have empty entries that cause FindCurrent() to return the
@@ -251,11 +277,9 @@ static short InitialPosition(int *vposn)
 
 	top = scoreentries - top;
 	bottom = scoreentries - bottom - 1;
-
-#if 0
+#if DEBUG_FETCH
 	fprintf(stderr, "Guess of bracketed area: %d - %d\n", bottom, top);
 #endif
-
 	if (ret = ValidateLines(top, bottom)) return ret;
 	fc1 = fc2;
 	fc2 = FindCurrent();

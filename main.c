@@ -267,8 +267,8 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if (!argv[option]) return E_USAGE;
 	  line1 = atoi(argv[option++]);
 	  if (!argv[option]) return E_USAGE;
-	  line2 = atoi(argv[option++]);
-	  if (line1 >= line2) return E_USAGE;
+	  line2 = atoi(argv[option]);
+	  if (line1 > line2) return E_USAGE;
 	  opt_partial_score = _true_;
 	  break;
 	case 'u':

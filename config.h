@@ -15,7 +15,7 @@
 	    variable in the installed version, but you know best...
 */
 #ifndef ROOTDIR
-#define ROOTDIR "/usr/local/lib/xsokoban"
+#define ROOTDIR "."
 #endif
 
 /*
@@ -87,7 +87,7 @@
    PASSWORD: defines the password necessary for creating a new score file
 */
 #ifndef PASSWORD
-#define PASSWORD "csgima"
+#define PASSWORD "score"
 #endif
 
 /*
@@ -120,7 +120,7 @@
 /*
    WWW: Use WWW to store the score file and screens for you.
 
-   Below, you will find definitions that will allow xsokoban to connect
+   In "www.h", you will find definitions that will allow xsokoban to connect
    to an public xsokoban server maintained by Andrew Myers. The xsokoban
    home page is at
     
@@ -130,78 +130,9 @@
    shell scripts must be used; they are not provided in this
    distribution, but can be obtained on request from andru@lcs.mit.edu.
 */
+
 #ifndef WWW
-#define WWW 0
+#define WWW 1
 #endif
 
-/*
-   WWWHOST: Host where WWW scores are stored
-*/
-#ifndef WWWHOST
-#define WWWHOST "clef.lcs.mit.edu"
-#endif
-
-/*
-   WWWPORT: Port at WWWHOST
-*/
-#ifndef WWWPORT
-#define WWWPORT 80
-#endif
-
-/* HERE: Your local domain. This string will be appended to every user
-   name that is sent to the WWW sokoban server, in order to avoid collisions.
-   Change it!
-
-   For example, if you are at Stanford, a good value for HERE would be
-   "@stanford.edu" or maybe "@cs.stanford.edu". Making HERE specific to
-   individual machines is generally a bad idea.
-
-
-   Usernames that are specified through the "xsokoban.username" resource
-   do not have HERE appended to them.
-*/
-#ifndef HERE
-#define HERE "@lcs.mit.edu"
-#endif
-
-/*
-   WWWSCOREPATH: Path to access in order to store scores. $L means the
-   current level number, $M is the string of moves, $U is the user name,
-   $N is the length of the string of moves.
-*/
-#ifndef WWWSCORECOMMAND
-#define WWWSCORECOMMAND "POST /cgi-bin/sok-solve?$L,$U HTTP/1.0\n" \
-                        "Content-type: text/plain\n" \
-                        "Content-length: $N\n" \
-                        "\n" \
-                        "$M\n"
-#endif
-
-#ifndef WWWREADSCORECMD
-#define WWWREADSCORECMD "GET /cgi-bin/xsokoban/scores HTTP/1.0\n\n"
-#endif
-
-/*
-   WWWSCREENPATH: Path to access in order to get screen files. $L
-   means the requested level number.
-*/
-#ifndef WWWSCREENPATH
-#define WWWSCREENPATH "GET /cgi-bin/xsokoban/screen?level=$L HTTP/1.0\n\n"
-#endif
-
-/*
-   WWWGETLEVELPATH: Path to access in order to get a user's level. $U
-   is the user name.
-*/
-#ifndef WWWGETLEVELPATH
-#define WWWGETLEVELPATH "GET /cgi-bin/xsokoban/user-level?user=$U HTTP/1.0\n\n"
-#endif
-
-/* Change this only if you want to debug an xsokoban score server. */
-#if 1
 #define DEBUG_SERVER(x)
-#else
-extern int getpid();
-#define DEBUG_SERVER(x) fprintf(stderr, "xsokoban %d: %s\n", getpid(), x)
-#endif
-

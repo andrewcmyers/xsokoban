@@ -447,7 +447,8 @@ int SolnRank(int j, Boolean *ignore)
     int i, rank = 1;
     unsigned short level = scoretable[j].lv;
     for (i = 0; i < j; i++) {
-	if (!(ignore && ignore[i]) && scoretable[i].lv == level) {
+	if (VALID_ENTRY(i) &&
+	    !(ignore && ignore[i]) && scoretable[i].lv == level) {
 	    if (scoretable[i].mv == scoretable[j].mv &&
 		scoretable[i].ps == scoretable[j].ps &&
 		0 == strcmp(scoretable[i].user, scoretable[j].user)) {
@@ -982,7 +983,7 @@ static short ParseUserLevel(char *text, short *lv)
     text = getline(text, line, sizeof(line));
     if (!text) return E_READSCORE;
     if (0 == strncmp(line, "Level: ", 7)) {
-	*lv = atoi(text + 7);
+	*lv = atoi(&line[7]);
 	return 0;
     } else {
 	return E_READSCORE;
