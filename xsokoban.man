@@ -169,7 +169,7 @@ Kevin Solie - simultaneously developed X implementation (merged in).
 .br
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
 .br
-Andrew Myers - Improved mouse UI, score ranking, and color support
+Andrew Myers - Improved mouse UI, score ranking, color and WWW support.
 
 Code has also been donated by many 
 .I xsokoban
