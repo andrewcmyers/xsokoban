@@ -17,8 +17,9 @@ AC_PROG_CPP
 # Find Xpm if needed
 
 define(AC_VAR_CHECK,
-$1=`(cat config.h; echo $2) > configure.tmp.$$.h; \
-$CPP configure.tmp.$$.h | egrep -v "^#"`
+avc_ic='#include "config.h"'
+(echo ${avc_ic}; echo $2) > configure.tmp.$$.h
+$1=`$CPP configure.tmp.$$.h | egrep -v "^#"`
 rm configure.tmp.$$.h
 $1=`echo $$1`
 # last line strips out extra whitespace
