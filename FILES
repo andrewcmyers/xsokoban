@@ -10,6 +10,7 @@ xsokoban/config_local.h
 xsokoban/config_local.h.in
 xsokoban/defaults.h
 xsokoban/display.c
+xsokoban/display.h
 xsokoban/errors.h
 xsokoban/externs.h
 xsokoban/globals.h
@@ -21,6 +22,7 @@ xsokoban/qtelnet.c
 xsokoban/resources.c
 xsokoban/save.c
 xsokoban/score.c
+xsokoban/score.h
 xsokoban/scoredisp.c
 xsokoban/screen.c
 xsokoban/xsokoban.man
