@@ -32,6 +32,7 @@ static Boolean font_alloc = False, gc_alloc = False,
         pix_alloc = False;
 static int hlpscrn = -1;
 static char buf[500];
+static Boolean win_alloc = _false_;
 
 /* globals */
 Display *dpy;
@@ -81,12 +82,8 @@ short InitX(void)
    * .Xresources files.  They are read in and parsed in main.c, but used
    * here.
    */
-  rval = GetResource(FONT);
-  if(rval == (char *)0)
-    rval = DEF_FONT;
-  finfo = XLoadQueryFont(dpy, rval);
-  if(finfo == (XFontStruct *)0)
-    return E_NOFONT;
+  finfo = GetFontResource(FONT);
+  if (!finfo) return E_NOFONT;
   font_alloc = _true_;
 
   rval = GetResource(REVERSE);
@@ -157,13 +154,14 @@ short InitX(void)
 		      ButtonReleaseMask);
   wattr.cursor = this_curs;
 
-  /* whee, create the window, we create it with NO size so that we
-   * can load in the bitmaps, we later resize it correctly
+  /* Create the window. we create it with NO size so that we
+   * can load in the bitmaps; we later resize it correctly.
    */
   win = XCreateWindow(dpy, RootWindow(dpy, scr), 0, 0, width, height, 4,
 		      CopyFromParent, InputOutput, CopyFromParent,
                       (CWBackPixel | CWBorderPixel | CWBackingStore |
                        CWEventMask | CWCursor), &wattr);
+  win_alloc = _true_;
 
   /* this will set the bit_width and bit_height as well as loading
    * in the pretty little bitmaps
@@ -232,6 +230,8 @@ void DestroyDisplay(void)
 {
   int i;
 
+  if (!display_alloc) return;
+
   /* kill the font */
   if(font_alloc)
     XFreeFont(dpy, finfo);
@@ -262,10 +262,8 @@ void DestroyDisplay(void)
         XFreePixmap(dpy, walls[i]);
   }
   /* okay.. NOW we can destroy the main window and the display */
-  if(display_alloc) {
-    XDestroyWindow(dpy, win);
+    if (win_alloc) XDestroyWindow(dpy, win);
     XCloseDisplay(dpy);
-  }
 }
 
 static Boolean full_pixmap[256];
@@ -302,6 +300,11 @@ static Boolean TryPixmapFile(char *template, Pixmap *pix, char *bitpath,
 	fprintf(stderr, "What? Can't get attributes of window\n");
 	abort();
     }
+    if (wa.depth < 8) {
+	/* Hopeless! Not enough colors...*/
+	return _false_;
+    }
+
     attr.valuemask = XpmCloseness | XpmExactColors | XpmColorKey | XpmColormap |
 		    XpmDepth;
     attr.colormap = wa.colormap;
@@ -402,7 +405,8 @@ static void DrawPixmap(Drawable w, Pixmap p, int mapchar, int x, int y)
  */
 void MakeHelpWindows(void)
 {
-  register int i;
+  int i;
+  int ypos = 0;
   char *title = "    Sokoban  --  X version 3.1 --  Help page %d";
   char *next = "     Press <Return> to exit";
 
@@ -415,18 +419,19 @@ void MakeHelpWindows(void)
     XDrawImageString(dpy, help[i], gc, 2, HELP_H-7, next, strlen(next));
   }
   for(i = 0; help_pages[i].textline != NULL; i++) {
+    ypos += help_pages[i].ydelta;
     XDrawImageString(dpy,help[help_pages[i].page], gc,
                      help_pages[i].xpos * (finfo->max_bounds.width),
-                     help_pages[i].ypos, help_pages[i].textline,
+                     ypos, help_pages[i].textline,
                      strlen(help_pages[i].textline));
   }
 
-  DrawPixmap(help[0], man, player, 180, 360);
-  DrawPixmap(help[0], goal, store, 280, 360);
-  DrawPixmap(help[0], walls[0], wall, 389, 360);
-  DrawPixmap(help[0], object, packet, 507, 360);
-  DrawPixmap(help[0], treasure, save, 270, 400);
-  DrawPixmap(help[0], saveman, playerstore, 507, 400);
+  DrawPixmap(help[0], man, player, 180, 340);
+  DrawPixmap(help[0], goal, store, 280, 340);
+  DrawPixmap(help[0], walls[0], wall, 389, 340);
+  DrawPixmap(help[0], object, packet, 507, 340);
+  DrawPixmap(help[0], treasure, save, 270, 388);
+  DrawPixmap(help[0], saveman, playerstore, 507, 388);
 }
 
 /* wipe out the entire contents of the screen */
