@@ -12,38 +12,44 @@ gleaned from various public domain versions of sokoban, and a manual
 page that explains how the game works.<P>
 
 <ul>
-<li><a href="#installation">Installation
-<li><a href="#credits">Credits
-<li><a href="#fixes">Fixes, Bug Reports, and Modifications
-<li><a href="#redist">Redistribution
-<li><a href="#nowarranty">NO WARRANTY!
+<li><a href="#installation">    Installation
+<li><a href="#credits">    Credits
+<li><a href="#fixes">    Fixes, Bug Reports, and Modifications
+<li><a href="#redist">    Redistribution
+<li><a href="#nowarranty">    NO WARRANTY!
 </ul>
 
 <a name=installation><h2>Installation</h2></a>
 <ul>
-<li>Edit the header file config.h to define the
+<li>
+    Edit the header file config.h to define the
     appropriate paths and options for your system.  These defines
     should be checked carefully to make sure they are correct. 
 
 <ul>
-<li>	You can compile xsokoban in either WWW mode or local mode.
+<li>	
+	You can compile xsokoban in either WWW mode or local mode.
 	Where it stores scores depends on the mode. The mode is
 	controlled by the <code>WWW</code> option; see "config.h" for
 	more details.
 
-<li>    <em> If compiling in WWW mode, make sure you change the variable
+<li>    
+	<em>If compiling in WWW mode, make sure you change the variable
 	<code>HERE</code> to refer to your location! </em>
 </ul>
 
 <li>Do one of the following (A,B, or C) to produce a Makefile:
 <ul>
-<li>  A. (Easy) Run the script "configure" to produce the include file
+<li>  
+      A. (Easy) Run the script "configure" to produce the include file
 	"config_local.h" and a Makefile.
 
-<li>  B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
+<li> 
+      B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
         produce a Makefile from the Imakefile provided.
 	
-<li>  C. OR: Edit "config_local.h" and "Makefile" by hand to set the
+<li>  
+      C. OR: Edit "config_local.h" and "Makefile" by hand to set the
         compiler and compiler flags correctly and select the right
 	libraries to compile with. <P>
     
@@ -60,7 +66,8 @@ page that explains how the game works.<P>
 	and 3.3, but not with version 2. They should work with version 3.4,
 	too. <P>
 
-<li>Compile by typing "make".  If something goes wrong, and you can track
+<li>
+    Compile by typing "make".  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
     to make, and I will see about fixing it for later distributions). <P>
 
@@ -69,12 +76,14 @@ page that explains how the game works.<P>
     files.  You will know this is happening if reams of errors start
     popping up in "Xlib.h" <P>
 
-<li>Play the game by typing "xsokoban". If it complains about not being
+<li>
+    Play the game by typing "xsokoban". If it complains about not being
     able to read the scorefile, create one with "xsokoban -c". If this
     doesn't work, it is probably because you need to create the score
     directory. See config.h.
 
-<li>Set <code>ROOTDIR</code> to the desired final location for the xsokoban
+<li>
+    Set <code>ROOTDIR</code> to the desired final location for the xsokoban
     data files, and rebuild.  Install the game by typing "make install" or by
     manually copying the executable. Install the directories screens/,
     scores/, bitmaps/, and saves/ under <code>ROOTDIR</code>.

@@ -1,8 +1,5 @@
-
-XSokoban 3.2c
-
-
  XSokoban 3.2c 
+ -------------
 
 
 This distribution
@@ -12,38 +9,44 @@ gleaned from various public domain versions of sokoban, and a manual
 page that explains how the game works.
 
 
-Installation
-Credits
-Fixes, Bug Reports, and Modifications
-Redistribution
-NO WARRANTY!
+    Installation
+    Credits
+    Fixes, Bug Reports, and Modifications
+    Redistribution
+    NO WARRANTY!
 
 
 Installation
 
-Edit the header file config.h to define the
+
+    Edit the header file config.h to define the
     appropriate paths and options for your system.  These defines
     should be checked carefully to make sure they are correct. 
 
 
+	
 	You can compile xsokoban in either WWW mode or local mode.
 	Where it stores scores depends on the mode. The mode is
 	controlled by the WWW option; see "config.h" for
 	more details.
 
-     If compiling in WWW mode, make sure you change the variable
+    
+	If compiling in WWW mode, make sure you change the variable
 	HERE to refer to your location! 
 
 
 Do one of the following (A,B, or C) to produce a Makefile:
 
-  A. (Easy) Run the script "configure" to produce the include file
+  
+      A. (Easy) Run the script "configure" to produce the include file
 	"config_local.h" and a Makefile.
 
-  B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
+ 
+      B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
         produce a Makefile from the Imakefile provided.
 	
-  C. OR: Edit "config_local.h" and "Makefile" by hand to set the
+  
+      C. OR: Edit "config_local.h" and "Makefile" by hand to set the
         compiler and compiler flags correctly and select the right
 	libraries to compile with. 
     
@@ -60,7 +63,8 @@ Do one of the following (A,B, or C) to produce a Makefile:
 	and 3.3, but not with version 2. They should work with version 3.4,
 	too. 
 
-Compile by typing "make".  If something goes wrong, and you can track
+
+    Compile by typing "make".  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
     to make, and I will see about fixing it for later distributions). 
 
@@ -69,12 +73,14 @@ Compile by typing "make".  If something goes wrong, and you can track
     files.  You will know this is happening if reams of errors start
     popping up in "Xlib.h" 
 
-Play the game by typing "xsokoban". If it complains about not being
+
+    Play the game by typing "xsokoban". If it complains about not being
     able to read the scorefile, create one with "xsokoban -c". If this
     doesn't work, it is probably because you need to create the score
     directory. See config.h.
 
-Set ROOTDIR to the desired final location for the xsokoban
+
+    Set ROOTDIR to the desired final location for the xsokoban
     data files, and rebuild.  Install the game by typing "make install" or by
     manually copying the executable. Install the directories screens/,
     scores/, bitmaps/, and saves/ under ROOTDIR.
