@@ -3,12 +3,6 @@
  *  Stuff in this file shouldn't ever need to be changed.                    *
 \*****************************************************************************/
 
-#ifdef VICE
-extern int PlayerUID;
-#define getuid() PlayerUID
-#define geteuid() PlayerUID
-#endif
-
 #define BUFSIZE 256
 
 /* internal object representation */

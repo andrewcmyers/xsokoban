@@ -1,7 +1,5 @@
 Position glyphs on help screen by font size
 "redo"
 Fix score display for reverse video
-set user from xsokoban.user
-    validate username
 Figure out what to do with URL
 Put screens in Web

@@ -2,3 +2,7 @@ ROOTDIR = "."
 ANYLEVEL = 0
 WWW=1
 Makefile is not derived from Imakefile?
+Bumped patchlevel?
+README version correct
+ran autoconf?
+display.c version correct

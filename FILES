@@ -1,10 +1,13 @@
 xsokoban
 xsokoban/Imakefile
 xsokoban/Makefile
+xsokoban/Makefile.in
 xsokoban/README
 xsokoban/FILES
 xsokoban/config.h
-xsokoban/config_local.h
+xsokoban/configure
+xsokoban/configure.in
+xsokoban/config_local.h.in
 xsokoban/defaults.h
 xsokoban/display.c
 xsokoban/errors.h

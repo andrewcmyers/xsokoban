@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
+#else
+#include <sys/limits.h>
+#endif
 
 #include "externs.h"
 #include "globals.h"
@@ -457,9 +462,9 @@ void MakeHelpWindows(void)
   int i;
   int ypos = 0;
 #if WWW
-  char *title = "    Sokoban  --  X+WWW version 3.2a --  Help page %d";
+  char *title = "    Sokoban  --  X+WWW version 3.2b --  Help page %d";
 #else
-  char *title = "    Sokoban  --  X version 3.2 --  Help page %d";
+  char *title = "    Sokoban  --  X version 3.2b --  Help page %d";
 #endif
   char *next = "     Press <Return> to exit";
 

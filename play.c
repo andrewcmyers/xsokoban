@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "externs.h"
 #include "globals.h"

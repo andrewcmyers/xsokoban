@@ -70,7 +70,8 @@ void main(int argc, char **argv)
   else {
     /* find out who we are. */
 #if !WWW
-    username = FixUsername(pwd->pw_name);
+    if (!username) username = FixUsername(pwd->pw_name);
+    /* else we already got a fixed username from the -v option */
 #else
 /* If running in Web mode, append HERE to the username. */
     if (!username) {
@@ -299,7 +300,6 @@ short CheckCommandLine(int *argcP, char **argv)
 static char *ReadMoveSeq()
 {
     char *moveseq = (char *)malloc(movelen);
-    short ret;
     int ch = 0;
     while (ch < movelen) {
 	int n = read(0, moveseq, movelen); /* read from stdin */

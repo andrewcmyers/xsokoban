@@ -1,4 +1,4 @@
-XSokoban 3.2a
+XSokoban 3.2b
 -------------
 
 This is the third major release of XSokoban.
@@ -9,31 +9,46 @@ gleaned from various public domain versions of sokoban, and a manual
 page that explains how the game works.
 
 Installation -
-  - Edit the header files config.h and config_local.h to define the
-    appropriate paths and compilation options for your system.
-    These defines should be checked carefully to make sure they are
-    correct.
+  - Edit the header file config.h to define the
+    appropriate paths and options for your system.  These defines
+    should be checked carefully to make sure they are correct. 
 
       -	You can compile xsokoban in either WWW mode or local mode.
 	Where it stores scores depends on the mode. The mode is
 	controlled by the WWW option; see "config.h" for more details.
 
-  - Use 'xmkmf' to produce a Makefile from the Imakefile provided, or
-    else edit 'Makefile' to set the compiler and compiler flags correctly
-    and select the right libraries to compile with.
+*** Make sure you change the variable HERE to refer to your location! ***
 
-      - If you want to have the game run in color, you will need the
-	XPM library. In this case, make sure that in the previous step, the
-	option EXTRA_INCLUDES points to the directory containing
-	"xpm.h", and that EXTRA_LIBRARIES references the directory
-	containing the library "libXpm.a". Last time I checked, XPM
-	could be obtained by FTP from export.lcs.mit.edu:contrib. Make
-	sure your version of XPM is up to date. The current pixmaps
-	definitely work with versions 3.2g and 3.3, but not with version 2.
+  - Do one of the following (A,B, or C) to produce a Makefile:
+      A. (Easy) Run the script "configure" to produce the include file
+	"config_local.h" and a Makefile.
+
+      B. OR: edit "config_local.h" by hand, and use 'xmkmf' to
+        produce a Makefile from the Imakefile provided.
+	
+      C. OR: Edit "config_local.h" and "Makefile" by hand to set the
+        compiler and compiler flags correctly and select the right
+	libraries to compile with.
+    
+	If you want to have the game run in color, you will need the
+	XPM library. In this case, make sure that if you used options B
+	or C, the variable EXTRA_INCLUDES points to the directory
+	containing "xpm.h", and that EXTRA_LIBRARIES references the
+	directory containing the library "libXpm.a".
+
+	Last time I checked, XPM could be obtained by FTP from
+	export.lcs.mit.edu:contrib. Make sure your version of XPM is up
+	to date. The current pixmaps definitely work with versions 3.2g
+	and 3.3, but not with version 2. They should work with version 3.4,
+	too.
 
   - Compile by typing 'make'.  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
     to make, and I will see about fixing it for later distributions).
+
+    Some systems have screwed-up X headers, and you will need to use
+    an ANSI "cc" instead of gcc. You will know this is happening if
+    reams of errors start popping up in "Xlib.h"
 
   - Play the game by typing 'xsokoban'. If it complains about not being
     able to read the scorefile, create one with 'xsokoban -c'. If this
@@ -49,14 +64,6 @@ Notes -
 
   - The screen files need to be publically readable and should not be
     writable.
-
-  - The score file should be readable/writeable ONLY by the 'superuser' of the
-    program (see config.h for what 'superuser' means).
-
-  - The save files should be readable/writeable ONLY by the 'superuser'.
-
-  - Because of this, the game needs to be run setuid of the person who is
-    'superuser'.
 
 Credits -
 

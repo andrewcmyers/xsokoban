@@ -13,6 +13,7 @@
 #include <sys/param.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -22,8 +23,10 @@
 short scoreentries;
 struct st_entry scoretable[MAXSCOREENTRIES];
 
+#if !WWW
 static FILE *scorefile;
 static int sfdbn;
+#endif
 
 
 /* Acquire the lock on the score file. This is done by creating a new
@@ -48,12 +51,14 @@ static int sfdbn;
    though it's extremely unlikely.
 */
 
+#if !WWW
 static time_t lock_time;
 /* This timer is used to allow the writer to back out voluntarily if it
    notices that its time has expired. This is not a guarantee that no
    conflicts will occur, since the final rename() in WriteScore could
    take arbitrarily long, running the clock beyond TIMEOUT seconds.
 */
+#endif
 
 short LockScore(void)
 {
@@ -159,6 +164,7 @@ short MakeNewScore(void)
   return ((ret == 0) ? E_ENDGAME : ret);
 #else
     fprintf(stderr, "Cannot make a new score in WWW mode\n");
+    return E_WRITESCORE;
 #endif
 }
 
@@ -621,6 +627,11 @@ short WriteScore_WWW()
     int buflen;
     char *cmd;
     char *result;
+    if (0 == strcmp(HERE, "@somewhere.somedomain")) {
+	fprintf(stderr, "In order to save a score, fix the configuration\n"
+			"variable HERE (in config.h) and recompile.\n");
+	return E_WRITESCORE;
+    }
     buflen = compress_moves(movelist);
     movelen = buflen;
     movelist[movelen] = 0;
@@ -636,6 +647,8 @@ short WriteScore_WWW()
 	fprintf(stderr, "%s", result);
 #endif
 	free(result);
+    } else {
+	return E_WRITESCORE;
     }
     return 0;
 }
@@ -660,11 +673,9 @@ char *getline(char *text, char *linebuf)
 */
 short ReadScore_WWW()
 {
-    char *cmd, *result, *c, *text;
+    char *cmd, *result, *text;
     char *ws = " \t\r\n";
     char line[256];
-    char ibuf[20];
-    int len;
     movelist[0] = 0;
     cmd = subst_names(WWWREADSCORECMD);
     result = qtelnet(WWWHOST, WWWPORT, cmd);

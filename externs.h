@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <malloc.h>
 
-#ifdef NEED_NETINET_IN_H
+#ifdef NEED_NETINET_IN
 #include <netinet/in.h>
 #endif
 
@@ -61,7 +61,11 @@ extern char *strdup(const char *);
 extern unsigned usleep(unsigned);
 #endif
 
-extern int fsync(int);
+#if !defined(BZERO_PROTO)
+extern void bzero(char *, int);
+#endif
+
+int fsync(int);
 
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;

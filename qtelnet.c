@@ -5,6 +5,11 @@
 #include <netinet/in.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#include "config_local.h"
+#include "externs.h"
 
 #define TRY(name,expr) if (0>(expr)) { perror(name); return 0; }
 
@@ -37,7 +42,7 @@ char *qtelnet(char *hostname, int port, char *msg) {
     if (!isdigit(hostname[0])) {
 	h = gethostbyname(hostname);
 	if (!h) { fprintf(stderr, "Unknown host: %s\n", hostname); exit(-1); }
-	else bcopy(h->h_addr, &client.sin_addr, h->h_length);
+	else memcpy(&client.sin_addr, h->h_addr, h->h_length);
     } else {
 	int a,b,c,d;
 	unsigned long hostaddr;
