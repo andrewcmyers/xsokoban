@@ -1,0 +1,150 @@
+AC_INIT(xsokoban.man)
+  
+############################################################################
+# Include aux configuration macros
+
+builtin([include],acaux.m4)dnl
+
+############################################################################
+# Create config files
+AC_CONFIG_HEADER(config_local.h)
+
+############################################################################
+# Check for programs
+
+AC_WITH(gcc,CC=gcc)
+
+AC_PROG_INSTALL
+AC_PROG_CC
+AC_PROG_CPP
+
+#####################
+# Find Xpm if needed
+
+(cat config.h; echo "use_xpm=USE_XPM;www=WWW") > tmp.$$.c
+$CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
+. tmp2.$$
+if test $use_xpm = 1 then
+then
+    echo "Looking for Xpm">&2
+    libxpm=1
+    incxpm=1
+    AC_HAVE_LIBRARY(-lXpm, [LIBS="$LIBS -lXpm"],
+	[ echo "Can't find libXpm.a! You must add to LIBS in Makefile.">&2
+	  exit 1 ])
+    AC_HEADER_CHECK(xpm.h,,
+	[echo "Can't find xpm.h! You must add to INCS in Makefile.">&2
+	  exit 1 ])
+fi
+rm -f tmp.$$.c tmp2.$$
+
+###################
+# Find X
+
+AC_FIND_X
+if test -n "$no_x"; then
+  echo "Cannot find X libraries! Package may not compile">&2
+  x_includes=
+  x_libraries=-lX11
+else
+  if test x$x_includes != x &&
+     test x$x_includes != x/usr/include; then
+    INCS="$INCS -I$x_includes"
+  fi 
+  if test x$x_libraries != x &&
+     test x$x_libraries != x/usr/lib; then
+    LIBS="$LIBS -L$x_libraries"
+  fi
+  LIBS="$LIBS -lX11"
+fi
+
+AC_SUBST(LIBS)
+AC_SUBST(INCS)
+
+##############
+# DEC bogosity
+
+AC_HAVE_LIBRARY(-ldnet_stub)
+
+####################################
+# Turn on all compiler warning flags
+
+if test x$CC = xgcc 
+then
+  WARN=-Wall
+else
+  if test -f /bin/uname &&
+     test `uname` = OSF1 
+  then
+	WARN=-std1
+  else
+	WARN=
+  fi
+fi
+AC_SUBST(WARN)
+
+############################################################################
+# Check for library functions and C++ prototypes
+
+AC_COMPILE_CHECK([getpass prototype],
+[#include <stdlib.h>],
+[char *s = getpass("prompt");],
+AC_DEFINE(GETPASS_PROTO))
+
+AC_COMPILE_CHECK([fprintf prototype],
+[#include <stdio.h>],
+[fprintf(stderr, "foo");],
+AC_DEFINE(FPRINTF_PROTO))
+
+AC_COMPILE_CHECK([fclose prototype],
+[#include <stdio.h>],
+[fprintf(stderr, "foo");],
+AC_DEFINE(FCLOSE_PROTO))
+
+AC_COMPILE_CHECK([time prototype],
+[#include <time.h>],
+[time_t t; t = time(&t);],
+AC_DEFINE(TIME_PROTO))
+
+AC_COMPILE_CHECK([mktemp prototype],
+[#include <stdlib.h>],
+[char *s = mktemp("fooXXXXXX"); ],
+AC_DEFINE(MKTEMP_PROTO))
+
+AC_COMPILE_CHECK([perror prototype],
+[#include <errno.h>],
+[perror("bleah"); ],
+AC_DEFINE(PERROR_PROTO))
+
+AC_COMPILE_CHECK([rename prototype],
+[#include <unistd.h>],
+[int x = rename("foo", "bar");],
+AC_DEFINE(RENAME_PROTO))
+
+AC_COMPILE_CHECK([strdup prototype],
+[#include <string.h>],
+[char *s = strdup("foo");],
+AC_DEFINE(STRDUP_PROTO))
+
+AC_COMPILE_CHECK([usleep],
+[#include <stdlib.h>],
+[unsigned x = usleep(1);],
+AC_DEFINE(HAS_USLEEP))
+
+AC_COMPILE_CHECK([bzero prototype],
+[#include <stdlib.h>],
+[void *x; int l; bzero(x, l);],
+AC_DEFINE(BZERO_PROTO))
+
+AC_HAVE_HEADERS(limits.h)
+
+echo "Looking for htons, ntohs" >&2
+AC_HEADER_EGREP(htons, /usr/include/machine/endian.h, AC_DEFINE(NEED_ENDIAN))
+AC_HEADER_EGREP(htons, /usr/include/netinet/in.h, AC_DEFINE(NEED_NETINET_IN))
+AC_HEADER_EGREP(htons, /usr/include/net/nh.h, AC_DEFINE(NEED_NH))
+AC_HEADER_EGREP(htons, /usr/include/sys/byteorder.h, AC_DEFINE(NEED_BYTEORDER))
+
+############################################################################
+# Build configured files
+
+AC_OUTPUT(Makefile)
