@@ -139,8 +139,9 @@ short OutputScore(int level)
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
-/* create a new score file */
-short MakeNewScore(void)
+/* Create a new score file. If "textfile" is non-zero, read the
+   scores out of the text file of that name. */
+short MakeNewScore(char *textfile)
 {
 #if !WWW
   short ret = 0;
@@ -148,18 +149,40 @@ short MakeNewScore(void)
   if ((ret = LockScore()))
        return ret;
   
-  scoreentries = 0;
-
-  if ((scorefile = fopen(SCOREFILE, "w")) == NULL)
-    ret = E_FOPENSCORE;
-  else {
-    sfdbn = fileno(scorefile);
-    if (write(sfdbn, SCORE_VERSION, 4) != 4)
-      ret = E_WRITESCORE;
-    else if (write(sfdbn, &scoreentries, 2) != 2)
-      ret = E_WRITESCORE;
-    fclose(scorefile);
+  if (textfile) {
+    char *text, *pos, *end;
+    int fd;
+    struct stat s;
+    if (0 > stat(textfile, &s)) {
+	perror(textfile);
+	return E_FOPENSCORE;
+    }
+    if (0 > (fd = open(textfile, O_RDONLY))) {
+	perror(textfile);
+	return E_FOPENSCORE;
+    }
+    pos = text = (char *)malloc((size_t)s.st_size);
+    end = text + s.st_size;
+    while (pos < end) {
+	int n = read(fd, pos, end - pos);
+	switch(n) {
+	    case -1: perror(textfile);
+		     return E_FOPENSCORE;
+	    case 0:  fprintf(stderr, "Unexpected EOF\n");
+		     return E_FOPENSCORE;
+	    default: pos += n;
+		     break;
+		     
+	}
+    }
+    (void)close(fd);
+    if ((ret = ParseScoreText(text))) return ret;
+    free(text);
+  } else {
+      scoreentries = 0;
   }
+
+  if ((ret = WriteScore())) return ret;
   UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 #else
@@ -674,14 +697,20 @@ char *getline(char *text, char *linebuf)
 short ReadScore_WWW()
 {
     char *cmd, *result, *text;
-    char *ws = " \t\r\n";
-    char line[256];
     movelist[0] = 0;
     cmd = subst_names(WWWREADSCORECMD);
     result = qtelnet(WWWHOST, WWWPORT, cmd);
 /* Now, skip past all the initial crud */
     text = result;
     if (!text) return E_READSCORE;
+    free(result);
+    return ParseScoreText(text);
+}
+
+short ParseScoreText(char *text)
+{
+    char line[256];
+    char *ws = " \t\r\n";
     for (;;)  {
 	text = getline(text, line);
 	if (line[0] == '=') break;
@@ -705,6 +734,5 @@ short ReadScore_WWW()
 	scoreentries++;
     }
 
-    free(result);
     return 0;
 }
