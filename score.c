@@ -339,13 +339,16 @@ int SolnRank(int j, Boolean *ignore)
     unsigned short level = scoretable[j].lv;
     for (i = 0; i < j; i++) {
 	if (!(ignore && ignore[i]) && scoretable[i].lv == level) {
+	    if (scoretable[i].mv == scoretable[j].mv &&
+		scoretable[i].ps == scoretable[j].ps &&
+		0 == strcmp(scoretable[i].user, scoretable[j].user)) {
+		    rank = BADSOLN;
+	    }
 	    if ((scoretable[i].mv < scoretable[j].mv &&
 		 scoretable[i].ps <= scoretable[j].ps) ||
 	        (scoretable[i].mv <= scoretable[j].mv &&
-		 scoretable[i].ps < scoretable[j].ps))
-	    {
-		if (0 == strcmp(scoretable[i].user,
-				scoretable[j].user))
+		 scoretable[i].ps < scoretable[j].ps)) {
+		if (0 == strcmp(scoretable[i].user, scoretable[j].user))
 		    rank = BADSOLN;
 		else
 		    rank++;
