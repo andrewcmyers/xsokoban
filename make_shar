@@ -1,0 +1,8 @@
+#!/bin/sh
+files=xsokoban-3.0/FILES
+if [ -r $files ]
+then
+    makekit -oMANIFEST `cat $files`
+else
+    echo "Must run $0 from src directory"
+fi
