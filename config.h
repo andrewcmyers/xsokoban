@@ -68,7 +68,7 @@
 	    reads in ".xpm" files and produces pixmaps.
 */
 #ifndef USE_XPM
-#define USE_XPM TRUE
+#define USE_XPM 1
 #endif
 
 /*
@@ -98,7 +98,7 @@
 /*
    ANYLEVEL: Allow any user to play any level and enter a score for it
 */
-#define ANYLEVEL FALSE
+#define ANYLEVEL 0
 
 /*
    MAXSOLNRANK: The maximum solution rank for which an entry is retained
