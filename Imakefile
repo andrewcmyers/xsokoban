@@ -2,6 +2,7 @@ DEFINES=	-DNDEBUG
 EXTRA_INCLUDES= -I/usr/local/include
 
 SYS_LIBRARIES=	-L/usr/local/lib -lXpm $(XLIB)
+# -lXpm is only needed if you are using Xpm.
 
 SRCS=		display.c main.c resources.c play.c score.c screen.c \
 		save.c scoredisp.c
