@@ -73,5 +73,6 @@ short ReadScreen(void)
     if ((ret == 0) && (ppos.x == -1))
       ret = E_PLAYPOS2;
   }
+  free(fnam);
   return (ret);
 }

@@ -100,6 +100,7 @@ short SaveGame(void)
     unlink(sfname);
   signal(SIGINT, SIG_DFL);
 
+  free(sfname);
   return ret;
 }
 
@@ -155,5 +156,6 @@ short RestoreGame(void)
     unlink(sfname);
   }
   signal(SIGINT, SIG_DFL);
+  free(sfname);
   return ret;
 }
