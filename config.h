@@ -188,3 +188,14 @@
 #ifndef WWWSCREENPATH
 #define WWWSCREENPATH "GET /cgi-bin/sok-screens?level=$L HTTP/1.0\n\n"
 #endif
+
+/* 
+   DEBUG_SERVER: Change this only if you want to debug an xsokoban
+   score server.
+*/
+#if 0
+#define DEBUG_SERVER(x)
+#else
+extern int getpid();
+#define DEBUG_SERVER(x) fprintf(stderr, "xsokoban %d: %s\n", getpid(), x)
+#endif

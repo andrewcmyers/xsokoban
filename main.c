@@ -44,6 +44,7 @@ void main(int argc, char **argv)
 {
   short ret = 0, ret2 = 0;
 
+  DEBUG_SERVER("starting");
 #ifdef VICE
   Authenticate();
 #endif
@@ -90,9 +91,11 @@ void main(int argc, char **argv)
     /* see if we are the superuser */
     superuser = (strcmp(username, SUPERUSER) == 0) ? _true_ : _false_;
     if(ret == 0) {
-      if(optshowscore)
+      if(optshowscore) {
+	DEBUG_SERVER("sending score file");
 	ret = OutputScore(optlevel);
-      else if (optverify) {
+      } else if (optverify) {
+	DEBUG_SERVER("verifying score");
 	ret = VerifyScore(optlevel);
       } else if(optmakescore) {
 	if(superuser) {
@@ -153,6 +156,7 @@ void main(int argc, char **argv)
 	ret = 0;	/* normal exits */
 	break;
   }
+  DEBUG_SERVER("ending");
   exit(ret);
 }
 

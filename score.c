@@ -28,7 +28,6 @@ static FILE *scorefile;
 static int sfdbn;
 #endif
 
-
 /* Acquire the lock on the score file. This is done by creating a new
    directory. If someone else holds the lock, the directory will exist.
    Since mkdir() should be done synchronously, even over NFS,  it will
@@ -130,12 +129,18 @@ short OutputScore(int level)
 {
   short ret;
 
-  if ((ret = LockScore()))
-       return ret;
+  DEBUG_SERVER("entering OutputScore");
+  if ((ret = LockScore())) {
+      DEBUG_SERVER("couldn't lock score file");
+      return ret;
+  }
 
+  DEBUG_SERVER("score file locked");
   if ((ret = ReadScore()) == 0)
     ShowScore(level);
+    DEBUG_SERVER("about to unlock score file");
   UnlockScore();
+  DEBUG_SERVER("score file unlocked");
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
@@ -604,6 +609,7 @@ void ShowScore(int level)
 {
   register i;
 
+    DEBUG_SERVER("entering ShowScore");
   TRY("printf",
   printf(
    "Rank                             User  Level   Moves  Pushes   Date\n"));
@@ -616,7 +622,7 @@ void ShowScore(int level)
 	if (rank <= MAXSOLNRANK) TRY("printf", printf("%4d", rank));
 	else TRY("printf", printf("    "));
 	TRY("printf",
-	printf(" %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
+	fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
 		DateToASCII(scoretable[i].date)));
     }
@@ -798,6 +804,7 @@ short ParseScoreText(char *text)
     char *ws = " \t\r\n";
     Boolean baddate = _false_;
     for (;;)  {
+	if (!text) return E_READSCORE;
 	text = getline(text, line);
 	if (line[0] == '=') break;
     }
