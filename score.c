@@ -11,15 +11,19 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/param.h>
+#include <fcntl.h>
 
 #include "externs.h"
 #include "globals.h"
+
+#define SCORE_VERSION "xs01"
 
 short scoreentries;
 struct st_entry scoretable[MAXSCOREENTRIES];
 
 static FILE *scorefile;
-static long sfdbn;
+static int sfdbn;
+
 
 /* Acquire the lock on the score file. This is done by creating a new
    directory. If someone else holds the lock, the directory will exist.
@@ -42,12 +46,21 @@ static long sfdbn;
    See comments in WriteScore about how the score file can get trashed,
    though it's extremely unlikely.
 */
+
+static time_t lock_time;
+/* This timer is used to allow the writer to back out voluntarily if it
+   notices that its time has expired. This is not a guarantee that no
+   conflicts will occur, since the final rename() in WriteScore could
+   take arbitrarily long, running the clock beyond TIMEOUT seconds.
+*/
+
 short LockScore(void)
 {
      int i, result;
 
      for (i = 0; i < TIMEOUT; i++) {
 	  result = mkdir(LOCKFILE, 0);
+	  lock_time = time(0);
 	  if (result < 0) {
 	       if (errno == EEXIST) sleep(1);
 	       else return E_WRITESCORE;
@@ -184,11 +197,20 @@ short ReadScore(void)
 {
   short ret = 0;
   long tmp;
-
-  if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
+  
+  sfdbn = open(SCOREFILE, O_RDONLY);
+  if (0 > sfdbn)
     ret = E_FOPENSCORE;
   else {
-    sfdbn = fileno(scorefile);
+    char magic[5];
+    if (read(sfdbn, &magic[0], 4) != 4) ret = E_READSCORE;
+    magic[4] = 0;
+    if (0 == strcmp(magic, "xs01")) {
+	/* we have the right version */
+    } else {
+	fprintf(stderr, "Warning: old-style score file\n");
+	lseek(sfdbn, 0, SEEK_SET);
+    }
     if (read(sfdbn, &scoreentries, 2) != 2)
       ret = E_READSCORE;
     else {
@@ -200,7 +222,7 @@ short ReadScore(void)
       /* swap up for little-endian machines */
       for (tmp = 0; tmp < scoreentries; tmp++) ntohs_entry(&scoretable[tmp]);
     }
-    fclose(scorefile);
+    (void)close(sfdbn);
   }
   return ret;
 }
@@ -343,7 +365,7 @@ short FindPos(void)
     However, they are not perfect.
 
      The vulnerability here is that if we take more than 10 seconds to
-     finish this routine, AND someone else decides to break the lock,
+     finish Score(), AND someone else decides to break the lock,
      AND they pick the same temporary name, they may write on top of
      the same file. Then we could scramble the score file by suddenly
      moving it with alacrity to SCOREFILE before they finish their
@@ -368,22 +390,23 @@ char const *tempnm = SCOREFILE "XXXXXX";
 short WriteScore(void)
 {
   short ret = 0;
-  long tmp;
-
+  int tmp;
     
   char tempfile[MAXPATHLEN];
   strcpy(tempfile, tempnm);
 
   (void)mktemp(tempfile);
+  scorefile = fopen(tempfile, "w");
+  if (!scorefile) return E_FOPENSCORE;
+  sfdbn = fileno(scorefile);
+  scorefile = fdopen(sfdbn, "w");
 
-  if ((scorefile = fopen(tempfile, "w")) == NULL)
-    ret = E_FOPENSCORE;
-  else {
-    sfdbn = fileno(scorefile);
-    scoreentries = htons(scoreentries);
-    if (write(sfdbn, &scoreentries, 2) != 2)
+  scoreentries = htons(scoreentries);
+  if (fwrite(SCORE_VERSION, 4, 1, scorefile) != 1) {
       ret = E_WRITESCORE;
-    else {
+  } else if (fwrite(&scoreentries, 2, 1, scorefile) != 1) {
+      ret = E_WRITESCORE;
+  } else {
       scoreentries = ntohs(scoreentries);
 
       /* swap around for little-endian machines */
@@ -392,9 +415,19 @@ short WriteScore(void)
 	scoretable[tmp].mv = htons(scoretable[tmp].mv);
 	scoretable[tmp].ps = htons(scoretable[tmp].ps);
       }
-      tmp = scoreentries * sizeof(scoretable[0]);
-      if (write(sfdbn, &(scoretable[0]), tmp) != tmp)
-	ret = E_WRITESCORE;
+      tmp = scoreentries;
+      while (tmp > 0) {
+	int n = fwrite(&(scoretable[scoreentries - tmp]),
+			sizeof(struct st_entry),
+			tmp,
+			scorefile);
+	if (n <= 0 && errno) {
+	    perror(tempfile);
+	    ret = E_WRITESCORE;
+	    break;
+	}
+	tmp -= n;
+      }
 
       /* and swap back for the rest of the run ... */
       for (tmp = 0; tmp < scoreentries; tmp++) {
@@ -403,19 +436,31 @@ short WriteScore(void)
 	scoretable[tmp].ps = ntohs(scoretable[tmp].ps);
       }
     }
+    if (EOF == fflush(scorefile)) {
+	ret = E_WRITESCORE;
+	perror(tempfile);
+    } else
+    if (0 > fsync(sfdbn)) {
+	ret = E_WRITESCORE;
+	perror(tempfile);
+    }
     if (EOF == fclose(scorefile)) {
 	ret = E_WRITESCORE;
-	perror(SCOREFILE);
+	perror(tempfile);
     }
-  }
-  if (ret == 0) {
-      if (0 > rename(tempfile, SCOREFILE)) {
-	  return E_WRITESCORE;
+    if (ret == 0) {
+      time_t t = time(0);
+      if (t - lock_time >= TIMEOUT) {
+	  fprintf(stderr,
+  "Took more than %d seconds trying to write score file; lock expired.\n",
+		  TIMEOUT);
+	  ret = E_WRITESCORE;
+      } else if (0 > rename(tempfile, SCOREFILE)) {
+	  ret = E_WRITESCORE;
       }
-  } else {
-      (void)unlink(tempfile);
-  }
-  return ret;
+    }
+    if (ret != 0) (void)unlink(tempfile);
+    return ret;
 }
 
 
