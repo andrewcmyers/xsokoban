@@ -110,3 +110,9 @@
    TIMEOUT: How long a lock can be held on the score file, in seconds
 */
 #define TIMEOUT 10
+
+/*
+   SLEEPLEN: Amount of time to sleep for between moves of the man,
+   in msec.
+*/
+#define SLEEPLEN 8
