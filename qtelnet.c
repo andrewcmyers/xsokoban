@@ -18,8 +18,6 @@
 
 #define TRY(name,expr) if (0>(expr)) { perror(name); return 0; }
 
-char buf[4096];
-
 int lingerval = 1;
  
 /* Open a TCP-IP connection to machine "hostname" on port "port", and
@@ -34,7 +32,7 @@ char *qtelnet(char *hostname, int port, char *msg) {
     struct hostent *h;
     struct sockaddr_in client;
     char *retbuf = 0;
-    int retlen = 0;
+    int retmax = 0;
     int retpos = 0;
     TRY("socket", (sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)));
     TRY("setsockopt[SO_REUSEADDR,1]",
@@ -66,35 +64,29 @@ char *qtelnet(char *hostname, int port, char *msg) {
 #endif
     write(sock, msg, strlen(msg));
 
-    retlen = 4096;
+    retmax = 4096;
     retpos = 0;
-    retbuf = (char *)malloc(retlen);
+    retbuf = (char *)malloc(retmax);
 
     for(;;) {
-	fd_set rds;
-	int n;
-	FD_ZERO(&rds);
-	FD_SET(sock, &rds);
-	n = select(sock+1, &rds, 0, 0, 0);
-	if (n>0) {
-	    if (FD_ISSET(sock, &rds)) {
-		int ch = read(sock, buf, sizeof(buf));
-		if (ch == 0) {
-#if 0
-		    fprintf(stderr, "Connection closed by remote host\n");
-#endif
-		    break;
-		}
-		if (retpos + ch >= retlen) {
-		    retlen *= 2;
-		    retbuf = (char *)realloc(retbuf, retlen);
-		}
-		memcpy(retbuf + retpos, buf, ch);
-		retpos += ch;
-	    }
+	int ch;
+	if (retmax == retpos) {
+	    retmax *= 2;
+	    { char *nrb = (char *)malloc(retmax);
+	      memcpy(nrb, retbuf, retmax);
+	      free(retbuf);
+	      retbuf = nrb; }
 	}
+	TRY("read", ch = read(sock, retbuf + retpos, retmax - retpos));
+	if (ch == 0) {
+#if 0
+		fprintf(stderr, "Connection closed by remote host\n");
+#endif
+		break;
+	}
+	retpos += ch;
     }
-    (void)close(sock);
+    TRY("close", close(sock));
     retbuf[retpos] = 0;
     return retbuf;
 }
