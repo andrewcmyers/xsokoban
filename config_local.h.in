@@ -45,6 +45,7 @@
 
 /* Does the system have "usleep"? */
 #undef HAS_USLEEP
+#undef USLEEP_PROTO
 
 /* Is there a <limits.h>? (Otherwise, there had better be a <sys/limits.h>) */
 #undef HAVE_LIMITS_H

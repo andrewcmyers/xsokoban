@@ -58,7 +58,9 @@ extern char *strdup(const char *);
 #endif
 
 #if defined(HAS_USLEEP)
-extern unsigned usleep(unsigned);
+#if !defined(USLEEP_PROTO)
+extern void usleep(unsigned);
+#endif
 #endif
 
 #if !defined(LOCALTIME_PROTO)

@@ -46,9 +46,11 @@
 
 /* Does the system have "usleep"? */
 #define HAS_USLEEP 1
+#define USLEEP_PROTO 1
 
 /* Is there a <limits.h>? (Otherwise, there had better be a <sys/limits.h>) */
 #define HAVE_LIMITS_H 1
+#define HAVE_SYS_LIMITS_H 1
 
 /* Is there a <sys/select.h>? (AIX requires it for fd_sets) */
 #define HAVE_SYS_SELECT_H 1
@@ -57,3 +59,9 @@
 
 /* Does <time.h> have a localtime proto? */
 #define LOCALTIME_PROTO 1
+
+/* Is there a nl_langinfo() call? */
+#define HAVE_NL_LANGINFO 1
+
+/* Is there a working <sys/param.h> */
+#define HAVE_SYS_PARAM_H 1

@@ -167,9 +167,11 @@ AC_COMPILE_CHECK([strdup prototype],
 AC_DEFINE(STRDUP_PROTO))
 
 AC_COMPILE_CHECK([usleep],
-[#include <stdlib.h>],
-[unsigned x = usleep(1);],
-AC_DEFINE(HAS_USLEEP))
+[#include <stdlib.h>
+#include <unistd.h>],
+[usleep(1);],
+AC_DEFINE(HAS_USLEEP)
+AC_DEFINE(USLEEP_PROTO))
 
 AC_COMPILE_CHECK([bzero prototype],
 [#include <stdlib.h>],
