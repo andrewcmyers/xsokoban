@@ -100,6 +100,11 @@ AC_COMPILE_CHECK([time prototype],
 [time_t t; t = time(&t);],
 AC_DEFINE(TIME_PROTO))
 
+AC_COMPILE_CHECK([localtime prototype],
+[#include <time.h>],
+[time_t t; struct tm stm = *localtime(&t);],
+AC_DEFINE(LOCALTIME_PROTO))
+
 AC_COMPILE_CHECK([mktemp prototype],
 [#include <stdlib.h>],
 [char *s = mktemp("fooXXXXXX"); ],

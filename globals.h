@@ -78,7 +78,7 @@ extern short rows, cols, level, moves, pushes, savepack, packets;
 extern unsigned short scorelevel, scoremoves, scorepushes;
 extern POS ppos;
 extern Display *dpy;
-extern Boolean ownColormap;
+extern Boolean ownColormap, datemode;
 extern unsigned bit_width, bit_height; /* for macros wX, wY */
 extern Atom wm_delete_window, wm_protocols;
 extern XrmDatabase rdb;
@@ -92,7 +92,14 @@ char move_history[MOVE_HISTORY_SIZE];
    compatible with "Verify".  */
 
 extern short scoreentries;
+
+struct old_st_entry {
+  char user[MAXUSERNAME];
+  unsigned short lv, pad1, mv, pad2, ps, pad3;
+};
+
 extern struct st_entry {
   char user[MAXUSERNAME];
   unsigned short lv, pad1, mv, pad2, ps, pad3;
+  time_t date;
 } scoretable[MAXSCOREENTRIES];

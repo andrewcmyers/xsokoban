@@ -23,7 +23,7 @@ char map[MAXROW + 1][MAXCOL + 1];
 char *username = 0, *progname = 0, *bitpath = 0;
 char *optfile = 0;
 XrmDatabase rdb;
-Boolean ownColormap = _false_;
+Boolean ownColormap = _false_, datemode = _false_;
 
 static short optlevel = 0, userlevel;
 static Boolean optshowscore = _false_, optmakescore = _false_,
@@ -244,6 +244,9 @@ short CheckCommandLine(int *argcP, char **argv)
 	  movelen = atoi(argv[option++]);
 	  if (!movelen) return E_USAGE;
 	  optverify = _true_;
+	  break;
+	case 'd':
+	  datemode = _true_;
 	  break;
 	default:
 	  if(optshowscore || optrestore || optmakescore || (optlevel > 0) ||

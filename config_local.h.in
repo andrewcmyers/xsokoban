@@ -52,3 +52,6 @@
 #undef HAVE_SYS_SELECT_H
 
 #undef BZERO_PROTO
+
+/* Does <time.h> have a localtime proto? */
+#undef LOCALTIME_PROTO

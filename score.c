@@ -18,7 +18,7 @@
 #include "externs.h"
 #include "globals.h"
 
-#define SCORE_VERSION "xs01"
+#define SCORE_VERSION "xs02"
 
 short scoreentries;
 struct st_entry scoretable[MAXSCOREENTRIES];
@@ -233,12 +233,16 @@ void ntohs_entry(struct st_entry *entry)
     entry->lv = ntohs(entry->lv);
     entry->mv = ntohs(entry->mv);
     entry->ps = ntohs(entry->ps);
+    entry->date = ntohl(entry->date);
 }
 
 /* read in an existing score file.  Uses the ntoh() and hton() functions
  * so that the score files transfer across systems.
  */
 short ReadScore_WWW();
+#if !WWW
+short ReadOldScoreFile01();
+#endif
 short ReadScore(void)
 {
 #if WWW
@@ -257,8 +261,16 @@ short ReadScore(void)
     if (0 == strcmp(magic, SCORE_VERSION)) {
 	/* we have the right version */
     } else {
-	fprintf(stderr, "Warning: old-style score file\n");
-	lseek(sfdbn, 0, SEEK_SET);
+	if (0 == strcmp(magic, "xs01")) {
+	    fprintf(stderr, "Warning: old-style score file\n");
+	    return ReadOldScoreFile01();
+	} else {
+	    fprintf(stderr, "Error: unrecognized score file format. May be"
+			    "  obsolete, or else maybe this program is.\n");
+	    ret = E_READSCORE;
+	    (void)close(ret);
+	    return ret;
+	}
     }
     if (read(sfdbn, &scoreentries, 2) != 2)
       ret = E_READSCORE;
@@ -276,6 +288,36 @@ short ReadScore(void)
   return ret;
 #endif
 }
+
+#if !WWW
+short ReadOldScoreFile01()
+{
+    short ret = 0;
+    time_t now = time(0);
+    if (read(sfdbn, &scoreentries, 2) != 2)
+      ret = E_READSCORE;
+    else {
+      int tmp;
+      struct old_st_entry *t = (struct old_st_entry *)malloc(scoreentries *
+		sizeof(struct old_st_entry));
+      scoreentries = ntohs(scoreentries);
+      tmp = scoreentries * sizeof(t[0]);
+      if (read(sfdbn, &t[0], tmp) != tmp)
+	ret = E_READSCORE;
+
+      /* swap up for little-endian machines */
+      for (tmp = 0; tmp < scoreentries; tmp++) {
+	scoretable[tmp].lv = ntohs(t[tmp].lv);
+	scoretable[tmp].mv = ntohs(t[tmp].mv);
+	scoretable[tmp].ps = ntohs(t[tmp].ps);
+	strncpy(scoretable[tmp].user, t[tmp].user, MAXUSERNAME);
+	scoretable[tmp].date = now;
+      }
+    }
+    (void)close(sfdbn);
+    return ret;
+}
+#endif
 
 /* Return the solution rank for table index "j". The solution rank for
    an entry is one greater than the number of entries that are better
@@ -296,9 +338,11 @@ int SolnRank(int j, Boolean *ignore)
     int i, rank = 1;
     unsigned short level = scoretable[j].lv;
     for (i = 0; i < j; i++) {
-	if ((!ignore || !ignore[i]) && scoretable[i].lv == level) {
-	    if (scoretable[i].mv <= scoretable[j].mv &&
-		scoretable[i].ps <= scoretable[j].ps)
+	if (!(ignore && ignore[i]) && scoretable[i].lv == level) {
+	    if ((scoretable[i].mv < scoretable[j].mv &&
+		 scoretable[i].ps <= scoretable[j].ps) ||
+	        (scoretable[i].mv <= scoretable[j].mv &&
+		 scoretable[i].ps < scoretable[j].ps))
 	    {
 		if (0 == strcmp(scoretable[i].user,
 				scoretable[j].user))
@@ -372,6 +416,7 @@ short MakeScore(void)
   scoretable[pos].lv = scorelevel;
   scoretable[pos].mv = scoremoves;
   scoretable[pos].ps = scorepushes;
+  scoretable[pos].date = time(0);
   scoreentries++;
 
   CleanupScoreTable();
@@ -468,6 +513,7 @@ short WriteScore(void)
 	scoretable[tmp].lv = htons(scoretable[tmp].lv);
 	scoretable[tmp].mv = htons(scoretable[tmp].mv);
 	scoretable[tmp].ps = htons(scoretable[tmp].ps);
+	scoretable[tmp].date = htonl(scoretable[tmp].date);
       }
       tmp = scoreentries;
       while (tmp > 0) {
@@ -488,6 +534,7 @@ short WriteScore(void)
 	scoretable[tmp].lv = ntohs(scoretable[tmp].lv);
 	scoretable[tmp].mv = ntohs(scoretable[tmp].mv);
 	scoretable[tmp].ps = ntohs(scoretable[tmp].ps);
+	scoretable[tmp].date = ntohl(scoretable[tmp].date);
       }
     }
     if (EOF == fflush(scorefile)) {
@@ -518,6 +565,32 @@ short WriteScore(void)
 #endif
 }
 
+char *mos[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+char date_buf[10];
+char *DateToASCII(time_t date)
+{
+    if (datemode) {
+	sprintf(date_buf, "%d", (int)date);
+    } else {
+	struct tm then = *localtime(&date);
+	time_t dnow = time(0);
+	struct tm now = *localtime(&dnow);
+	if (then.tm_year != now.tm_year) {
+	    sprintf(date_buf, "%s %d", mos[then.tm_mon], then.tm_year % 100);
+	} else if (then.tm_mon != now.tm_mon ||
+		   then.tm_mday != now.tm_mday) {
+	    sprintf(date_buf, "%d %s", then.tm_mday, mos[then.tm_mon]);
+	} else {
+	    int hour = then.tm_hour % 12;
+	    if (hour == 0) hour = 12;
+	    sprintf(date_buf, "%d:%.2d%s", hour, then.tm_min,
+				(then.tm_hour < 12) ? "am" : "pm");
+	}
+    }
+    return date_buf;
+}
 
 /* displays the score table to the user. If level == 0, show all
    levels. */
@@ -527,15 +600,16 @@ void ShowScore(int level)
 
 
     
-  fprintf(stdout, "Rank                             User  Level   Moves  Pushes\n");
-  fprintf(stdout, "============================================================\n");
+  fprintf(stdout, "Rank                             User  Level   Moves  Pushes   Date\n");
+  fprintf(stdout, "======================================================================\n");
   for (i = 0; i < scoreentries; i++) {
     if (level == 0 || scoretable[i].lv == level) {
 	int rank = SolnRank(i, 0);
 	if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
 	else fprintf(stdout, "    ");
-	fprintf(stdout, " %32s %4d     %4d     %4d\n", scoretable[i].user,
-		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
+	fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
+		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
+		DateToASCII(scoretable[i].date));
     }
   }
 }
@@ -547,6 +621,7 @@ void CopyEntry(short i1, short i2)
   scoretable[i1].lv = scoretable[i2].lv;
   scoretable[i1].mv = scoretable[i2].mv;
   scoretable[i1].ps = scoretable[i2].ps;
+  scoretable[i1].date = scoretable[i2].date;
 }
 
 static int blurt(char *buf, int bufptr, int count, char c)
@@ -712,14 +787,16 @@ short ParseScoreText(char *text)
 {
     char line[256];
     char *ws = " \t\r\n";
+    Boolean baddate = _false_;
     for (;;)  {
 	text = getline(text, line);
 	if (line[0] == '=') break;
     }
     scoreentries = 0;
     for (;;) {
-	char *user;
+	char *user, *date_str;
 	int level, moves, pushes;
+	time_t date = 0;
 	text = getline(text, line);
 	if (!text) break;
 	user = strtok(line + 4, ws);
@@ -727,13 +804,23 @@ short ParseScoreText(char *text)
 	level = atoi(strtok(0, ws));
 	moves = atoi(strtok(0, ws));
 	pushes = atoi(strtok(0, ws));
+	date_str = strtok(0, ws);
+	if (date_str) date = (time_t)atoi(date_str);
+	if (!date) {
+	    date = time(0);
+	    if (!baddate) {
+		baddate = _true_;
+		fprintf(stderr,
+			"Warning: Bad or missing date in ASCII scores\n");
+	    }
+	}
 	if (level == 0 || moves == 0 || pushes == 0) return E_READSCORE;
 	strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
 	scoretable[scoreentries].lv = (unsigned short)level;
 	scoretable[scoreentries].mv = (unsigned short)moves;
 	scoretable[scoreentries].ps = (unsigned short)pushes;
+	scoretable[scoreentries].date = date;
 	scoreentries++;
     }
-
     return 0;
 }

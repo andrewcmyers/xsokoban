@@ -4,5 +4,8 @@ Fix score display for reverse video
 Figure out what to do with URL
 
 Have local & global or something.
-Init out of text file.
-add date to entries
+Have score forwarding for servers.
+Handle WWW forwarding messages.
+Put rank max in score file
+add motd
+Only get scores for particular level in WWW mode.

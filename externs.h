@@ -61,6 +61,10 @@ extern char *strdup(const char *);
 extern unsigned usleep(unsigned);
 #endif
 
+#if !defined(LOCALTIME_PROTO)
+extern struct tm *localtime(time_t *);
+#endif
+
 #if !defined(BZERO_PROTO)
 extern void bzero(char *, int);
 #endif
@@ -145,6 +149,7 @@ extern void CopyEntry(short, short);
 extern void FlushDeletedScores(Boolean[]);
 extern int SolnRank(int, Boolean *);
 extern short ParseScoreText(char *text);
+extern char *DateToASCII(time_t);
 
 /* stuff from screen.c */
 extern short ReadScreen(void);
