@@ -1,0 +1,214 @@
+.TH XSOKOBAN 6 "27 January 1992" "Carnegie Mellon University"
+.SH NAME
+xsokoban \- Pushing objects around...
+.SH SYNOPSIS
+.B xsokoban 
+[ 
+.B \-s
+.B \-r
+.B \-c
+.B \-nn
+.B \-display
+<disp>
+.B {\-w | \-walls}
+.B {\-rv | \-reverse}
+.B {\-f | \-font}
+<fn>
+.B {\-b | \-bitdir}
+<path>
+.B {\-fg | \-foregound}
+<color>
+.B {\-bg | \-backgound}
+<color>
+.B {\-bd | \-border}
+<color>
+.B {\-pr | \-pointer}
+<color>
+.B \-xrm
+<arg> ] 
+.SH DESCRIPTION
+The target of 
+.I xsokoban
+is to push all the objects into the score area of each level using the
+mouse or the arrow keys. If the left mouse button is pressed on a
+clear square, the man will move to that location via the optimal path
+if such a path exists, otherwise the terminal will beep. If the middle
+button is pressed on an object that is adjacent to the player, the
+object will be pushed.
+If the middle mouse button is pressed on an empty space, the
+player will move the closest object that is
+on a straight line with the destination, such that the object
+can be pushed in that direction, and the player is not directly
+between the destination and the object.
+The player is moved appropriately to push the object to the destination.
+The right button mouse undoes the last move, and may be used any number
+of times.
+.PP
+The rest of the functions are bound to the keyboard:
+.TP 8
+.B q
+Quits the game.
+.TP 8
+.B s
+Saves and quits.
+.TP 8
+.B u
+Undoes the last move. Same as right mouse button.
+.TP 8
+.B U
+Restarts a level.
+.TP 8
+.B ^R
+Redraws the screen.
+.SH OPTIONS
+.TP 8
+.B \-s
+Show the scores
+.TP 8
+.B \-c 
+Create a new score file (can be ran only by the owner of the game).
+.TP 8
+.B \-r
+Restore a saved game.
+.TP 8
+.B \-nn
+Start at level 
+.I nn, 
+provided that levels below it are completed. 
+.TP 8
+.B \-display <display>
+Run the game on named display.
+.TP 8
+.B {\-w | \-walls}
+Use fancy walls. (This is the default unless an option bitmap set is used)
+.TP 8
+.B {\-rv | \-reverse}
+Use reverse video.
+.TP 8
+.B {\-f | \-font} <fontname>
+Use the named font instead of the default 9x15 font.
+.TP 8
+.B {\-b | \-bitdir} <path>
+Use the bitmaps found in <path> instead of the defaults.
+.TP 8
+.B {\-fg | \-foreground} <color>
+Use the named color as the foreground color. (default is BlackPixel())
+.TP 8
+.B {\-bg | \-background} <color>
+Use the named color as the background color. (default is WhitePixel())
+.TP 8
+.B {\-bd | \-border} <color>
+Use the named color as the border color. (default is foreground color)
+.TP 8
+.B {\-pr | \-pointer} <color>
+Use the named color as the mouse pointer foreground. (default is foreground)
+.TP 8
+.B \-xrm <arg>
+<arg> is an X Resource specification.
+.SH AUTHORS
+Joseph L. Traub - X windows interface.
+.br
+Kevin Solie - simultaneously developed X implementation (merged in).
+.br
+Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
+.br
+Unknown Hacker - Original curses(1) implementation.
+.SH RESOURCES
+.I Xsokoban
+understands the following resources.
+.TP 8
+.B fancyWalls : boolean
+Use fancy walls.
+.TP 8
+.B fontName : font
+Use named font.
+.TP 8
+.B reverseVideo : boolean
+Reverse foreground and background pixels.
+.TP 8
+.B foreground : color
+Use color as foreground color.
+.TP 8
+.B background : color
+Use color as background color.
+.TP 8
+.B borderColor : color
+Use color as border color.
+.TP 8
+.B pointerColor : color
+Use color as pointer color.
+.TP 8
+.B bitmapDir : string
+Look for bitmaps in path specified by string.
+.TP 8
+.SH SPECIAL BITMAPS
+In order to define your own bitmaps for
+.I xsokoban
+you only need to know the names of which files it is looking for.
+The standard bitmap files are:
+.TP 8
+.B man.xbm
+-- The player bitmap.
+.TP 8
+.B goal.xbm
+-- The goal area bitmap.
+.TP 8
+.B wall.xbm
+-- The standard wall bitmap.
+.TP 8
+.B object.xbm
+-- The object that gets pushed.
+.TP 8
+.B treasure.xbm
+-- The bitmap for the object when it is on the goal.
+.TP 8
+.B saveman.xbm
+-- The bitmap for the player when it is on the goal.
+.TP 8
+To use the fancy walls option, you need the following additional files.
+.TP 8
+.B lonewall.xbm
+-- a wall with connections on no sides.
+.TP 8
+.B southwall.xbm
+-- a wall with only northern connections
+.TP 8
+.B northwall.xbm
+-- a wall with only southern connections
+.TP 8
+.B eastwall.xbm
+-- a wall with only western connections
+.TP 8
+.B westwall.xbm
+-- a wall with only eastern connections
+.TP 8
+.B llcornerwall.xbm
+-- a wall with northern and eastern connections
+.TP 8
+.B ulcornerwall.xbm
+-- a wall with southern and eastern connections
+.TP 8
+.B lrcornerwall.xbm
+-- a wall with northern and western connections
+.TP 8
+.B urcornerwall.xbm
+-- a wall with southern and western connections
+.TP 8
+.B north_twall.xbm
+-- a wall with connections on all BUT northern side
+.TP 8
+.B south_twall.xbm
+-- a wall with connections on all BUT southern side
+.TP 8
+.B east_twall.xbm
+-- a wall with connections on all BUT eastern side
+.TP 8
+.B west_twall.xbm
+-- a wall with connections on all BUT western side
+.TP 8
+.B centerwall.xbm
+-- A wall will connections on all four sides.
+.SH BUGS
+Auto bitmap resizing code doesn't take into account text displays.
+.br
+Feedback on user error is poor (only beeps).
