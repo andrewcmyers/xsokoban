@@ -29,3 +29,15 @@
 
 /* Is there a prototype for "fclose" in <stdio.h>? */
 #define FCLOSE_PROTO
+
+/* Is there a prototype for "time"? */
+#undef TIME_PROTO
+
+/* Is there a prototype for "mktemp"? */
+#undef MKTEMP_PROTO
+
+/* Is there a prototype for "perror" in <errno.h>? */
+#define PERROR_PROTO
+
+/* Is there a prototype for "rename" in <unistd.h>? */
+#define RENAME_PROTO
