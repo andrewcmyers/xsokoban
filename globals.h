@@ -81,6 +81,7 @@ extern short rows, cols, level, moves, pushes, savepack, packets;
 extern unsigned short scorelevel, scoremoves, scorepushes;
 extern POS ppos;
 extern Display *dpy;
+extern Boolean ownColormap;
 extern unsigned bit_width, bit_height; /* for macros wX, wY */
 extern Atom wm_delete_window, wm_protocols;
 extern XrmDatabase rdb;
