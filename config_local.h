@@ -21,9 +21,6 @@
 /* Are "htons" and "ntohs" defined in <sys/byteorder.h>? */
 #undef NEED_BYTEORDER
 
-/* Is there a prototype for "creat"? */
-#undef CREAT_PROTO
-
 /* Is there a prototype for "fprintf" in <stdio.h>? */
 #define FPRINTF_PROTO
 
