@@ -353,14 +353,14 @@ static short TryPixmapFile(char *template, Pixmap *pix, char *bitpath,
     }
     switch(ret) {
       case XpmColorError: return 0; /* partial success */
-      case XpmSuccess: errmsg = "XPM: success"; break;
-      case XpmOpenFailed: break; /* open failed */
-      case XpmFileInvalid: errmsg = "XPM: file format invalid"; break;
-      case XpmNoMemory: errmsg = "XPM: No memory"; break;
+      case XpmSuccess: errmsg = "success"; break;
+      case XpmOpenFailed: return E_NOBITMAP; /* open failed */
+      case XpmFileInvalid: errmsg = "file format invalid"; break;
+      case XpmNoMemory: errmsg = "No memory"; break;
       case XpmColorFailed: return E_NOCOLOR;
-      default: errmsg = "Unknown error code from XPM"; break;
+      default: errmsg = "unknown error code"; break;
     }
-    fprintf(stderr, "XpmReadFileToPixmap (%s) failed, %s\n", buf, errmsg);
+    fprintf(stderr, "XpmReadFileToPixmap (%s) failed: %s\n", buf, errmsg);
     return E_NOBITMAP;
 }
 #endif
