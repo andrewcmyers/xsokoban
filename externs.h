@@ -64,6 +64,7 @@ typedef enum { _false_ = 0, _true_ = 1 } Boolean;
 
 /* stuff from display.c */
 extern short LoadBitmaps(void);
+extern short LoadOneBitmap(char *fname, char *altname, Pixmap *pix, int map);
 extern void MakeHelpWindows(void);
 extern void ClearScreen(void);
 extern void RedisplayScreen(void);
@@ -100,6 +101,8 @@ extern char *GetResource(char *);
 extern Boolean StringToBoolean(char *);
 extern Boolean GetColorResource(char *, unsigned long *);
 extern XFontStruct *GetFontResource(char *);
+extern unsigned long GetColorOrDefault(Display *, char *,
+				       int, char *, Boolean);
 
 /* stuff from play.c */
 extern short Play(void);
