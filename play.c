@@ -208,6 +208,7 @@ short Play(void)
 		if (moves < MOVE_HISTORY_SIZE) tempsave = moves;
 		else tempsave = MOVE_HISTORY_SIZE - 1;
 	    }
+	    break;
 	  case XK_k:
 	  case XK_K:
 	  case XK_Up:
