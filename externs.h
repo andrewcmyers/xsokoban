@@ -72,6 +72,7 @@ extern short FindPos(void);
 extern short WriteScore(void);
 extern void ShowScore(void);
 extern void CopyEntry(short, short);
+extern void FlushDeletedScores(Boolean[]);
 
 /* stuff from screen.c */
 extern short ReadScreen(void);
