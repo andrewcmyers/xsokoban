@@ -90,9 +90,9 @@ $CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
 SUPERUSER="$superuser"
 echo "checking for owner of game"
 awk -F: '{if ($1 == "'$SUPERUSER'") exit 1}' /etc/passwd &&
-    echo "  \"$SUPERUSER\" is not a username. Edit \"config.h\" and change SUPERUSER." &&
-    exit 1
+    echo "  \"$SUPERUSER\" seems not to be a username. Edit \"config.h\" and change SUPERUSER."
 AC_SUBST(SUPERUSER)
+rm -f tmp.$$.c tmp2.$$
 
 ##############
 # DEC bogosity
