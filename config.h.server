@@ -77,10 +77,10 @@
 #define MAXSCOREENTRIES 20000
 
 /*
-   SUPERUSER: defines the name of the local game owner. Almost never "root"!
+   OWNER: defines the name of the local game owner. Almost never "root"!
 */
-#ifndef SUPERUSER
-#define SUPERUSER "andru"
+#ifndef OWNER
+#define OWNER "andru"
 #endif
 
 /*
@@ -124,7 +124,7 @@
    to an public xsokoban server maintained by Andrew Myers. The xsokoban
    home page is at
     
-       http://clef.lcs.mit.edu/~andru/xsokoban.html
+       http://xsokoban.lcs.mit.edu/~andru/xsokoban.html
     
    In order to create your own WWW xsokoban score server, a few small
    shell scripts must be used; they are not provided in this
@@ -138,7 +138,7 @@
    WWWHOST: Host where WWW scores are stored
 */
 #ifndef WWWHOST
-#define WWWHOST "clef.lcs.mit.edu"
+#define WWWHOST "xsokoban.lcs.mit.edu"
 #endif
 
 /*
