@@ -179,6 +179,17 @@ Use the named color as the mouse pointer foreground. (default is foreground)
 .TP 8
 .B \-xrm <arg>
 <arg> is an X Resource specification.
+.SH OTHER INFORMATION
+.P
+There is more information about
+.I xsokoban
+in the WWW, at
+.br
+.sp
+http://clef.lcs.mit.edu/~andru/xsokoban.html
+.sp
+A global score file is also located there.
+
 .SH AUTHORS
 .P
 Unknown Hacker - Original
