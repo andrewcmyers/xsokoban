@@ -1,5 +1,5 @@
 #!/bin/sh
-files=xsokoban-3.0/FILES
+files=xsokoban/FILES
 if [ -r $files ]
 then
     makekit -oMANIFEST `cat $files`
