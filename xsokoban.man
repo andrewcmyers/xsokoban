@@ -98,16 +98,30 @@ Redraw the screen.
 .B S
 View the score file.
 
+.PP
 The score file can be viewed at any time during the playing of the
-game. Scores of the current user are initially highlighted. The left
-mouse button may be used to select other users to highlight. The
-scores are also displayed whenever a level is completed. When the
-score file is displayed between levels, the middle mouse button can be
-used to select a new level to play.  The <Return> key is used to play
-the next level, and the "q" key exits the game.
+game.  The scores are also displayed whenever a level is completed.
+Scores of the current user are initially highlighted. While viewing
+scores, the following keys may be used to control the listing:
+
+.TP 8
+.B q
+Quit the game
+.TP 8
+.B Return
+Return to the game and continue with the current level; or, if the current
+level is completed, begin the next level.
+.TP 8
+.B <left>
+The left mouse button may be used to select a different user to
+highlight. It also controls the scroll bar at the right side of the
+screen.
+.TP 8
+.B <middle>
+The middle mouse button selects a new level to play if a level is not
+already in progress.
 
 .PP
-
 Scores are saved in the score file if they are of high
 enough rank. A score is ranked according to how many scores are better
 than it; there are no scores superior to a rank 1 score, only one score
