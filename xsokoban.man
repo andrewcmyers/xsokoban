@@ -182,31 +182,42 @@ Look for bitmaps in path specified by string.
 .TP 8
 .B border.color: color
 Color of borders in the score display
+.TP 8
 .B text.font: font
 Font of text in the score display
+.TP 8
 .B text.color: color
 Color of text in the score display
+.TP 8
 .B text.highlight: color
 Color of highlighted text in the score display
+.TP 8
 .B text.indent: int
 Indenting of text in the score display
+.TP 8
 .B scrollbar.width: int
 Width of the scrollbar in the score display
+.TP 8
 .B scrollbar.background: color
 Color of the scrollbar background
+.TP 8
 .B scrollbar.thumb.height: int, scrollbar.thumb.width: int
 Size of the scrollbar thumb
+.TP 8
 .B scrollbar.thumb.color: color
 Color of the scrollbar thumb
+.TP 8
 .B panel.height: int
 Height of the help panel in the score display
+.TP 8
 .B panel.font: font
 Font of the help panel in the score display
+.TP 8
 .B bevel.width
 Width of the Motif-like bevels
+.TP 8
 .B sep.color: color
 Color of the lines separating different score levels
-
 
 .SH SPECIAL BITMAPS
 In order to define your own bitmaps for
