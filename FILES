@@ -16,6 +16,7 @@ xsokoban-3.0/resources.c
 xsokoban-3.0/save.c
 xsokoban-3.0/score.c
 xsokoban-3.0/scores
+xsokoban-3.0/scores/scores
 xsokoban-3.0/screen.c
 xsokoban-3.0/screens
 xsokoban-3.0/xsokoban.man
