@@ -1,0 +1,3 @@
+ROOTDIR = "."? 
+ANYLEVEL = FALSE?
+Makefile is not derived from Imakefile?
