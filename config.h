@@ -7,7 +7,10 @@
 ***********************************************************************/
 
 #ifndef ROOTDIR
-#define ROOTDIR "/usr/local/lib/xsokoban"
+#define ROOTDIR "."
+/* I suggest "/usr/local/lib/xsokoban" as a value for this variable
+   in the installed version, but you know best...
+*/
 #endif
 
 /**/
@@ -71,7 +74,7 @@
 #endif
 
 /**/
-/* ANYLEVEL: Allow any user to play any level and get a score for it */
+/* ANYLEVEL: Allow any user to play any level and enter a score for it */
 /**/
 #undef ANYLEVEL
 
