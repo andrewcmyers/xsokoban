@@ -132,7 +132,7 @@ extern Boolean Verify(int, char *);
 
 /* stuff from score.c */
 extern short OutputScore(int);
-extern short MakeNewScore(void);
+extern short MakeNewScore(char *);
 extern short GetUserLevel(short *);
 extern short Score(Boolean show);
 extern short ReadScore(void);
@@ -144,6 +144,7 @@ extern void ShowScore(int);
 extern void CopyEntry(short, short);
 extern void FlushDeletedScores(Boolean[]);
 extern int SolnRank(int, Boolean *);
+extern short ParseScoreText(char *text);
 
 /* stuff from screen.c */
 extern short ReadScreen(void);

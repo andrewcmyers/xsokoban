@@ -20,7 +20,8 @@ short level, packets, savepack, moves, pushes, rows, cols;
 unsigned short scorelevel, scoremoves, scorepushes;
 POS ppos;
 char map[MAXROW + 1][MAXCOL + 1];
-char *username = NULL, *progname = NULL, *bitpath = NULL;
+char *username = 0, *progname = 0, *bitpath = 0;
+char *optfile = 0;
 XrmDatabase rdb;
 Boolean ownColormap = _false_;
 
@@ -98,7 +99,7 @@ void main(int argc, char **argv)
 	  /* make sure of that, shall we? */
 	  ret = GetGamePassword();
 	  if(ret == 0)
-	    ret = MakeNewScore();
+	    ret = MakeNewScore(optfile);
 	} else
 	  /* sorry, BAD superuser */
 	  ret = E_NOSUPER;
@@ -213,6 +214,13 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
 	     optverify)
 	    return E_USAGE;
+	  optfile = 0;
+	  if (argv[option][2] != 0) 
+	    optfile = &argv[option][2];
+	  else if (argv[option+1] && argv[option + 1][0] != '-') {
+	    optfile = &argv[option + 1][0];
+	    option++;
+	  }
 	  optmakescore = _true_;
 	  break;
 	case 'C':
