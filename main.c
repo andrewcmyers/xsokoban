@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <pwd.h>
+#include <X11/Xlib.h>
+#include <X11/Xresource.h>
 #include "externs.h"
 #include "globals.h"
 #include "options.h"
@@ -11,7 +13,7 @@ short level, packets, savepack, moves, pushes, rows, cols;
 short scorelevel, scoremoves, scorepushes;
 POS ppos;
 char map[MAXROW + 1][MAXCOL + 1];
-char *username = NULL, *progname = NULL, *bitpath = NULL;;
+char *username = NULL, *progname = NULL, *bitpath = NULL;
 static Boolean optshowscore = _false_, optmakescore = _false_,
 	       optrestore = _false_, superuser = _false_;
 static short optlevel = 0, userlevel;

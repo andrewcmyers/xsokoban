@@ -57,6 +57,8 @@ extern void TempReset(void);
 extern Boolean WaitForEnter(void);
 extern void MoveMan(int, int);
 extern void FindTarget(int, int, int);
+extern Boolean RunTo(int, int);
+extern void PushMan(int, int);
 
 /* stuff from score.c */
 extern short OutputScore(void);
