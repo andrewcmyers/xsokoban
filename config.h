@@ -1,5 +1,9 @@
 /***********************************************************************
-   You may wish to alter the following directory paths
+   You may wish to alter the following directory paths.
+
+   Note that the string concatenation performed below requires an
+   ANSI-standard preprocessor. If you don't have one, you'll have to
+   manually edit SCREENPATH, SAVEPATH, etc. to start with ROOTDIR.
 ***********************************************************************/
 
 #ifndef ROOTDIR
