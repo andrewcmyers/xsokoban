@@ -170,7 +170,7 @@
    $N is the length of the string of moves.
 */
 #ifndef WWWSCORECOMMAND
-#define WWWSCORECOMMAND "POST /cgi-bin/sok-solve?$L,$U HTTP/1.0\n" \
+#define WWWSCORECOMMAND "POST /cgi-bin/xsokoban/solve?$L,$U HTTP/1.0\n" \
                         "Content-type: text/plain\n" \
                         "Content-length: $N\n" \
                         "\n" \
@@ -178,7 +178,7 @@
 #endif
 
 #ifndef WWWREADSCORECMD
-#define WWWREADSCORECMD "GET /cgi-bin/sok-scores HTTP/1.0\n\n"
+#define WWWREADSCORECMD "GET /cgi-bin/xsokoban/scores HTTP/1.0\n\n"
 #endif
 
 /*
@@ -186,7 +186,7 @@
    means the requested level number. Not currently used.
 */
 #ifndef WWWSCREENPATH
-#define WWWSCREENPATH "GET /cgi-bin/sok-screens?level=$L HTTP/1.0\n\n"
+#define WWWSCREENPATH "GET /cgi-bin/xsokoban/screen?level=$L HTTP/1.0\n\n"
 #endif
 
 /* 
