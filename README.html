@@ -18,8 +18,9 @@ Installation -
     ROOTDIR="." in config.h. This will allow you to test the program
     while saving score files under the build directory.
   
-  - Edit Makefile to set the compiler and compiler flags correctly, and
-    select the right libraries to compile with.
+  - Use 'xmkmf' to produce a Makefile from the Imakefile provided, or
+    else edit 'Makefile' to set the compiler and compiler flags correctly
+    and select the right libraries to compile with.
 
   - Compile by typing 'make'.  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
@@ -33,7 +34,7 @@ Installation -
 
   - Play the game by typing 'xsokoban'.
 
-  - Install the game by typing "make install" or by manually copying
+  - Install the game by typing 'make install' or by manually copying
     the executable. Install the directories screens/, scores/,
     bitmaps/, and saves/ under ROOTDIR.
 
