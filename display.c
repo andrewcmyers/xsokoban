@@ -419,7 +419,7 @@ void ShowScreen(void)
   register int i,j;
 
   for(i = 0; i < rows; i++)
-    for(j = 0; j < cols && map[i][j] != NULL; j++)
+    for(j = 0; j < cols && map[i][j] != 0; j++)
       MapChar(map[i][j], i, j);
   DisplayLevel();
   DisplayPackets();
