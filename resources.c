@@ -3,11 +3,6 @@
 #include "externs.h"
 #include "globals.h"
 
-extern char *progname;
-extern XrmDatabase rdb;
-extern Display *dpy;
-extern Colormap cmap;
-
 /* rewritten slightly from the xantfarm code by Jef Poskanzer */
 
 /* get a resource from the specified db.  This helps support the -display

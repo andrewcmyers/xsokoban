@@ -18,15 +18,12 @@ unsigned short scorelevel, scoremoves, scorepushes;
 POS ppos;
 char map[MAXROW + 1][MAXCOL + 1];
 char *username = NULL, *progname = NULL, *bitpath = NULL;
-static Boolean optshowscore = _false_, optmakescore = _false_,
-	       optrestore = _false_, superuser = _false_;
-static short optlevel = 0, userlevel;
-struct passwd *pwd;
 XrmDatabase rdb;
 
-extern Display *dpy;
-extern int scr;
-extern Boolean display_alloc;
+static short optlevel = 0, userlevel;
+static Boolean optshowscore = _false_, optmakescore = _false_,
+	       optrestore = _false_, superuser = _false_;
+static struct passwd *pwd;
 
 /* do all the setup foo, and make sure command line gets parsed. */
 void main(int argc, char **argv)

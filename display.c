@@ -13,33 +13,33 @@
 #define HELP_H (bit_height * MAXROW)
 #define HELP_W (bit_width * MAXCOL)
 
-/* useful globals */
-Display *dpy;
-Window win;
-int scr;
-GC gc, rgc, drgc;
-Atom wm_delete_window, wm_protocols;
-XFontStruct *finfo;
-unsigned int width, height, depth, bit_height, bit_width;
-Boolean display_alloc = False, font_alloc = False, gc_alloc = False,
-        pix_alloc = False;
-Boolean optwalls;
-Colormap cmap;
-Cursor this_curs;
+/* local to this file */
+static Window win;
+static GC gc, rgc, drgc;
+static unsigned int width, height, depth;
+static XFontStruct *finfo;
+static Boolean optwalls;
+static Cursor this_curs;
 static Pixmap help[HELP_PAGES], floor;
-static Pixmap blank, work, man, saveman, goal, object, treasure, walls[NUM_WALLS];
-int hlpscrn = -1;
-char buf[500];
+static Pixmap blank, work, man, saveman, goal, object,
+       treasure, walls[NUM_WALLS];
+static Boolean font_alloc = False, gc_alloc = False,
+        pix_alloc = False;
+static int hlpscrn = -1;
+static char buf[500];
 
-extern char *progname;
-extern char map[MAXROW+1][MAXCOL+1];
-extern short rows, cols, level, moves, pushes, packets, savepack;
-extern char *bitpath;
+/* globals */
+Display *dpy;
+int scr;
+unsigned bit_width, bit_height;
+Atom wm_delete_window, wm_protocols;
+Boolean display_alloc = False;
+Colormap cmap;
 
 /* names of the fancy wall bitmap files.  If you define a set of fancy
  * wall bitmaps, they must use these names
  */
-char *wallname[] = {
+static char *wallname[] = {
  "lonewall.xbm", "southwall.xbm", "westwall.xbm", "llcornerwall.xbm",
  "northwall.xbm", "vertiwall.xbm", "ulcornerwall.xbm", "west_twall.xbm",
  "eastwall.xbm", "lrcornerwall.xbm", "horizwall.xbm", "south_twall.xbm",
@@ -272,7 +272,6 @@ Boolean LoadOneBitmap(char *fname, char *altname, Pixmap *pix)
   unsigned int dum1, dum2;
   int dum3, dum4;
   Boolean load_fail = _false_;
-  char buf[1024];
 
   if(bitpath && *bitpath) {
     /* we have something to try other than the default, let's do it */

@@ -12,11 +12,14 @@
 /* Are "htons" and "ntohs" defined in <machine/endian.h>? */
 #define NEED_ENDIAN
 
-/* Is there a prototype for "creat"? */
-#undef CREAT_PROTO
+/* Are "htons" and "ntohs" defined in <net/nh.h>? */
+#undef NEED_NH
 
 /* Are "htons" and "ntohs" defined in <netinet/in.h>? */
 #undef NEED_NETINET_IN_H
+
+/* Is there a prototype for "creat"? */
+#undef CREAT_PROTO
 
 /* Is there a prototype for "fprintf" in <stdio.h>? */
 #define FPRINTF_PROTO

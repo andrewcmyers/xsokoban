@@ -6,25 +6,10 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
-
-#ifdef NEED_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
-#ifdef NEED_ENDIAN
-#include <machine/endian.h>
-#endif
+#include <stdlib.h>
 
 #include "externs.h"
 #include "globals.h"
-
-extern char *malloc();
-extern FILE *fopen();
-
-extern char *username;
-extern char map[MAXROW + 1][MAXCOL + 1];
-extern short level, moves, pushes, packets, savepack, rows, cols;
-extern POS ppos;
 
 static long savedbn;
 static char *sfname;

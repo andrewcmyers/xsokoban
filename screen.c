@@ -1,15 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "externs.h"
 #include "globals.h"
-
-extern char *malloc();
-extern FILE *fopen();
-
-extern short level, packets, savepack, rows, cols;
-extern char map[MAXROW + 1][MAXCOL + 1];
-extern POS ppos;
 
 /* Read in the current screen level, updating "ppos", "map", "savepack",
    and "packets" appropriately. Return 0 if success, else an error code. */

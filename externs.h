@@ -5,6 +5,19 @@
 #include <X11/Xresource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <malloc.h>
+
+#ifdef NEED_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#ifdef NEED_NH
+#include <net/nh.h>
+#endif
+
+#ifdef NEED_ENDIAN
+#include <machine/endian.h>
+#endif
 
 #include "config_local.h"
 
