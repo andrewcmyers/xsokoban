@@ -41,6 +41,22 @@ extern int fprintf(FILE *, const char *, ...);
 extern int fclose(FILE *);
 #endif
 
+#if !defined(TIME_PROTO)
+extern time_t time(time_t *);
+#endif
+
+#if !defined(MKTEMP_PROTO)
+extern char *mktemp(char *tempfile);
+#endif
+
+#if !defined(PERROR_PROTO)
+extern void perror(char *);
+#endif
+
+#if !defined(RENAME_PROTO)
+extern int rename(char *from, char *to);
+#endif
+
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
 
@@ -109,6 +125,7 @@ extern short WriteScore(void);
 extern void ShowScore(int);
 extern void CopyEntry(short, short);
 extern void FlushDeletedScores(Boolean[]);
+extern int SolnRank(int, Boolean *);
 
 /* stuff from screen.c */
 extern short ReadScreen(void);
