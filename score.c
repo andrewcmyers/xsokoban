@@ -696,15 +696,16 @@ char *getline(char *text, char *linebuf)
 */
 short ReadScore_WWW()
 {
-    char *cmd, *result, *text;
+    char *cmd, *text;
+    short ret;
     movelist[0] = 0;
     cmd = subst_names(WWWREADSCORECMD);
-    result = qtelnet(WWWHOST, WWWPORT, cmd);
+    text = qtelnet(WWWHOST, WWWPORT, cmd);
 /* Now, skip past all the initial crud */
-    text = result;
     if (!text) return E_READSCORE;
-    free(result);
-    return ParseScoreText(text);
+    ret = ParseScoreText(text);
+    free(text);
+    return ret;
 }
 
 short ParseScoreText(char *text)
