@@ -25,21 +25,13 @@ extern int abs(int);
 #define ISCLEAR(x,y) ((map[x][y] == ground) || (map[x][y] == store))
 #define ISPACKET(x,y) ((map[x][y] == packet) || (map[x][y] == save))
 
-/* whee, yet more globals */
-extern char map[MAXROW+1][MAXCOL+1];
-extern short rows, cols, level, moves, pushes, savepack, packets;
-extern short scorelevel, scoremoves, scorepushes;
-extern POS ppos;
-extern Display *dpy;
-extern int bit_width, bit_height;
-
 static XEvent xev;
 static POS tpos1, tpos2, lastppos, lasttpos1, lasttpos2;
 static char lppc, ltp1c, ltp2c;
 static short action, lastaction;
 
-/** For the temporary save **/
-static char  tmp_map[MAXROW+1][MAXCOL+1];
+/** For the checkpoint save **/
+static Map  tmp_map;
 static short tmp_pushes, tmp_moves, tmp_savepack;
 static POS   tmp_ppos;
 static Boolean undolock = _true_;
@@ -47,6 +39,26 @@ static Boolean shift = _false_;
 static Boolean cntrl = _false_;
 static KeySym oldmove;
 static int findmap[MAXROW+1][MAXCOL+1];
+
+#define MAXDELTAS 4
+
+/** For stack saves. **/
+struct map_delta {
+    int x,y;
+    char oldchar, newchar;
+};
+struct move_r {
+    short px, py;
+    short moves, pushes, saved, ndeltas;
+    struct map_delta deltas[MAXDELTAS];
+};
+static struct move_r move_stack[STACKDEPTH];
+static int move_stack_sp; /* points to last saved move. If no saved move, -1 */
+static short last_moves, last_pushes;
+static Map prev_map;
+static void RecordChange(void);
+static void UndoChange(void);
+static void InitMoveStack(void);
 
 /* play a particular level.
  * All we do here is wait for input, and dispatch to appropriate routines
@@ -64,12 +76,13 @@ short Play(void)
   ClearScreen();
   ShowScreen();
   TempSave();
+  InitMoveStack();
   ret = 0;
   while (ret == 0) {
     XNextEvent(dpy, &xev);
     switch(xev.type) {
       case Expose:
-	/* Redisplaying is pretty cheap, so I don't care to much about it */
+	/* Redisplaying is pretty cheap, so I don't care too much about it */
 	RedisplayScreen();
 	break;
       case ButtonPress:
@@ -77,23 +90,24 @@ short Play(void)
 	  case Button1:
 	    /* move the man to where the pointer is. */
 	    MoveMan(xev.xbutton.x, xev.xbutton.y);
+	    RecordChange();
 	    break;
 	  case Button2:
 	    /* Push a ball */
 	    PushMan(xev.xbutton.x, xev.xbutton.y);
+	    RecordChange();
 	    break;
 	  case Button3:
 	    /* undo last move */
-	    if(!undolock) {
-	      UndoMove();
-	      undolock = _true_;
-	    }
+	    UndoChange();
+	    ShowScreen();
 	    break;
 	  default:
 	    /* I'm sorry, you win the irritating beep for your efforts. */
 	    HelpMessage();
 	    break;
 	}
+	RedisplayScreen();
 	break;
       case KeyPress:
 	buf[0] = '\0';
@@ -128,8 +142,10 @@ short Play(void)
 	    break;
 	  case XK_c:
 	    /* make a temp save */
-	    if(!cntrl)
-	      TempSave();
+	    if(!cntrl) {
+		TempSave();
+		InitMoveStack();
+	    }
 	    break;
 	  case XK_U:
 	    /* Do a full screen reset */
@@ -147,13 +163,11 @@ short Play(void)
 	      /* Reset to last temp save */
 	      TempReset();
 	      undolock = _true_;
+	      InitMoveStack();
 	      ShowScreen();
 	    } else {
-	      /* undo last move */
-	      if (!undolock) {
-		UndoMove();
-		undolock = _true_;
-	      }
+	      UndoChange();
+	      ShowScreen();
 	    }
 	    break;
 	  case XK_k:
@@ -170,6 +184,8 @@ short Play(void)
 	  case XK_Left:
 	    /* A move, A move!! we have a MOVE!! */
 	    MakeMove(sym);
+	    RedisplayScreen();
+	    RecordChange();
 	    break;
 	  default:
 	    /* I ONLY want to beep if a key was pressed.  Contrary to what
@@ -195,7 +211,7 @@ short Play(void)
   return ret;
 }
 
-/* Well what do you THINK this does? */
+/* Perform a user move based on the key in "sym". */
 void MakeMove(KeySym sym)
 {
   do {
@@ -217,7 +233,6 @@ void MakeMove(KeySym sym)
       oldmove = sym;
     }
   } while ((action != 0) && (packets != savepack) && (shift || cntrl));
-  RedisplayScreen();
 }
 
 /* make sure a move is valid and if it is, return type of move */
@@ -312,6 +327,7 @@ void DoMove(short moveaction)
   MapChar(map[tpos2.x][tpos2.y], tpos2.x, tpos2.y, 1);
   ppos.x = tpos1.x;
   ppos.y = tpos1.y;
+  SyncScreen();
 }
 
 /* undo the most recently done move */
@@ -354,6 +370,7 @@ void UndoMove(void)
   MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
   MapChar(map[lasttpos1.x][lasttpos1.y], lasttpos1.x, lasttpos1.y, 1);
   MapChar(map[lasttpos2.x][lasttpos2.y], lasttpos2.x, lasttpos2.y, 1);
+  SyncScreen();
 }
 
 /* make a temporary save so we don't screw up too much at once */
@@ -634,14 +651,14 @@ void PushMan(int mx, int my)
 }
 
 /* Move the player to the position (x,y), if possible. Return _true_
-   if succeeded. The position (x,y) must be clear.
+   iff successful. The position (x,y) must be clear.
 */
 Boolean RunTo(int x, int y)
 {
   int i,j,cx,cy;
   /* Fill the trace map */
-  for(i = 0; i < MAXROW + 1; i++)
-    for (j = 0; j < MAXCOL + 1; j++)
+  for(i = 0; i <= MAXROW; i++)
+    for (j = 0; j <= MAXCOL; j++)
       findmap[i][j] = BADMOVE;
   /* flood fill search to find a shortest path to the push point. */
   FindTarget(x, y, 0);
@@ -675,4 +692,87 @@ Boolean RunTo(int x, int y)
     }
   }
   return _true_;
+}
+
+
+static void InitMoveStack()
+{
+    move_stack_sp = -1;
+    move_stack[0].moves = moves;
+    move_stack[0].pushes = moves;
+    move_stack[0].saved = savepack;
+    bcopy(map, prev_map, sizeof(map));
+}
+
+/* Add a record to the move stack that records the changes since the
+   last map state (which is stored in "prev_map"). Update "prev_map"
+   to contain the current map so the next call to "RecordChange()"
+   will perform correctly.
+*/
+static void RecordChange()
+{
+    struct move_r *r = &move_stack[++move_stack_sp];
+    int x,y, ndeltas = 0;
+    assert(move_stack_sp < STACKDEPTH);
+    if (move_stack_sp == STACKDEPTH) {
+	int shift = STACKDEPTH/2;
+	bcopy(&move_stack[shift], &move_stack[0],
+	      sizeof(struct move_r) * (STACKDEPTH - shift));
+	r -= shift;
+    }
+    r[1].moves = moves;
+    r[1].pushes = pushes;
+    r[1].saved = savepack;
+    r[1].px = ppos.x;
+    r[1].py = ppos.y;
+    for (x = 0; x <= MAXROW; x++) {
+	for (y = 0; y <= MAXROW; y++) {
+	    if (map[x][y] != prev_map[x][y]) {
+		assert(ndeltas < MAXDELTAS);
+		r->deltas[ndeltas].x = x;
+		r->deltas[ndeltas].y = y;
+		r->deltas[ndeltas].newchar = map[x][y];
+		r->deltas[ndeltas].oldchar = prev_map[x][y];
+		ndeltas++;
+#if 0
+		printf("Change (%d,%d) %c->%c\n", x, y, prev_map[x][y],
+		       map[x][y]);
+#endif
+	    }
+	}
+    }
+    r->ndeltas = ndeltas;
+    bcopy(map, prev_map, sizeof(map));
+}
+
+static void UndoChange()
+{
+    if (move_stack_sp <= 0) {
+	int ret;
+	InitMoveStack();
+	ret = ReadScreen();
+	moves = pushes = savepack = 0;
+	if (ret) {
+	    fprintf(stderr, "Can't read screen file\n");
+	    exit(-1);
+	}
+    } else {
+	struct move_r *r = &move_stack[move_stack_sp];
+	int i;
+	moves = r->moves;
+	pushes = r->pushes;
+	savepack = r->saved;
+	ppos.x = r->px;
+	ppos.y = r->py;
+	for (i = 0; i<r->ndeltas; i++) {
+#if 0
+	    printf("Applying reverse change: (%d,%d) %c->%c\n",
+		r->deltas[i].x, r->deltas[i].y,
+		   map[r->deltas[i].x][r->deltas[i].y], r->deltas[i].oldchar);
+#endif
+	    map[r->deltas[i].x][r->deltas[i].y] = r->deltas[i].oldchar;
+	}
+	move_stack_sp--;
+	bcopy(map, prev_map, sizeof(map));
+    }
 }

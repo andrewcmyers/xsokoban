@@ -411,6 +411,12 @@ void RedisplayScreen(void)
   XFlush(dpy);
 }
 
+/* Flush all X events to the screen and wait for them to get there. */
+void SyncScreen(void)
+{
+  XSync(dpy, 0);
+}
+
 /* Draws all the neat little pictures and text onto the working pixmap
  * so that RedisplayScreen is happy.
  */
@@ -431,9 +437,9 @@ void ShowScreen(void)
 }
 
 /* Draws a single pixmap, translating from the character map to the pixmap
- * rendition.
+ * rendition. If "copy_area", also push the change through to the actual window.
  */
-void MapChar(char c, int i, int j, int copy_area)
+void MapChar(char c, int i, int j, Boolean copy_area)
 {
   Pixmap this;
 
@@ -492,7 +498,7 @@ void DrawString(int x, int y, char *text)
 
 /* The following routines display various 'statusline' stuff (ie moves, pushes,
  * etc) on the screen.  they are called as they are needed to be changed to
- * avoid unneccesary drawing */
+ * avoid unnecessary drawing */
 void DisplayLevel(void)
 {
    sprintf(buf, "Level: %3d", level);

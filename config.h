@@ -86,3 +86,8 @@
 /* in the score table. */
 /**/
 #define MAXSOLNRANK 5
+
+/**/
+/* STACKDEPTH: Number of previous positions remembered in the move stack
+/**/
+#define STACKDEPTH 1000
