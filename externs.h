@@ -86,7 +86,6 @@ extern short Play(void);
 extern void MakeMove(KeySym);
 extern short TestMove(KeySym);
 extern void DoMove(short);
-extern void UndoMove(void);
 extern void TempSave(void);
 extern void TempReset(void);
 extern Boolean WaitForEnter(void);

@@ -344,49 +344,6 @@ void DoMove(short moveaction)
   SyncScreen();
 }
 
-/* undo the most recently done move */
-void UndoMove(void)
-{
-  map[lastppos.x][lastppos.y] = lppc;
-  map[lasttpos1.x][lasttpos1.y] = ltp1c;
-  map[lasttpos2.x][lasttpos2.y] = ltp2c;
-  ppos.x = lastppos.x;
-  ppos.y = lastppos.y;
-  switch( lastaction) {
-    case MOVE:
-      moves--;
-      break;
-    case STOREMOVE:
-      moves--;
-      break;
-    case PUSH:
-      moves--;
-      pushes--;
-      break;
-    case UNSAVE:
-      moves--;
-      pushes--;
-      savepack++;
-      break;
-    case SAVE:
-      moves--;
-      pushes--;
-      savepack--;
-      break;
-    case STOREPUSH:
-      moves--;
-      pushes--;
-      break;
-  }
-  DisplayMoves();
-  DisplayPushes();
-  DisplaySave();
-  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
-  MapChar(map[lasttpos1.x][lasttpos1.y], lasttpos1.x, lasttpos1.y, 1);
-  MapChar(map[lasttpos2.x][lasttpos2.y], lasttpos2.x, lasttpos2.y, 1);
-  SyncScreen();
-}
-
 /* Function used by the help pager.  We ONLY want to flip pages if a key
  * key is pressed.. We want to exit the help pager if ENTER is pressed.
  * As above, <shift> and <control> and other such fun keys are NOT counted
