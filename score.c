@@ -7,16 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#ifdef NEED_ENDIAN
-#include <machine/endian.h> /* for ntohs */
-#endif
 
 #include "externs.h"
 #include "globals.h"
-
-extern FILE *fopen();
-
-extern char *username;
 
 static short scoreentries;
 static struct st_entry {
@@ -299,7 +292,7 @@ short FindPos(void)
 }
 
 /* writes out the score table.  It uses ntoh() and hton() functions to make
- * the scorefile transfer across systems.
+ * the scorefile compatible across systems.
  */
 short WriteScore(void)
 {
