@@ -125,7 +125,7 @@ Kevin Solie - simultaneously developed X implementation (merged in).
 .br
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
 .br
-Andrew Myers - Improved mouse UI, score ranking, repeated undo
+Andrew Myers - Improved mouse UI and score ranking
 .SH RESOURCES
 .I Xsokoban
 understands the following resources.

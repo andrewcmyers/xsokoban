@@ -14,10 +14,6 @@ Installation -
     These defines should be checked carefully to make sure they are
     correct.
 
-    When you're bringing the system up, it may be useful to set
-    ROOTDIR="." in config.h. This will allow you to test the program
-    while saving score files under the build directory.
-  
   - Use 'xmkmf' to produce a Makefile from the Imakefile provided, or
     else edit 'Makefile' to set the compiler and compiler flags correctly
     and select the right libraries to compile with.
@@ -26,20 +22,19 @@ Installation -
     down an error, send me a bug report (including what changes you needed
     to make, and I will see about fixing it for later distributions).
 
-  - Create the scorefile by typing 'xsokoban -c'.  (If you have a sokoban
-    game already on your system, you should be able to just use that score
-    file by setting the config.h defines correctly). If you can't create
-    a new score file, it's probably because the necessary structure
-    under ROOTDIR doesn't exist.
+  - Play the game by typing 'xsokoban'. If it complains about not being
+    able to read the scorefile, create one with 'xsokoban -c'. If this
+    doesn't work, it is probably because you need to create the score
+    directory. See config.h.
 
-  - Play the game by typing 'xsokoban'.
-
-  - Install the game by typing 'make install' or by manually copying
-    the executable. Install the directories screens/, scores/,
-    bitmaps/, and saves/ under ROOTDIR.
+  - Set ROOTDIR to the desired location for the xsokoban data files,
+    and rebuild.  Install the game by typing 'make install' or by
+    manually copying the executable. Install the directories screens/,
+    scores/, bitmaps/, and saves/ under ROOTDIR.
 
 Notes -
-  - The screen files need to be publically readable.
+  - The screen files need to be publically readable and should not be
+    writable.
 
   - The score file should be readable/writeable ONLY by the 'superuser' of the
     program (see config.h).
@@ -49,13 +44,12 @@ Notes -
   - Because of this, the game needs to be run setuid of the person who is
     'superuser'.
 
-Authors -
+Credits -
   Unknown Hacker - Original curses(1) implementation.
   Joseph L. Traub - X windows interface.
   Kevin Solie - simultaneously developed X implementation (merged in).
   Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
-  Andrew Myers - Improved mouse UI, score ranking, repeated undo
-
+  Andrew Myers - Improved mouse UI and score ranking
 
 Fixes/Bug Reports/Modifications -
   - If you make any changes to this program, fix any bugs, add any neat
