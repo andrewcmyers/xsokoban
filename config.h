@@ -118,7 +118,17 @@
 #define SLEEPLEN 8
 
 /*
-   WWW: Use WWW to store the score file and screens for you
+   WWW: Use WWW to store the score file and screens for you.
+
+   Below, you will find definitions that will allow xsokoban to connect
+   to an public xsokoban server maintained by Andrew Myers. The xsokoban
+   home page is at
+    
+       http://clef.lcs.mit.edu/~andru/xsokoban.html
+    
+   In order to create your own WWW xsokoban score server, a few small
+   shell scripts must be used; they are not provided in this
+   distribution, but can be obtained on request from andru@lcs.mit.edu.
 */
 #ifndef WWW
 #define WWW 1

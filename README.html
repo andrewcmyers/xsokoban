@@ -1,7 +1,7 @@
-XSokoban 3.1
-------------
+XSokoban 3.2a
+-------------
 
-This is the third release of XSokoban.
+This is the third major release of XSokoban.
 
 This distribution contains all the files to compile and run the game,
 the original 50 sokoban screen files, 40 additional screen files
@@ -13,6 +13,10 @@ Installation -
     appropriate paths and compilation options for your system.
     These defines should be checked carefully to make sure they are
     correct.
+
+      -	You can compile xsokoban in either WWW mode or local mode.
+	Where it stores scores depends on the mode. The mode is
+	controlled by the WWW option; see "config.h" for more details.
 
   - Use 'xmkmf' to produce a Makefile from the Imakefile provided, or
     else edit 'Makefile' to set the compiler and compiler flags correctly
@@ -60,13 +64,34 @@ Credits -
     Joseph L. Traub - X windows interface.
     Kevin Solie - simultaneously developed X implementation (merged in).
     Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
-    Andrew Myers - Improved mouse UI, score ranking and color support
+    Andrew Myers - Improved mouse UI, score ranking, WWW and color support
 
 Fixes/Bug Reports/Modifications -
 
     If you make any changes to this program, fix any bugs, add any neat
     features, or whatever, please send mail to "andru@lcs.mit.edu"
     so that I can add them in to the newest release.
+
+Redistribution -
+
+    Xsokoban is distributed in the public domain and may be freely
+    redistributed.
+
+NO WARRANTY!
+
+    Xsokoban comes without absolutely no warranty. The entire risk as
+    to the quality and performance of the program is with you. Should
+    xsokoban prove defective, you assume the cost of all necessary
+    servicing, repair or correction.
+
+    In no event unless required by applicable law will Andrew Myers or
+    any other party be liable to you for damages, including any lost
+    profits, lost monies, or other special, incidental, or
+    consequential damages arising out of the use or inability to use
+    the program (including but not limited to loss of data or data
+    being rendered inaccurate or losses sustained by third parties),
+    even if you have been advised of the possibility of such damages,
+    or for any claim by any other party.
 
 --Andrew Myers
   (andru@lcs.mit.edu)
