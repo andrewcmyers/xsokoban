@@ -10,15 +10,23 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
 #include <fcntl.h>
 #include <ctype.h>
 #include <stdlib.h>
 
+#ifdef HAVE_NL_LANGINFO
+#include <langinfo.h>
+#endif
+
 #include "externs.h"
 #include "globals.h"
 #include "score.h"
+#if WWW
 #include "www.h"
+#endif
 
 #define SCORE_VERSION "xs02"
 
@@ -694,8 +702,15 @@ static short WriteScore()
 }
 #endif
 
+#ifdef HAVE_NL_LANGINFO
+int mos[] = { ABMON_1, ABMON_2, ABMON_3, ABMON_4, ABMON_5, ABMON_6,
+	      ABMON_7, ABMON_8, ABMON_9, ABMON_10, ABMON_11, ABMON_12 };
+#define MONTH(x) nl_langinfo(mos[x])
+#else
 char *mos[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+#define MONTH(x) mos[x]
+#endif
 
 char date_buf[10];
 
@@ -708,10 +723,10 @@ char *DateToASCII(time_t date)
 	time_t dnow = time(0);
 	struct tm now = *localtime(&dnow);
 	if (then.tm_year != now.tm_year) {
-	    sprintf(date_buf, "%s %d", mos[then.tm_mon], then.tm_year % 100);
+	    sprintf(date_buf, "%s %d", MONTH(then.tm_mon), then.tm_year % 100);
 	} else if (then.tm_mon != now.tm_mon ||
 		   then.tm_mday != now.tm_mday) {
-	    sprintf(date_buf, "%d %s", then.tm_mday, mos[then.tm_mon]);
+	    sprintf(date_buf, "%d %s", then.tm_mday, MONTH(then.tm_mon));
 	} else {
 	    int hour = then.tm_hour % 12;
 	    if (hour == 0) hour = 12;
@@ -865,6 +880,7 @@ static char *subst_names(char const *template)
     return strdup(buffer);
 }
 
+#if WWW
 static const char *www_score_command = WWWSCORECOMMAND;
 
 short WriteScore_WWW()
@@ -942,6 +958,7 @@ short ReadScore_WWW()
     free(text);
     return ret;
 }
+#endif
 
 static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users)
 {

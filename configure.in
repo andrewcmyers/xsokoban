@@ -42,8 +42,8 @@ if test $use_xpm = 1; then
     AC_HEADER_CHECK(xpm.h,,
 	[
 	  incok=no;
-	  for inc in /usr/local/include /usr/local/include/X11 \
-		xpm*/lib ../xpm*/lib;
+	  for inc in /usr/local/include /usr/local/include/X11* \
+		/usr/local/X11*/include xpm*/lib ../xpm*/lib;
 	  do
 	    if test -r $inc/xpm.h; then
 		echo "  Found it in $inc!" >&2;
@@ -176,7 +176,17 @@ AC_COMPILE_CHECK([bzero prototype],
 [char *x; int l; bzero(x, l);],
 AC_DEFINE(BZERO_PROTO))
 
-AC_HAVE_HEADERS(limits.h sys/select.h)
+AC_COMPILE_CHECK([nl_langinfo],
+[#include <langinfo.h>],
+[char *jan = nl_langinfo(ABMON_1);],
+AC_DEFINE(HAVE_NL_LANGINFO))
+
+AC_COMPILE_CHECK([sys/param.h],
+[#include <sys/param.h>],
+[int x;],
+AC_DEFINE(HAVE_SYS_PARAM_H))
+
+AC_HAVE_HEADERS(limits.h sys/limits.h sys/select.h)
 
 echo "looking for htons, ntohs" >&2
 define(ACHTONS_CHECK,

@@ -48,6 +48,7 @@
 
 /* Is there a <limits.h>? (Otherwise, there had better be a <sys/limits.h>) */
 #undef HAVE_LIMITS_H
+#undef HAVE_SYS_LIMITS_H
 
 /* Is there a <sys/select.h>? (AIX requires it for fd_sets) */
 #undef HAVE_SYS_SELECT_H
@@ -56,3 +57,9 @@
 
 /* Does <time.h> have a localtime proto? */
 #undef LOCALTIME_PROTO
+
+/* Is there a nl_langinfo() call? */
+#undef HAVE_NL_LANGINFO
+
+/* Is there a working <sys/param.h> */
+#undef HAVE_SYS_PARAM_H

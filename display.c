@@ -7,7 +7,9 @@
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #else
+#ifdef HAVE_SYS_LIMITS_H
 #include <sys/limits.h>
+#endif
 #endif
 
 #include "externs.h"
