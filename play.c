@@ -214,6 +214,7 @@ void MakeMove(KeySym sym)
       oldmove = sym;
     }
   } while ((action != 0) && (packets != savepack) && (shift || cntrl));
+  RedisplayScreen();
 }
 
 /* make sure a move is valid and if it is, return type of move */

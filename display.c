@@ -22,8 +22,8 @@ Boolean display_alloc = False, font_alloc = False, gc_alloc = False,
 Boolean optwalls;
 Colormap cmap;
 Cursor this_curs;
-Pixmap help[HELP_PAGES], floor;
-Pixmap blank, work, man, saveman, goal, object, treasure, walls[NUM_WALLS];
+static Pixmap help[HELP_PAGES], floor;
+static Pixmap blank, work, man, saveman, goal, object, treasure, walls[NUM_WALLS];
 int hlpscrn = -1;
 char buf[500];
 

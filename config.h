@@ -1,11 +1,16 @@
 /***********************************************************************
    You may wish to alter the following directory paths
 ***********************************************************************/
+
+#ifndef ROOTDIR
+#define ROOTDIR "/usr/local/lib/xsokoban"
+#endif
+
 /**/
-/* SCREENPATH: the name of the directioy where the screen file are held */
+/* SCREENPATH: the name of the directory where the screen files are held */
 /**/
 #ifndef SCREENPATH
-#define SCREENPATH "/usr/tmp/xsokoban.v2/screens"
+#define SCREENPATH ROOTDIR "/screens"
 #endif
 
 /**/
@@ -14,12 +19,12 @@
 /*                      the name <username>.sav                    */
 /**/
 #ifndef SAVEPATH
-#define SAVEPATH "/usr/tmp/xsokoban.v2/saves"
+#define SAVEPATH ROOTDIR "/saves"
 #endif
 
 /* BITPATH: the full pathname to the bitmap file defaults. */
 #ifndef BITPATH
-#define BITPATH "/usr/tmp/xsokoban.v2/bitmaps/defaults"
+#define BITPATH ROOTDIR "/bitmaps/defaults"
 #endif
 
 /**/
@@ -27,14 +32,14 @@
 /*           work with the scorefile at the same time                */
 /**/
 #ifndef LOCKFILE
-#define LOCKFILE "/tmp/score.slock"
+#define LOCKFILE ROOTDIR "/scores/lock"
 #endif
 
 /**/
 /* SCOREFILE: the full pathname of the score file */
 /**/
 #ifndef SCOREFILE
-#define SCOREFILE "/usr/tmp/xsokoban.v2/sokoban.slock"
+#define SCOREFILE ROOTDIR "/scores/scores"
 #endif
 
 /**/
@@ -43,20 +48,41 @@
 #define MAXUSERNAME     32
 
 /**/
-/* MAXSCOREENTRIES: defines the maximum numner of entries in the scoretable */
+/* MAXSCOREENTRIES: defines the maximum number of entries in the scoretable */
 /**/
 #define MAXSCOREENTRIES 10000
+
+/**/
+/* NUMBESTSCORES: the number of best scores kept for a given level
+/**/
+#define NUMBESTSCORES 5
+
+/**/
+/* MAXLEVELS: The number of levels for which best scores are kept
+/**/
+#define MAXLEVELS 50
 
 /**/
 /* SUPERUSER: defines the name of the game superuser */
 /**/
 #ifndef SUPERUSER
-#define SUPERUSER "jt1o"
+#define SUPERUSER "andru"
 #endif
 
 /**/
 /* PASSWORD: defines the password necessary for creating a new score file */
 /**/
 #ifndef PASSWORD
-#define PASSWORD "Greezooble"
+#define PASSWORD "score"
 #endif
+
+/**/
+/* ANYLEVEL: Allow any user to play any level and get a score for it */
+/**/
+#define ANYLEVEL
+
+/**/
+/* MAXSOLNRANK: The maximum solution rank for which an entry is retained */
+/* in the score table. */
+/**/
+#define MAXSOLNRANK 5

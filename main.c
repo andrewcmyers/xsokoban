@@ -102,7 +102,7 @@ void main(int argc, char **argv)
   Error(ret);
   /* see if they score, and do it (again report an error */
   if((scorelevel > 0) && scoring) {
-    ret2 = Score();
+    ret2 = Score(_true_);
     Error(ret2);
   }
   /* exit with whatever status we ended with */
@@ -164,6 +164,7 @@ short CheckCommandLine(int *argcP, char **argv)
       return E_USAGE;
   }
 
+  if (optshowscore) return 0; /* Don't mess with X any more */
   /* okay.. NOW, find out what display we are currently attached to. This
    * allows us to put the display on another machine
    */
@@ -222,6 +223,12 @@ short GameLoop(void)
   /* until we quit or get an error, just keep on going. */
   while(ret == 0) {
     ret = Play();
+    if((scorelevel > 0) && scoring) {
+      int ret2;
+      ret2 = Score(_false_);
+      Error(ret2);
+      scorelevel = 0;
+    }
     if(ret == 0) {
       level++;
       moves = pushes = packets = savepack = 0;

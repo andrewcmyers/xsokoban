@@ -62,7 +62,7 @@ extern void FindTarget(int, int, int);
 extern short OutputScore(void);
 extern short MakeNewScore(void);
 extern short GetUserLevel(short *);
-extern short Score(void);
+extern short Score(Boolean show);
 extern short ReadScore(void);
 extern short MakeScore(void);
 extern short FindUser(void);
