@@ -117,6 +117,8 @@ Use the named color as the mouse pointer foreground. (default is foreground)
 .B \-xrm <arg>
 <arg> is an X Resource specification.
 .SH AUTHORS
+Unknown Hacker - Original curses(1) implementation.
+.br
 Joseph L. Traub - X windows interface.
 .br
 Kevin Solie - simultaneously developed X implementation (merged in).
@@ -124,8 +126,6 @@ Kevin Solie - simultaneously developed X implementation (merged in).
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
 .br
 Andrew Myers - Improved mouse UI, score ranking, repeated undo
-.br
-Unknown Hacker - Original curses(1) implementation.
 .SH RESOURCES
 .I Xsokoban
 understands the following resources.
