@@ -122,7 +122,7 @@ char *InitDisplayScores(Display *dpy, Window win)
     text_color = GetColorOrDefault(dpy, "text.color",
 				   wa.depth, "black", _false_);
     text_highlight = GetColorOrDefault(dpy, "text.highlight",
-				       wa.depth, "red3", _true_);
+				       wa.depth, "red3", _false_);
 				     
     text_indent = GetIntResource("text.indent", 3);
     white = GetColorOrDefault(dpy, "highlight.color",
