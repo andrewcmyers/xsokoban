@@ -1,6 +1,5 @@
-XSokoban 3.2f 
--------------
-
+XSokoban 3.3
+------------
 
 This distribution
 contains all the files to compile and run the game,
@@ -40,7 +39,12 @@ Do one of the following (A,B, or C) to produce a Makefile:
 
   
       A. (Easy) Run the script "configure" to produce the include file
-	"config_local.h" and a Makefile.
+	 "config_local.h" and a Makefile. By default, the gnu C compiler
+	 is used to build; if you want to use "cc", do
+
+	    configure --with-CC=cc
+
+	 instead.
 
  
       B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
@@ -64,11 +68,12 @@ Do one of the following (A,B, or C) to produce a Makefile:
 	and 3.3, but not with version 2. They should work with version 3.4,
 	too. 
 
-        If the xsokoban window doesn't fit on your screen, the default
+	If the xsokoban window doesn't fit on your screen, the default
 	pixmaps may be too large. This is a problem if the vertical
 	height is less than about 800 pixels. In this case, try using
 	the pixmaps in bitmaps/36/ by changing the variable "BITPATH"
 	to point there.
+
 
     Compile by typing "make".  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
@@ -104,7 +109,7 @@ Credits
 Fixes, Bug Reports, and Modifications
 
     If you make any changes to this program, fix any bugs, add any neat
-    features, or whatever, please send mail to "andru@lcs.mit.edu"
+    features, or whatever, please send mail to andru@lcs.mit.edu
     so that I can add them in to the newest release.
 
 Redistribution

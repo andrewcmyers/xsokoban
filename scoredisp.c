@@ -177,26 +177,94 @@ static void ComputeRanks()
     }
 }
 
-static int FindCurrent()
-{
-    int i;
-    for (i = 0; i < scoreentries; i++) {
-	 if (0 == strcmp(scoretable[i].user, username) &&
-	     (unsigned short)level == scoretable[i].lv) {
-	     return i;
-	 }
-    }
-    for (i = 0; i < scoreentries; i++)
-	 if ((unsigned short)level > scoretable[i].lv) return i;
-    return scoreentries - 1; /* Couldn't find it at all */
-}
-
 /* Make "vposn" an allowable position. */
 static void TrimPosn()
 {
     if (vposn >= vmax)
       vposn = vmax - 1;
     if (vposn < 0) vposn = 0; /* must do this after prev stmt */
+}
+
+#if WWW
+static short ValidateLines(int top, int bottom)
+{
+    int i,j;
+    int line1, line2;
+    short ret;
+
+    if (bottom < 0) {
+	top -= bottom;
+	bottom = 0;
+    }
+#if 0
+    fprintf(stderr, "Validating: %d - %d\n", bottom, top);
+#endif
+    for (i = top; i >= bottom; i--) {
+	if (i < scoreentries && !VALID_ENTRY(scoreentries - 1 - i)) break;
+    }
+    for (j = bottom; j <= top; j++) {
+	if (j < scoreentries && !VALID_ENTRY(scoreentries - 1 - j)) break;
+    }
+    if (i < j) {
+	if (scoreentries) return 0;
+	i = top; j = bottom;
+    }
+    line2 = i + 1;
+    line1 = j;
+    assert (line1 < line2);
+#if 0
+    fprintf(stderr, "Fetch request: %d - %d\n", line1, line2);
+#endif
+    ret = FetchScoreLines_WWW(&line1, &line2);
+    for (i = scoreentries - line2; i < scoreentries - line1; i++) {
+	if (VALID_ENTRY(i)) rank[i] = SolnRank(i, 0);
+    }
+    switch (ret) {
+	case 0:
+	    return 0;
+	case E_OUTOFDATE: /* try again! */
+#if 0
+	    fprintf(stderr, "Out of date, trying again...\n");
+#endif
+	    return ValidateLines(top, bottom);
+	default: return ret;
+    }
+}
+#endif
+
+static short InitialPosition(int *vposn)
+{
+    int fc1, fc2 = FindCurrent();
+
+#if WWW
+/* We may have empty entries that cause FindCurrent() to return the
+   wrong answer. Therefore, repeatedly grab the region around
+   FindCurrent() until we determine that we have a valid region that
+   includes the current level and is large enough to fill the screen.
+*/
+    do {
+	int lines = (win_height - 1)/font_height + 2;
+	int bottom = fc2 + lines/2;
+	int top = bottom - lines;
+	int line1, line2;
+	short ret;
+
+	top = scoreentries - top;
+	bottom = scoreentries - bottom - 1;
+
+#if 0
+	fprintf(stderr, "Guess of bracketed area: %d - %d\n", bottom, top);
+#endif
+
+	if (ret = ValidateLines(top, bottom)) return ret;
+	fc1 = fc2;
+	fc2 = FindCurrent();
+    } while (fc1 != fc2);
+#endif
+
+    assert(fc2 != -1);
+    *vposn = (int)(fc2 * font_height) - (int)(win_height/2);
+    return 0;
 }
 
 static void PositionThumb(Window thumb)
@@ -208,6 +276,21 @@ static void PositionThumb(Window thumb)
     if (y > thumb_range) y = thumb_range;
     XMoveWindow(dpy, thumb, x - 1, y - 1);
     /* subtract 1 to fudge thumb into place */
+}
+
+void handleMotion(XEvent *xev, Boolean dragging, Boolean *scores_dirty)
+{
+    int old_vposn = vposn;
+    int y = xev->xbutton.y;
+    if (dragging) {
+	vposn = (float)(y - (int)thumb_height/2)/
+	  thumb_range * vmax;
+	TrimPosn();
+	if (old_vposn != vposn) {
+	    *scores_dirty = _true_;
+	}
+    }
+    XFlush(dpy);
 }
 
 /* Display scores. Return E_ENDGAME if user wanted to quit from here.
@@ -251,9 +334,8 @@ short DisplayScores_(Display *dpy, Window win, short *newlev)
       score_finfo->max_bounds.descent;
     win_height = wa.height - panel_height - yclip;
     thumb_range = wa.height - panel_height - thumb_height;
+    if (ret = InitialPosition(&vposn)) return ret;
     vmax = font_height * (scoreentries + 2) - win_height;
-    vposn = (int)(FindCurrent() * font_height) -
-		  (int)(win_height/2);
     yclip = font_height * 3/2;
     /* coerce to int to make sure we do this in signed arithmetic */
     TrimPosn();
@@ -355,6 +437,7 @@ short DisplayScores_(Display *dpy, Window win, short *newlev)
 	  case ButtonPress:
 	    if (xev.xbutton.window == scrollbar) {
 		dragging = _true_;
+		handleMotion(&xev, _true_, &scores_dirty);
 	    }
 	    if (xev.xbutton.window == win) {
 		int i = (xev.xbutton.y - yclip +
@@ -388,19 +471,7 @@ short DisplayScores_(Display *dpy, Window win, short *newlev)
 	    dragging = _false_;
 	    break;
 	  case MotionNotify:
-	    {
-		int old_vposn = vposn;
-		int y = xev.xbutton.y;
-		if (dragging) {
-		    vposn = (float)(y - (int)thumb_height/2)/
-		      thumb_range * vmax;
-		    TrimPosn();
-		    if (old_vposn != vposn) {
-			scores_dirty = _true_;
-		    }
-		}
-		XFlush(dpy);
-	    }
+	    handleMotion(&xev, dragging, &scores_dirty);
 	    break;
 	}
     }
@@ -415,6 +486,8 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     int first_index = vposn/font_height;
     int last_index = (vposn + win_height - 1)/font_height;
     int i;
+    int old_scoreentries = scoreentries;
+    int top, bottom;
     char * header = "Rank                             User  Level   Moves  Pushes   Date";
     XSetForeground(dpy, gc, text_color);
     XDrawString(dpy, win, gc, text_indent, font_height, header,
@@ -422,6 +495,18 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     XDrawLine(dpy, win, gc, 0, yclip-1, wa->width - sb_width,
 	      yclip-1);
     
+#if WWW
+    top = scoreentries - first_index;
+    bottom = scoreentries - last_index - 1;
+    if (ValidateLines(top, bottom)) {
+	fprintf(stderr, "Oops! Bad lines from server: %d-%d\n",
+	    first_index, last_index);
+	exit(EXIT_FAILURE);
+    }
+    first_index = scoreentries - top;
+    last_index = scoreentries - bottom - 1;
+#endif
+
     for (i = first_index; i <= last_index && i < scoreentries; i++) {
 	char buf[500];
 	int y = yclip + (i+1) * font_height - vposn;
@@ -439,7 +524,8 @@ static void DrawScores(XWindowAttributes *wa, Window win)
 	    sprintf(buf, "%4d", rank[i]);
 	else
 	    sprintf(buf, "    ");
-	sprintf(buf + 4, " %32s %4d     %4d     %4d   %s", scoretable[i].user,
+	sprintf(buf + 4, " %32s %4d     %4d     %4d   %s",
+		VALID_ENTRY(i) ? scoretable[i].user : "CACHE ERROR",
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
 		DateToASCII(scoretable[i].date));
 	XDrawString(dpy, win, scroll_gc, text_indent, y, buf, strlen(buf));

@@ -53,6 +53,7 @@ typedef struct {
 #define E_NOMEM		27
 #define E_NOCOLOR	28
 #define E_ABORTLEVEL    29
+#define E_OUTOFDATE	30
 
 /* classname for silly X stuff */
 #define CLASSNAME "XSokoban"

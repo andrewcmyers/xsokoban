@@ -66,6 +66,28 @@ extern short OutputScoreLines(int line1, int line2);
    <scorefile lines>
 */
 
+short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */);
+/*
+    Fetch lines of the score file from the remote server. The lines
+    requested are placed in "*line1" and "*line2"; the actual lines
+    fetched are placed in "*line1" and "*line2".
+
+    Returns E_OUTOFDATE if the scorefile has been modified since the
+    last read. Returns E_READSCORE if the scorefile is mangled or the
+    server cannot be accessed.
+*/
+
+int FindCurrent();
+/*
+    Return the scoretable index pointing to level "level"
+*/
+
+#define VALID_ENTRY(i) (0 != scoretable[i].user[0])
+/*
+    Report whether entry "i" is currently cached here. Always true for
+    non-WWW mode.
+*/
+
 /******************************************
  Private to score.c and scoredisp.c
 */

@@ -18,6 +18,7 @@
 #include "externs.h"
 #include "globals.h"
 #include "score.h"
+#include "www.h"
 
 #define SCORE_VERSION "xs02"
 
@@ -27,6 +28,8 @@ struct st_entry scoretable[MAXSCOREENTRIES];
 /* Forward decls */
 static short ParseScoreText(char *text, Boolean all_users);
 static short ParseUserLevel(char *text, short *lv);
+static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users);
+static short ParsePartialScore(char *text, int *line1, int *line2);
 
 static short MakeScore();
 /* Adds a new user score to the score table, if appropriate. Users' top
@@ -42,6 +45,7 @@ static void FlushDeletedScores(Boolean delete[]);
 static void CopyEntry(short i1, short i2);
 /* Duplicate a score entry: overwrite entry i1 with contents of i2. */
 
+static void DeleteLowRanks();
 static void CleanupScoreTable();
 /* Removes all score entries for a user who has multiple entries,
  * that are for a level below the user's top level, and that are not "best
@@ -191,6 +195,7 @@ short LockScore()
 
 void UnlockScore()
 {
+     DEBUG_SERVER("about to unlock score file");
 #if !WWW
      if (0 > rmdir(LOCKFILE)) {
 	 fprintf(stderr, "Warning: Couldn't remove lock %s\n", LOCKFILE);
@@ -210,7 +215,6 @@ short OutputScore(int level)
 
   DEBUG_SERVER("score file locked");
   if ((ret = ReadScore()) == 0) ShowScore(level);
-  DEBUG_SERVER("about to unlock score file");
   UnlockScore();
   DEBUG_SERVER("score file unlocked");
   return ((ret == 0) ? E_ENDGAME : ret);
@@ -225,20 +229,35 @@ short OutputScoreLines(int line1, int line2)
 	return ret;
     }
     DEBUG_SERVER("score file locked");
-    if ((ret = ReadScore()) == 0) {
-	int i;
-	if (line1 > scoreentries) line1 = scoreentries;
-	if (line2 > scoreentries) line2 = scoreentries;
-	printf("Entries: %d\n", scoreentries);
-	printf("Line1: %d\n", line1);
-	printf("Line2: %d\n", line2);
-	printf("Date: %d\n", date_stamp);
-	printf("======================================================================\n");
-	for (i = line1; i < line2; i++) ShowScoreLine(scoreentries - i - 1);
-    }
-    DEBUG_SERVER("about to unlock score file");
+    ret = ReadScore();
     UnlockScore();
     DEBUG_SERVER("score file unlocked");
+    if (ret == 0) {
+	int i;
+	int j = 0;
+	int top, bottom;
+	DeleteLowRanks();
+	if (line1 > scoreentries) line1 = scoreentries;
+	if (line2 > scoreentries) line2 = scoreentries;
+	bottom = scoreentries - 1 - line1;
+	top = scoreentries - line2;
+
+	for (i = top - 1; i >= 0; i--) {
+	    if (scoretable[i].lv != scoretable[top].lv) break;
+	}
+	top = i + 1;
+	for (i = bottom + 1; i < scoreentries; i++) {
+	    if (scoretable[i].lv != scoretable[bottom].lv) break;
+	}
+	bottom = i - 1;
+	    
+	printf("Entries: %d\n", scoreentries);
+	printf("Line1: %d\n", scoreentries - 1 - bottom);
+	printf("Line2: %d\n", scoreentries - top);
+	printf("Date: %d\n", date_stamp);
+	printf("======================================================================\n");
+	for (i = bottom; i >= top; i--) ShowScoreLine(i);
+    }
     return ((ret == 0) ? E_ENDGAME : ret);
 }
 
@@ -446,6 +465,20 @@ int SolnRank(int j, Boolean *ignore)
 	}
     }
     return rank;
+}
+
+static void DeleteLowRanks()
+{
+    int i;
+    Boolean deletable[MAXSCOREENTRIES];
+    for (i = 0; i < scoreentries; i++) {
+	deletable[i] = _false_;
+	if (SolnRank(i, deletable) > MAXSOLNRANK &&
+	    0 != strcmp(scoretable[i].user, username)) {
+	      deletable[i] = _true_;
+	}
+    }
+    FlushDeletedScores(deletable);
 }
 
 static void CleanupScoreTable()
@@ -870,21 +903,23 @@ short ReadScore_WWW()
     return ret;
 }
 
-static char *ParseScoreLine(int i, char *text)
+static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users)
 {
     char *user, *date_str;
+    char *ws = " \t\r\n";
     int level, moves, pushes;
     time_t date = 0;
+    Boolean baddate = _false_;
     int rank;
     char rank_s[4];
     char line[256];
-    text = getline(text, line, sizeof(line));
-    if (!text) return 0;
+    *text = getline(*text, line, sizeof(line));
+    if (!*text) return 0;
     strncpy(rank_s, line, 4);
     rank = atoi(rank_s);
     user = strtok(line + 4, ws);
-    if (!user) break;
-    if (rank != 0 || allusers || 0 == strcmp(user, username)) {
+    if (!user) { *text = 0; return 0; }
+    if (all_users || rank != 0 || 0 == strcmp(user, username)) {
 	level = atoi(strtok(0, ws)); if (!level) return E_READSCORE;
 	moves = atoi(strtok(0, ws)); if (!moves) return E_READSCORE;
 	pushes = atoi(strtok(0, ws)); if (!pushes) return E_READSCORE;
@@ -898,25 +933,29 @@ static char *ParseScoreLine(int i, char *text)
 			"Warning: Bad or missing date in ASCII scores\n");
 	    }
 	}
-	strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
-	scoretable[scoreentries].lv = (unsigned short)level;
-	scoretable[scoreentries].mv = (unsigned short)moves;
-	scoretable[scoreentries].ps = (unsigned short)pushes;
-	scoretable[scoreentries].date = date;
+	strncpy(scoretable[i].user, user, MAXUSERNAME);
+	scoretable[i].lv = (unsigned short)level;
+	scoretable[i].mv = (unsigned short)moves;
+	scoretable[i].ps = (unsigned short)pushes;
+	scoretable[i].date = date;
+    } else {
+	scoretable[i].user[0] = 0;
     }
+    return 0;
 }
 
 static short ParseScoreText(char *text, Boolean allusers)
 {
     char line[256];
-    char *ws = " \t\r\n";
-    Boolean baddate = _false_;
     do {
 	text = getline(text, line, sizeof(line));
 	if (!text) return E_READSCORE;
     } while (line[0] != '=');
     scoreentries = 0;
-    while (text) text = ParseScoreLine(scoreentries++, text);
+    while (text) {
+	ParseScoreLine(scoreentries, &text, allusers);
+	if (VALID_ENTRY(scoreentries)) scoreentries++;
+    }
     return 0;
 }
 
@@ -967,39 +1006,73 @@ short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */)
     char *start, *text, *cmd = subst_names(WWWGETLINESPATH);
     char cmdbuf[256];
     char line[256];
-    time_t newdate;
     short ret;
     int i;
-    sprintf(cmdbuf, line1, line2);
-    start = text = qtelnet(WWWHOST, WWWPORT, cmd);
+    sprintf(cmdbuf, cmd, *line1, *line2);
+    start = text = qtelnet(WWWHOST, WWWPORT, cmdbuf);
     free(cmd);
     if (!text) { free(start); return E_READSCORE; }
-    ret = ParseScoreLines(start, line1, line2);
+    ret = ParsePartialScore(start, line1, line2);
     free(start);
     return ret;
 }
 
-short ParseScoreLines(char *text, int *line1, int *line2)
+short ParsePartialScore(char *text, int *line1, int *line2)
 {
+    short ret = 0;
+    Boolean outofdate = _false_;
+    char line[256];
+    time_t newdate;
+    int i;
     text = skip_past_header(text);
     if (!text) return E_READSCORE;
     GRAB("Entries: ", scoreentries = atoi(line + 9));
-    GRAB("Line1: ", line1 = atoi(line + 7));
-    GRAB("Line2: ", line2 = atoi(line + 7));
+    GRAB("Line1: ", *line1 = atoi(line + 7));
+    GRAB("Line2: ", *line2 = atoi(line + 7));
     GRAB("Date: ", newdate = atoi(line + 6));
     GRAB("==========", );
 
     if (newdate == 0) return E_READSCORE;
-    if (newdate != datestamp) DeleteAllEntries();
+    if (newdate != date_stamp) {
+	DeleteAllEntries();
+	outofdate = _true_;
+    }
 
-    datestamp = newdate;
+    date_stamp = newdate;
 
-    for (i = line1; i < line2; i++) {
-	text = ParseScoreLine(scoreentries - i, text);
-	if (!text) {
+    for (i = *line1; i < *line2; i++) {
+	if ((ret = ParseScoreLine(scoreentries - i - 1, &text, _true_))
+	     || !text)
+	{
 	    DeleteAllEntries();
-	    free(start);
-	    return 0;
+	    return E_READSCORE;
 	}
     }
+    if (ret == 0 && outofdate) return E_OUTOFDATE;
+    else return ret;
 }
+
+int FindCurrent()
+/*
+    Return the scoretable index pointing to level "level", or as
+    close as possible. If the scoretable is empty, return -1.
+*/
+{
+    int i;
+    for (i = 0; i < scoreentries; i++) {
+	 if (0 == strcmp(scoretable[i].user, username) &&
+	     (unsigned short)level == scoretable[i].lv) {
+	     return i;
+	 }
+    }
+/* Find largest of smaller-numbered levels */
+    for (i = 0; i < scoreentries; i++)
+	 if (scoretable[i].user[0] &&
+	     (unsigned short)level >= scoretable[i].lv) return i;
+/* Find smallest of larger-numbered levels */
+    for (i = scoreentries - 1; i >= 0; i--)
+	 if (scoretable[i].user[0] &&
+	     (unsigned short)level < scoretable[i].lv) return i;
+    return -1; /* Couldn't find it at all */
+}
+

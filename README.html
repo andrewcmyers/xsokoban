@@ -1,8 +1,8 @@
 <head>
-<title>XSokoban 3.2f</title>
+<title>XSokoban 3.3</title>
 </head>
 <body>
-<h1> XSokoban 3.2f </h1>
+<h1> XSokoban 3.3 </h1>
 <hr>
 
 <A HREF="ftp://ftp.pmg.lcs.mit.edu/pub/xsokoban">This distribution</A>
@@ -43,7 +43,12 @@ page that explains how the game works.<P>
 <ul>
 <li>  
       A. (Easy) Run the script "configure" to produce the include file
-	"config_local.h" and a Makefile.
+	 "config_local.h" and a Makefile. By default, the gnu C compiler
+	 is used to build; if you want to use "cc", do
+
+	    <code>configure --with-CC=cc</code>
+
+	 instead.
 
 <li> 
       B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
@@ -62,7 +67,7 @@ page that explains how the game works.<P>
 	directory containing the library "libXpm.a". <P>
 
 	Last time I checked, XPM could be obtained by FTP from
-	export.lcs.mit.edu:contrib. Make sure your version of XPM is up
+	<code>export.lcs.mit.edu:contrib/libraries</code>. Make sure your version of XPM is up
 	to date. The current pixmaps definitely work with versions 3.2g
 	and 3.3, but not with version 2. They should work with version 3.4,
 	too. <P>

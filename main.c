@@ -13,6 +13,7 @@
 #include "errors.h"
 #include "display.h"
 #include "score.h"
+#include "www.h"
 
 short VerifyScore(short optlevel);
 
@@ -175,7 +176,7 @@ static char *FixUsername(char *name)
     strncpy(namebuf, name, MAXUSERNAME);
     namebuf[MAXUSERNAME-1] = 0;
     while (*c) {
-	if (!isprint(*c) || *c == ' ') *c = '_';
+	if (!isprint(*c) || *c == ' ' || *c == ',') *c = '_';
 	c++;
     }
     return strdup(namebuf);
@@ -222,8 +223,11 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if (mode_selected()) return E_USAGE;
 	  opt_show_score = _true_;
 	  optarg = &argv[option][2];
-	  if (!*optarg && argv[option+1] && argv[option+1][0] != '-')
+	  if (!isdigit(*optarg) && argv[option+1] && isdigit(argv[option+1][0]))
+	  {
 	    optarg = &argv[option+1][0];
+	    option++;
+	  }
 	  optlevel = atoi(optarg);
 	  break;
 	case 'c':
@@ -255,9 +259,11 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if (!movelen) return E_USAGE;
 	  opt_verify = _true_;
 	  break;
-	case 'l':
+	case 'L':
 	  if (mode_selected()) return E_USAGE;
 	  option++;
+	  if (!argv[option]) return E_USAGE;
+	  username = FixUsername(argv[option++]);
 	  if (!argv[option]) return E_USAGE;
 	  line1 = atoi(argv[option++]);
 	  if (!argv[option]) return E_USAGE;
@@ -271,7 +277,7 @@ short CheckCommandLine(int *argcP, char **argv)
 	  username = FixUsername(argv[option++]);
 	  opt_user_level = _true_;
 	  break;
-	case 'd':
+	case 'D':
 	  datemode = _true_;
 	  break;
 	default:

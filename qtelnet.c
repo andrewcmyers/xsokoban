@@ -58,7 +58,7 @@ char *qtelnet(char *hostname, int port, char *msg) {
     client.sin_family = AF_INET;
     client.sin_port = htons (port);
 
-    TRY("connect", connect(sock, &client, sizeof(client)));
+    TRY("connect", connect(sock, (struct sockaddr *)&client, sizeof(client)));
 #if 0
     fprintf(stderr, "Connected to %s.\n", hostname);
 #endif

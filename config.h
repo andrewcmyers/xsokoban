@@ -87,7 +87,7 @@
    PASSWORD: defines the password necessary for creating a new score file
 */
 #ifndef PASSWORD
-#define PASSWORD "score"
+#define PASSWORD "csgima"
 #endif
 
 /*
@@ -131,7 +131,7 @@
    distribution, but can be obtained on request from andru@lcs.mit.edu.
 */
 #ifndef WWW
-#define WWW 1
+#define WWW 0
 #endif
 
 /*
@@ -153,8 +153,9 @@
    Change it!
 
    For example, if you are at Stanford, a good value for HERE would be
-   "@stanford.edu". Making HERE specific to individual machines is a
-   bad idea.
+   "@stanford.edu" or maybe "@cs.stanford.edu". Making HERE specific to
+   individual machines is generally a bad idea.
+
 
    Usernames that are specified through the "xsokoban.username" resource
    do not have HERE appended to them.
@@ -169,7 +170,7 @@
    $N is the length of the string of moves.
 */
 #ifndef WWWSCORECOMMAND
-#define WWWSCORECOMMAND "POST /cgi-bin/xsokoban/solve?$L,$U HTTP/1.0\n" \
+#define WWWSCORECOMMAND "POST /cgi-bin/sok-solve?$L,$U HTTP/1.0\n" \
                         "Content-type: text/plain\n" \
                         "Content-length: $N\n" \
                         "\n" \
@@ -182,7 +183,7 @@
 
 /*
    WWWSCREENPATH: Path to access in order to get screen files. $L
-   means the requested level number. Not currently used.
+   means the requested level number.
 */
 #ifndef WWWSCREENPATH
 #define WWWSCREENPATH "GET /cgi-bin/xsokoban/screen?level=$L HTTP/1.0\n\n"
@@ -196,13 +197,11 @@
 #define WWWGETLEVELPATH "GET /cgi-bin/xsokoban/user-level?user=$U HTTP/1.0\n\n"
 #endif
 
-/*
-   WWWGETLINESPATH: Path to access in order to get a section of the
-   score file by line number. The first %d is substituted with "line1",
-   the second with "line2".
-*/
-#ifndef WWWGETLINESPATH
-#define WWWGETLINESPATH "GET /cgi-bin/xsokoban/score-lines?line1=%d,line2=%d HTTP/1.0\n\n"
+/* Change this only if you want to debug an xsokoban score server. */
+#if 1
+#define DEBUG_SERVER(x)
+#else
+extern int getpid();
+#define DEBUG_SERVER(x) fprintf(stderr, "xsokoban %d: %s\n", getpid(), x)
 #endif
 
-#define DEBUG_SERVER(x)

@@ -36,7 +36,8 @@
 /* Is there a prototype for "perror" in <errno.h>? */
 #undef PERROR_PROTO
 
-/* Is there a prototype for "rename" in <unistd.h>? */
+/* Is there a prototype for "rename" in <unistd.h>? or (choke) in
+    <stdio.h>? */
 #undef RENAME_PROTO
 
 /* Does the system support "strdup" and have a prototype in <string.h>? */

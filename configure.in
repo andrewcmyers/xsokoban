@@ -7,7 +7,7 @@ AC_CONFIG_HEADER(config_local.h)
 ############################################################################
 # Check for programs
 
-AC_WITH(gcc,CC=gcc)
+AC_WITH(CC,CC="$withval")
 
 AC_PROG_INSTALL
 AC_PROG_CC
