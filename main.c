@@ -78,19 +78,21 @@ void main(int argc, char **argv)
       } else {
 	ret = GetUserLevel(&userlevel);
 	if(ret == 0) {
-	  if(optlevel > 0) {
+	    if(optlevel > 0) {
 #ifndef ANYLEVEL
-	    if(superuser) {
-	      /* superusers can play any level (but not score) useful for
-	       * testing out new boards.
-	       */
-	      level = optlevel;
-	      scoring = _false_;
-	    } else if (userlevel < optlevel)
-	      ret = E_LEVELTOOHIGH;
-	    else
+		if (userlevel < optlevel) {
+		    if (superuser) {
+			/* superusers can play any level (but not score),
+			 * which is useful for testing out new boards.
+			 */
+			level = optlevel;
+			scoring = _false_;
+		    } else {
+			ret = E_LEVELTOOHIGH;
+		    }
+		} else
 #endif
-	      level = optlevel;
+		  level = optlevel;
 	  } else
 	    level = userlevel;
 	}
