@@ -44,6 +44,7 @@ char *usages[] = {
   "\t-r                  : restore a saved game.\n",
   "\t-s [level]          : show high score table or a portion of it.\n",
   "\t-<nn>               : play level <nn> (<nn> must be greater than 0)\n",
+  "\t-u <user>           : change user name\n",
   "\t-C                  : use own colormap for displaying\n",
   "\t-display <disp>     : run on display <disp>\n",
   "\t-w                  :\n",
@@ -62,8 +63,11 @@ char *usages[] = {
   "\t-border <color>     : use <color> as border color\n",
   "\t-pr <color>         :\n",
   "\t-pointer <color>    : use <color> as the pointer foreground color\n",
-  "\t-xrm <arg>          : specify that <arg> is an X resource.\n",
-  "\t-l <line1> <line2>  : dump score file, lines in [line1,line2)\n",
+  "\t-xrm <arg>          : specify that <arg> is an X resource\n\n",
+  "\t-D                  : print dates in seconds since 1970\n",
+  "\t-U                  : get user level\n",
+  "\t-H                  : print -l style header on -s output\n",
+  "\t-L <line1> <line2>  : dump score file, lines in [line1,line2)\n",
   "\t-v <level> <user> <bytes> : verify and score a solution. Soln on stdin.\n",
   NULL
 };

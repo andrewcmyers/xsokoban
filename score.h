@@ -66,7 +66,8 @@ extern short OutputScoreLines(int line1, int line2);
    <scorefile lines>
 */
 
-short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */);
+short FetchScoreLevel_WWW(int *line1 /* out */, int *line2 /* out */);
+short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* in/out */);
 /*
     Fetch lines of the score file from the remote server. The lines
     requested are placed in "*line1" and "*line2"; the actual lines

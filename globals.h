@@ -78,7 +78,7 @@ extern Map map;
 extern short rows, cols, level, moves, pushes, savepack, packets;
 extern unsigned short scorelevel, scoremoves, scorepushes;
 extern POS ppos;
-extern Boolean datemode;
+extern Boolean datemode, headermode;
 extern unsigned bit_width, bit_height; /* for macros wX, wY */
 extern char *progname, *bitpath, *username;
 

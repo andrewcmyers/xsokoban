@@ -26,7 +26,7 @@ char map[MAXROW + 1][MAXCOL + 1];
 char *username = 0, *progname = 0, *bitpath = 0;
 char *optfile = 0;
 XrmDatabase rdb;
-Boolean ownColormap = _false_, datemode = _false_;
+Boolean ownColormap = _false_, datemode = _false_, headermode = _false_;
 
 static short optlevel = 0, userlevel = 0;
 static short line1 = 0, line2 = 0;
@@ -263,8 +263,6 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if (mode_selected()) return E_USAGE;
 	  option++;
 	  if (!argv[option]) return E_USAGE;
-	  username = FixUsername(argv[option++]);
-	  if (!argv[option]) return E_USAGE;
 	  line1 = atoi(argv[option++]);
 	  if (!argv[option]) return E_USAGE;
 	  line2 = atoi(argv[option]);
@@ -272,13 +270,18 @@ short CheckCommandLine(int *argcP, char **argv)
 	  opt_partial_score = _true_;
 	  break;
 	case 'u':
-	  if (mode_selected()) return E_USAGE;
 	  option++;
-	  username = FixUsername(argv[option++]);
+	  username = FixUsername(argv[option]);
+	  break;
+	case 'U':
+	  if (mode_selected()) return E_USAGE;
 	  opt_user_level = _true_;
 	  break;
 	case 'D':
 	  datemode = _true_;
+	  break;
+	case 'H':
+	  headermode = _true_;
 	  break;
 	default:
 	  if (mode_selected()) return E_USAGE;

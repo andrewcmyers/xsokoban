@@ -54,7 +54,18 @@
    the second with "line2".
 */
 #ifndef WWWGETLINESPATH
-#define WWWGETLINESPATH "GET /cgi-bin/xsokoban/score-lines?user=$U,line1=%d,line2=%d HTTP/1.0\n\n"
+#define WWWGETLINESPATH \
+  "GET /cgi-bin/xsokoban/score-lines?user=$U,line1=%d,line2=%d HTTP/1.0\n\n"
+#endif
+
+/*
+   WWWGETSCORELEVELPATH: Path to access in order to get a section of the
+   score file by line number. The first %d is substituted with "line1",
+   the second with "line2".
+*/
+#ifndef WWWGETSCORELEVELPATH
+#define WWWGETSCORELEVELPATH \
+  "GET /cgi-bin/xsokoban/score-level?user=$U,level=$L HTTP/1.0\n\n"
 #endif
 
 

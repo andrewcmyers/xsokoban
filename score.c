@@ -207,7 +207,7 @@ void UnlockScore()
 #endif
 }
      
-short OutputScore(int level)
+short OutputScore(int lev)
 {
   short ret;
 
@@ -218,16 +218,40 @@ short OutputScore(int level)
   }
 
   DEBUG_SERVER("score file locked");
-  if ((ret = ReadScore()) == 0) ShowScore(level);
+#if WWW
+  if (lev != 0) {
+      int line1, line2;
+      level = lev;
+      ret = FetchScoreLevel_WWW(&line1, &line2);
+      if (ret == E_OUTOFDATE) ret = 0;
+  } else {
+      ret = ReadScore_WWW();
+  }
+  if (ret == 0) ShowScore(lev);
+#else
+  if ((ret = ReadScore()) == 0) ShowScore(lev);
+#endif
   UnlockScore();
   DEBUG_SERVER("score file unlocked");
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
+void DumpLinesWithHeader(int top, int bottom)
+{
+    int i;
+    printf("Entries: %d\n", scoreentries);
+    printf("Line1: %d\n", scoreentries - 1 - bottom);
+    printf("Line2: %d\n", scoreentries - top);
+    printf("Date: %d\n", date_stamp);
+    printf("========================================"
+	   "==============================\n");
+    for (i = bottom; i >= top; i--) ShowScoreLine(i);
+}
+
 short OutputScoreLines(int line1, int line2)
 {
     short ret;
-    DEBUG_SERVER("entering OutputPartialScore");
+    DEBUG_SERVER("entering OutputScoreLines");
     if ((ret = LockScore())) {
 	DEBUG_SERVER("couldn't lock score file");
 	return ret;
@@ -254,12 +278,7 @@ short OutputScoreLines(int line1, int line2)
 	}
 	bottom = i - 1;
 	    
-	printf("Entries: %d\n", scoreentries);
-	printf("Line1: %d\n", scoreentries - 1 - bottom);
-	printf("Line2: %d\n", scoreentries - top);
-	printf("Date: %d\n", date_stamp);
-	printf("======================================================================\n");
-	for (i = bottom; i >= top; i--) ShowScoreLine(i);
+	DumpLinesWithHeader(top, bottom);
     }
     return ((ret == 0) ? E_ENDGAME : ret);
 }
@@ -719,20 +738,36 @@ static void ShowScoreLine(int i)
 
 static void ShowScore(int level)
 {
-  register i;
-
+    int i;
     DEBUG_SERVER("entering ShowScore");
-  TRY("printf",
-  printf(
-   "Rank                             User  Level   Moves  Pushes   Date\n"));
-  TRY("printf",
-  printf(
-   "======================================================================\n"));
-  for (i = 0; i < scoreentries; i++) {
-    if (level == 0 || scoretable[i].lv == level) {
-	ShowScoreLine(i);
+    if (!headermode) {
+        TRY("printf",
+            printf("Rank                             User  Level   Moves"
+	           "  Pushes   Date\n"));
+        TRY("printf",
+            printf("==========================================="
+		   "===========================\n"));
+	for (i = 0; i < scoreentries; i++) {
+	    if (level == 0 || scoretable[i].lv == level) {
+		ShowScoreLine(i);
+	    }
+	}
+    } else {
+	int top = -1, bottom = -1;
+	DeleteLowRanks();
+	if (level == 0) {
+	    top = 0;
+	    bottom = scoreentries - 1;
+	} else {
+	    for (i = 0; i < scoreentries; i++) {
+		if (scoretable[i].lv == level) {
+		    if (top == -1) top = i;
+		    bottom = i;
+		}
+	    }
+	}
+	DumpLinesWithHeader(top, bottom);
     }
-  }
 }
 
 static void CopyEntry(short i1, short i2)
@@ -1006,6 +1041,18 @@ static void DeleteAllEntries()
     if (0 == strncmp(line, tag, strlen(tag))) { stmt; } 	\
     else return E_READSCORE;
     
+short FetchScoreLevel_WWW(int *line1 /*out*/, int *line2 /*out*/)
+{
+    char *start, *text, *cmd = subst_names(WWWGETSCORELEVELPATH);
+    short ret;
+    start = text = qtelnet(WWWHOST, WWWPORT, cmd);
+    free(cmd);
+    if (!text) { free(start); return E_READSCORE; }
+    ret = ParsePartialScore(start, line1, line2);
+    free(start);
+    return ret;
+}
+
 short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */)
 {
     char *start, *text, *cmd = subst_names(WWWGETLINESPATH);

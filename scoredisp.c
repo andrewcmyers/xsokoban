@@ -250,7 +250,7 @@ static short InitialPosition(int *vposn)
     {
     /* get the number of lines in the file */
 	int line1 = 0, line2 = 0;
-	short ret = FetchScoreLines_WWW(&line1, &line2);
+	short ret = FetchScoreLevel_WWW(&line1, &line2);
 #if DEBUG_FETCH
     fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
 #endif
