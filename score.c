@@ -504,14 +504,14 @@ void ShowScore(int level)
 
 
     
-  fprintf(stdout, "Rank                     User   Level   Moves  Pushes\n");
-  fprintf(stdout, "=====================================================\n");
+  fprintf(stdout, "Rank                             User  Level   Moves  Pushes\n");
+  fprintf(stdout, "============================================================\n");
   for (i = 0; i < scoreentries; i++) {
     if (level == 0 || scoretable[i].lv == level) {
 	int rank = SolnRank(i, 0);
 	if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
 	else fprintf(stdout, "    ");
-	fprintf(stdout, "%25s  %4d     %4d     %4d\n", scoretable[i].user,
+	fprintf(stdout, " %32s %4d     %4d     %4d\n", scoretable[i].user,
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
     }
   }

@@ -2,4 +2,6 @@ Position glyphs on help screen by font size
 "redo"
 Fix score display for reverse video
 Figure out what to do with URL
-Put screens in Web
+
+Have local & global or something.
+Init out of text file.

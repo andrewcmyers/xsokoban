@@ -1,8 +1,9 @@
 #!/bin/sh
 files=xsokoban/FILES
+dirs=xsokoban/DIRS
 if [ -r $files ]
 then
-    makekit -oMANIFEST `cat $files`
+    makekit -oMANIFEST `cat $dirs $files`
 else
     echo "Must run $0 from src directory"
 fi

@@ -106,7 +106,7 @@ short InitX(void)
   }
 
   fore = GetColorOrDefault(dpy, FOREG, depth, "black", _false_);
-  back = GetColorOrDefault(dpy, BACKG, depth, "white", _true_);
+  back = GetColorOrDefault(dpy, BACKG, depth, "grey90", _true_);
 
   if(reverse) {
     unsigned long t;

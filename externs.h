@@ -154,7 +154,7 @@ extern short RestoreGame(void);
 
 /* stuff from scoredisp.c */
 extern short DisplayScores_(Display *, Window, short *);
-extern char *InitDisplayScores_(Display *, Window);
+extern char *InitDisplayScores(Display *, Window);
 
 /* stuff from qtelnet.c */
 extern char *qtelnet(char *host, int port, char *msg);

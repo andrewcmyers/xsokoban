@@ -302,7 +302,7 @@ static char *ReadMoveSeq()
     char *moveseq = (char *)malloc(movelen);
     int ch = 0;
     while (ch < movelen) {
-	int n = read(0, moveseq, movelen); /* read from stdin */
+	int n = read(0, moveseq + ch, movelen - ch); /* read from stdin */
 	if (n <= 0) { perror("Move sequence"); return 0; }
 	ch += n;
     }

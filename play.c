@@ -152,7 +152,7 @@ short Play(void)
 	    break;
 	  case XK_S:
 	    if (shift || cntrl) {
-		(void)DisplayScores(0);
+		ret = DisplayScores(0);
 		RedisplayScreen();
 	    }
 	    break;
