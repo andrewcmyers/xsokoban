@@ -1,11 +1,6 @@
 AC_INIT(xsokoban.man)
   
 ############################################################################
-# Include aux configuration macros
-
-builtin([include],acaux.m4)dnl
-
-############################################################################
 # Create config files
 AC_CONFIG_HEADER(config_local.h)
 
@@ -23,7 +18,7 @@ AC_PROG_CPP
 
 (cat config.h; echo "use_xpm=USE_XPM;www=WWW") > tmp.$$.c
 $CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
-. tmp2.$$
+. ./tmp2.$$
 if test $use_xpm = 1; then
     echo "Looking for Xpm">&2
     libxpm=1
@@ -68,7 +63,7 @@ AC_HAVE_LIBRARY(-ldnet_stub)
 ####################################
 # Turn on all compiler warning flags
 
-if test x$CC = xgcc 
+if test -n "$GCC"
 then
   WARN=-Wall
 else
@@ -97,7 +92,7 @@ AC_DEFINE(FPRINTF_PROTO))
 
 AC_COMPILE_CHECK([fclose prototype],
 [#include <stdio.h>],
-[fprintf(stderr, "foo");],
+[FILE *f; fclose(f);],
 AC_DEFINE(FCLOSE_PROTO))
 
 AC_COMPILE_CHECK([time prototype],
@@ -132,7 +127,7 @@ AC_DEFINE(HAS_USLEEP))
 
 AC_COMPILE_CHECK([bzero prototype],
 [#include <stdlib.h>],
-[void *x; int l; bzero(x, l);],
+[char *x; int l; bzero(x, l);],
 AC_DEFINE(BZERO_PROTO))
 
 AC_HAVE_HEADERS(limits.h)

@@ -7,8 +7,8 @@ CC = @CC@
 # C compiler flags
 ############################################################
 #
-#OPTIMIZER = -O -DNDEBUG
-OPTIMIZER = -g -UNDEBUG
+OPTIMIZER = -O -DNDEBUG
+#OPTIMIZER = -g -UNDEBUG
 INCS = @INCS@
 WARN = @WARN@
 LIBS = @LIBS@
