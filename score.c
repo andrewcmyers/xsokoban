@@ -19,16 +19,49 @@ static struct {
 static FILE *scorefile;
 static long sfdbn;
 
+short LockScore(void)
+{
+     int i, fd;
+
+     for (i = 0; i < 10; i++) {
+	  fd = creat(LOCKFILE, 0666);
+	  if (fd < 0)
+	       sleep(1);
+	  else
+	       break;
+     }
+
+     if (fd < 0) {
+	  /* assume that the last process to muck with the score file */
+	  /* is dead						      */
+	  unlink(LOCKFILE);
+	  fd = creat(LOCKFILE, 0666);
+     }
+
+     if (fd < 0)
+	  return E_WRITESCORE;
+     else {
+	  close(fd);
+	  return 0;
+     }
+}
+
+void UnlockScore(void)
+{
+     unlink(LOCKFILE);
+}
+     
 /* print out the score list */
 short OutputScore(void)
 {
   short ret;
 
-  while (creat(LOCKFILE, 0666) < 0) ;	/* lock the score file */
+  if (ret = LockScore())
+       return ret;
 
   if ((ret = ReadScore()) == 0)
     ShowScore();
-  unlink(LOCKFILE);
+  UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
@@ -37,7 +70,9 @@ short MakeNewScore(void)
 {
   short ret = 0;
 
-  while (creat(LOCKFILE, 0666) < 0) ;
+  if (ret = LockScore())
+       return ret;
+  
   scoreentries = 0;
 
   if ((scorefile = fopen(SCOREFILE, "w")) == NULL)
@@ -48,7 +83,7 @@ short MakeNewScore(void)
       ret = E_WRITESCORE;
     fclose(scorefile);
   }
-  unlink(LOCKFILE);
+  UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
@@ -57,7 +92,8 @@ short GetUserLevel(short *lv)
 {
   short ret = 0, pos;
 
-  while (creat(LOCKFILE, 0666) < 0) ;
+  if (ret = LockScore())
+       return ret;
 
   if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
     ret = E_FOPENSCORE;
@@ -65,7 +101,7 @@ short GetUserLevel(short *lv)
     if ((ret = ReadScore()) == 0)
       *lv = ((pos = FindUser()) > -1) ? scoretable[pos].lv + 1 : 1;
   }
-  unlink(LOCKFILE);
+  UnlockScore();
   return (ret);
 }
 
@@ -74,12 +110,13 @@ short Score(void)
 {
   short ret;
 
-  while (creat(LOCKFILE, 0666) < 0) ;	/* lock the score file */
+  if (ret = LockScore())
+       return ret;
   if ((ret = ReadScore()) == 0)
     if ((ret = MakeScore()) == 0)
       if ((ret = WriteScore()) == 0)
 	ShowScore();
-  unlink(LOCKFILE);
+  UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
