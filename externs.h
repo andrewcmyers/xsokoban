@@ -96,7 +96,7 @@ extern Boolean RunTo(int, int);
 extern void PushMan(int, int);
 
 /* stuff from score.c */
-extern short OutputScore(void);
+extern short OutputScore(int);
 extern short MakeNewScore(void);
 extern short GetUserLevel(short *);
 extern short Score(Boolean show);
@@ -105,7 +105,7 @@ extern short MakeScore(void);
 extern short FindUser(void);
 extern short FindPos(void);
 extern short WriteScore(void);
-extern void ShowScore(void);
+extern void ShowScore(int);
 extern void CopyEntry(short, short);
 extern void FlushDeletedScores(Boolean[]);
 

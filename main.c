@@ -60,7 +60,7 @@ void main(int argc, char **argv)
     ret = CheckCommandLine(&argc, argv);
     if(ret == 0) {
       if(optshowscore)
-	ret = OutputScore();
+	ret = OutputScore(optlevel);
       else if(optmakescore) {
 	if(superuser) {
 	  /* make sure of that, shall we? */
@@ -152,6 +152,12 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
 	    return E_USAGE;
 	  optshowscore = _true_;
+	  optlevel = atoi(&argv[option][2]);
+	  if (optlevel == 0 && argv[option+1] &&
+	      argv[option+1][0] != '-') {
+		optlevel = atoi(argv[option+1]);
+		option++;
+	    }
 	  break;
 	case 'c':
 	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))

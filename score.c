@@ -55,8 +55,9 @@ void UnlockScore(void)
      unlink(LOCKFILE);
 }
      
-/* print out the score list */
-short OutputScore(void)
+/* print out the score list for level "level". If "level" == 0, show
+   scores for all levels. */
+short OutputScore(int level)
 {
   short ret;
 
@@ -64,7 +65,7 @@ short OutputScore(void)
        return ret;
 
   if ((ret = ReadScore()) == 0)
-    ShowScore();
+    ShowScore(level);
   UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 }
@@ -119,7 +120,7 @@ short Score(Boolean show)
   if ((ret = ReadScore()) == 0)
     if ((ret = MakeScore()) == 0)
       if ((ret = WriteScore()) == 0)
-	if (show) ShowScore();
+	if (show) ShowScore(0);
   UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
 }
@@ -332,19 +333,22 @@ short WriteScore(void)
 }
 
 
-/* displays the score table to the user */
-void ShowScore(void)
+/* displays the score table to the user. If level == 0, show all
+   levels. */
+void ShowScore(int level)
 {
   register i;
 
   fprintf(stdout, "Rank      User     Level     Moves    Pushes\n");
   fprintf(stdout, "============================================\n");
   for (i = 0; i < scoreentries; i++) {
-    int rank = SolnRank(i, 0);
-    if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
-    else fprintf(stdout, "    ");
-    fprintf(stdout, "%10s  %8d  %8d  %8d\n", scoretable[i].user,
-	    scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
+    if (level == 0 || scoretable[i].lv == level) {
+	int rank = SolnRank(i, 0);
+	if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
+	else fprintf(stdout, "    ");
+	fprintf(stdout, "%10s  %8d  %8d  %8d\n", scoretable[i].user,
+		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
+    }
   }
 }
 

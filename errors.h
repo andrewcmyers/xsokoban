@@ -41,7 +41,7 @@ char *errmess[] = {
 char *usages[] = {
   "\t-c                  : create a new score file (superuser only)\n",
   "\t-r                  : restore a saved game.\n",
-  "\t-s                  : show high score table.\n",
+  "\t-s[level]           : show high score table.\n",
   "\t-<nn>               : play level <nn> (<nn> must be greater than 0)\n",
   "\t-display <disp>     : run on display <disp>\n",
   "\t-w                  :\n",
