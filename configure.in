@@ -24,17 +24,16 @@ AC_PROG_CPP
 (cat config.h; echo "use_xpm=USE_XPM;www=WWW") > tmp.$$.c
 $CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
 . tmp2.$$
-if test $use_xpm = 1 then
-then
+if test $use_xpm = 1; then
     echo "Looking for Xpm">&2
     libxpm=1
     incxpm=1
     AC_HAVE_LIBRARY(-lXpm, [LIBS="$LIBS -lXpm"],
 	[ echo "Can't find libXpm.a! You must add to LIBS in Makefile.">&2
-	  exit 1 ])
+	  ])
     AC_HEADER_CHECK(xpm.h,,
 	[echo "Can't find xpm.h! You must add to INCS in Makefile.">&2
-	  exit 1 ])
+	  ])
 fi
 rm -f tmp.$$.c tmp2.$$
 

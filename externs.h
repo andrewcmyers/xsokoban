@@ -67,6 +67,10 @@ extern void bzero(char *, int);
 
 int fsync(int);
 
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE -1
+#endif
+
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
 
