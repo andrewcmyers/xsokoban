@@ -19,6 +19,7 @@ POS ppos;
 char map[MAXROW + 1][MAXCOL + 1];
 char *username = NULL, *progname = NULL, *bitpath = NULL;
 XrmDatabase rdb;
+Boolean ownColormap = _false_;
 
 static short optlevel = 0, userlevel;
 static Boolean optshowscore = _false_, optmakescore = _false_,
@@ -100,6 +101,8 @@ void main(int argc, char **argv)
     /* play till we drop, then nuke the good stuff */
     ret = GameLoop();
     DestroyDisplay();
+    XCloseDisplay(dpy); /* factored this out to allow re-init */
+    display_alloc = _false_;
   }
   /* always report here since the game returns E_ENDGAME when the user quits.
    * Sigh.. it would be so much easier to just do it right.
@@ -163,6 +166,9 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
 	    return E_USAGE;
 	  optmakescore = _true_;
+	  break;
+	case 'C':
+	  ownColormap = _true_;
 	  break;
 	case 'r':
 	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
@@ -231,6 +237,14 @@ short GameLoop(void)
     
     /* make sure X is all set up and ready for us */
     ret = InitX();
+    if (ret == E_NOCOLOR && !ownColormap) {
+	DestroyDisplay();
+	ownColormap = _true_;
+	fprintf(stderr,
+	"xsokoban: Couldn't allocate enough colors, trying own colormap\n");
+	ret = InitX();
+    }
+    
     if(ret != 0)
       return ret;
     
