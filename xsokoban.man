@@ -1,4 +1,4 @@
-.TH XSOKOBAN 6 "27 January 1992" "Carnegie Mellon University"
+.TH XSOKOBAN 6 "2 November 1993" "MIT Lab for Computer Science"
 .SH NAME
 xsokoban \- Pushing objects around...
 .SH SYNOPSIS
@@ -27,22 +27,29 @@ xsokoban \- Pushing objects around...
 .B \-xrm
 <arg> ] 
 .SH DESCRIPTION
-The target of 
+The goal of 
 .I xsokoban
-is to push all the objects into the score area of each level using the
-mouse or the arrow keys. If the left mouse button is pressed on a
-clear square, the man will move to that location via the optimal path
-if such a path exists, otherwise the terminal will beep. If the middle
-button is pressed on an object that is adjacent to the player, the
-object will be pushed.
-If the middle mouse button is pressed on an empty space, the
-player will move the closest object that is
-on a straight line with the destination, such that the object
-can be pushed in that direction, and the player is not directly
-between the destination and the object.
-The player is moved appropriately to push the object to the destination.
-The right button mouse undoes the last move, and may be used any number
-of times.
+is to push all the round objects into the score area of each level
+using the mouse or the arrow keys. The arrow keys move the player in
+the corresponding direction, pushing an object if it is in the way and
+there is a clear space on the other side. The mouse buttons each have a
+distinct function.
+
+If the left mouse button is pressed on a clear square, the player will
+move to that location via the optimal path if such a path exists;
+otherwise, the game will beep.
+
+If the middle button is pressed on an object that is adjacent to the
+player, the object will be pushed one step.  If the middle mouse button
+is pressed on an empty space, the player will move the closest object
+that is on a straight line with the destination, such that the object
+can be pushed in that direction, and the player is not directly between
+the destination and the object.  Before pushing the object, the player
+is moved optimally to start the push.
+
+The right button mouse undoes the last user action, and may be used any
+number of times.
+
 .PP
 The rest of the functions are bound to the keyboard:
 .TP 8
@@ -60,6 +67,10 @@ Restarts a level.
 .TP 8
 .B ^R
 Redraws the screen.
+.TP 8
+.B h,j,k,l
+Act just like the arrow keys, as in
+.IR vi (1).
 .SH OPTIONS
 .TP 8
 .B \-s
@@ -111,6 +122,8 @@ Joseph L. Traub - X windows interface.
 Kevin Solie - simultaneously developed X implementation (merged in).
 .br
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
+.br
+Andrew Myers - Improved mouse UI, score ranking, repeated undo
 .br
 Unknown Hacker - Original curses(1) implementation.
 .SH RESOURCES
