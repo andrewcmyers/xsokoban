@@ -38,3 +38,6 @@
 
 /* Is there a prototype for "rename" in <unistd.h>? */
 #define RENAME_PROTO
+
+/* Does the system support "strdup" and have a prototype in <string.h>? */
+#define STRDUP_PROTO
