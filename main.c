@@ -30,6 +30,11 @@ static Boolean optshowscore = _false_, optmakescore = _false_,
 	       optverify = _false_;
 static struct passwd *pwd;
 
+static char *FixUsername(char *name);
+/* FixUsername makes sure that the username contains no spaces or
+   unprintable characters, and is less than MAXUSERNAME characters
+   long. */
+
 int movelen;
 /* Length of the verified move sequence waiting on stdin if -v is used */
 
@@ -52,6 +57,9 @@ void main(int argc, char **argv)
   else
     progname++;
 
+  /* Parse the command line */
+  ret = CheckCommandLine(&argc, argv);
+
   /* find out who is playing us. (pwd will be kept around in case we need to
    * build the Xresources stuff later.
    */
@@ -61,11 +69,24 @@ void main(int argc, char **argv)
     ret = E_NOUSER;
   else {
     /* find out who we are. */
-    username = pwd->pw_name;
+#if !WWW
+    username = FixUsername(pwd->pw_name);
+#else
+/* If running in Web mode, append HERE to the username. */
+    if (!username) {
+/* username might have already been set by the X resource mechanism */
+	char *here = HERE;
+	char *namebuf = (char *)malloc(strlen(pwd->pw_name) + strlen(here) + 1);
+	strcpy(namebuf, pwd->pw_name);
+	strcat(namebuf, here);
+	username = FixUsername(namebuf);
+	free(namebuf);
+    } else {
+	username = FixUsername(username);
+    }
+#endif
     /* see if we are the superuser */
     superuser = (strcmp(username, SUPERUSER) == 0) ? _true_ : _false_;
-    /* Parse the command line */
-    ret = CheckCommandLine(&argc, argv);
     if(ret == 0) {
       if(optshowscore)
 	ret = OutputScore(optlevel);
@@ -133,7 +154,7 @@ void main(int argc, char **argv)
   exit(ret);
 }
 
-char *FixUsername(char *name)
+static char *FixUsername(char *name)
 {
     char namebuf[MAXUSERNAME];
     char *c = namebuf;
@@ -149,6 +170,8 @@ char *FixUsername(char *name)
 /* Oh boy, the fun stuff.. Follow along boys and girls as we parse the command
  * line up into little bitty pieces and merge in all the xdefaults that we
  * need.
+ * 
+ * May set "username" to some value.
  */
 short CheckCommandLine(int *argcP, char **argv)
 {
@@ -267,6 +290,8 @@ short CheckCommandLine(int *argcP, char **argv)
 
   /* now merge in the rest of the X command line options! */
   XrmMergeDatabases(command, &rdb);
+
+  if (!username) username = GetResource("username");
   return 0;
 }
 

@@ -100,6 +100,8 @@ score file is displayed between levels, the middle mouse button can be
 used to select a new level to play.  The <Return> key is used to play
 the next level, and the "q" key exits the game.
 
+.PP
+
 Scores in
 .I xsokoban
 are saved in the score file if they are of high
@@ -107,6 +109,12 @@ enough rank. A score is ranked according to how many scores are better
 than it; there are no scores superior to a rank 1 score, only one score
 superior to a rank 2 score, and so on. If two scores are identical, the
 first one entered is ranked higher.
+
+It is possible for other users to have the same username as you, and
+thus collide in the score file. One symptom of this problem is
+that when you first play the game, you are not started at level 1.
+To avoid this problem, set your "xsokoban.username" X resource to
+the desired unique username.
 
 .SH OPTIONS
 .TP 8
@@ -177,6 +185,13 @@ users. Thanks for all your contributions and suggestions!
 .SH RESOURCES
 .I xsokoban
 understands the following resources.
+.TP 8
+.B username : string
+The name you would like to use when playing xsokoban. It defaults
+to your real username. If you are playing in WWW mode, some domain
+information is appended to your real username to disambiguate from
+other users with the same name. This domain information is not
+appended to the username if specified through the resource.
 .TP 8
 .B fancyWalls : boolean
 Use fancy walls.

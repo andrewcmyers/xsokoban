@@ -1,3 +1,4 @@
-ROOTDIR = "."? 
-ANYLEVEL = FALSE?
+ROOTDIR = "." 
+ANYLEVEL = 0
+WWW=1
 Makefile is not derived from Imakefile?

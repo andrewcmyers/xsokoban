@@ -116,3 +116,64 @@
    in msec.
 */
 #define SLEEPLEN 8
+
+/*
+   WWW: Use WWW to store the score file and screens for you
+*/
+#ifndef WWW
+#define WWW 1
+#endif
+
+/*
+   WWWHOST: Host where WWW scores are stored
+*/
+#ifndef WWWHOST
+#define WWWHOST "clef.lcs.mit.edu"
+#endif
+
+/*
+   WWWPORT: Port at WWWHOST
+*/
+#ifndef WWWPORT
+#define WWWPORT 80
+#endif
+
+/* HERE: Your local domain. This string will be appended to every user
+   name that is sent to the WWW sokoban server, in order to avoid collisions.
+   Change it!
+
+   For example, if you are at Stanford, a good value for HERE would be
+   "@stanford.edu". Making HERE specific to individual machines is a
+   bad idea.
+
+   Usernames that are specified through the "xsokoban.username" resource
+   do not have HERE appended to them.
+*/
+#ifndef HERE
+#define HERE "@somewhere.somedomain"
+#endif
+
+/*
+   WWWSCOREPATH: Path to access in order to store scores. $L means the
+   current level number, $M is the string of moves, $U is the user name,
+   $N is the length of the string of moves.
+*/
+#ifndef WWWSCORECOMMAND
+#define WWWSCORECOMMAND "POST /cgi-bin/sok-solve?$L,$U HTTP/1.0\n" \
+                        "Content-type: text/plain\n" \
+                        "Content-length: $N\n" \
+                        "\n" \
+                        "$M\n"
+#endif
+
+#ifndef WWWREADSCORECMD
+#define WWWREADSCORECMD "GET /cgi-bin/sok-scores\n"
+#endif
+
+/*
+   WWWSCREENPATH: Path to access in order to get screen files. $L
+   means the requested level number.
+*/
+#ifndef WWWSCREENPATH
+#define WWWSCREENPATH "GET /cgi-bin/sok-screens?level=$L\n"
+#endif

@@ -40,7 +40,8 @@ BIN = /usr/local/bin
 
 ##### Nothing from here on should need customization ######################
 
-OBJECTS = display.o main.o resources.o play.o score.o screen.o save.o scoredisp.o
+OBJECTS = display.o main.o resources.o play.o score.o screen.o save.o \
+	  scoredisp.o qtelnet.o
 
 xsokoban: $(OBJECTS)
 	$(CC) $(CFLAGS) -o xsokoban $(OBJECTS) $(LIBS)

@@ -412,7 +412,7 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     int first_index = vposn/font_height;
     int last_index = (vposn + win_height - 1)/font_height;
     int i;
-    char * header = "Rank      User     Level     Moves    Pushes";
+    char * header = "Rank                     User   Level   Moves  Pushes";
     XSetForeground(dpy, gc, text_color);
     XDrawString(dpy, win, gc, text_indent, font_height, header,
 		strlen(header));
@@ -436,7 +436,7 @@ static void DrawScores(XWindowAttributes *wa, Window win)
 	    sprintf(buf, "%4d", rank[i]);
 	else
 	    sprintf(buf, "    ");
-	sprintf(buf + 4, "%10s  %8d  %8d  %8d", scoretable[i].user,
+	sprintf(buf + 4, "%25s  %4d     %4d     %4d", scoretable[i].user,
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
 	XDrawString(dpy, win, scroll_gc, text_indent, y, buf, strlen(buf));
     }
