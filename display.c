@@ -456,7 +456,7 @@ void MakeHelpWindows(void)
 {
   int i;
   int ypos = 0;
-  char *title = "    Sokoban  --  X version 3.1 --  Help page %d";
+  char *title = "    Sokoban  --  X version 3.1a --  Help page %d";
   char *next = "     Press <Return> to exit";
 
   for(i = 0; i < HELP_PAGES; i++) {
