@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/param.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -361,12 +362,18 @@ short FindPos(void)
      blowing away the lock can get us in the same trouble that happens
      here.
 */
+
+char const *tempnm = SCOREFILE "XXXXXX";
+
 short WriteScore(void)
 {
   short ret = 0;
   long tmp;
 
-  char *tempfile = SCOREFILE "XXXXXX";
+    
+  char tempfile[MAXPATHLEN];
+  strcpy(tempfile, tempnm);
+
   (void)mktemp(tempfile);
 
   if ((scorefile = fopen(tempfile, "w")) == NULL)

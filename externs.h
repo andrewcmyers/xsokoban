@@ -57,6 +57,10 @@ extern void perror(char *);
 extern int rename(char *from, char *to);
 #endif
 
+#if !defined(STRDUP_PROTO)
+extern char *strdup(const char *);
+#endif
+
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
 

@@ -28,6 +28,16 @@ static XFontStruct *finfo, *score_finfo;
 
 static u_short rank[MAXSCOREENTRIES];
 
+#if !defined(STRDUP_PROTO)
+char *strdup(const char *s)
+{
+    int l = strlen(s);
+    char *ret = (char *)malloc((size_t)(l + 1));
+    strcpy(ret, s);
+    return ret;
+}
+#endif
+
 unsigned int GetIntResource(char *resource_name, unsigned int def)
 {
     char *ret;
@@ -190,12 +200,12 @@ static int FindCurrent()
     int i;
     for (i = 0; i < scoreentries; i++) {
 	 if (0 == strcmp(scoretable[i].user, username) &&
-	     level == scoretable[i].lv) {
+	     (unsigned short)level == scoretable[i].lv) {
 	     return i;
 	 }
     }
     for (i = 0; i < scoreentries; i++)
-	 if (level > scoretable[i].lv) return i;
+	 if ((unsigned short)level > scoretable[i].lv) return i;
     return scoreentries - 1; /* Couldn't find it at all */
 }
 
