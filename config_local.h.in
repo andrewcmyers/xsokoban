@@ -48,5 +48,7 @@
 /* Is there a <limits.h>? (Otherwise, there had better be a <sys/limits.h>) */
 #undef HAVE_LIMITS_H
 
+/* Is there a <sys/select.h>? (AIX requires it for fd_sets) */
+#undef HAVE_SYS_SELECT_H
 
 #undef BZERO_PROTO

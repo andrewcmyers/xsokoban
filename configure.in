@@ -132,13 +132,18 @@ AC_COMPILE_CHECK([bzero prototype],
 [char *x; int l; bzero(x, l);],
 AC_DEFINE(BZERO_PROTO))
 
-AC_HAVE_HEADERS(limits.h)
+AC_HAVE_HEADERS(limits.h sys/select.h)
 
-echo "Looking for htons, ntohs" >&2
-AC_HEADER_EGREP(htons, /usr/include/machine/endian.h, AC_DEFINE(NEED_ENDIAN))
-AC_HEADER_EGREP(htons, /usr/include/netinet/in.h, AC_DEFINE(NEED_NETINET_IN))
-AC_HEADER_EGREP(htons, /usr/include/net/nh.h, AC_DEFINE(NEED_NH))
-AC_HEADER_EGREP(htons, /usr/include/sys/byteorder.h, AC_DEFINE(NEED_BYTEORDER))
+echo "looking for htons, ntohs" >&2
+define(ACHTONS_CHECK,
+    AC_COMPILE_CHECK([htons in $1],
+    [#include <$1>],
+    [short x,y; x = htons(y);],
+    AC_DEFINE($2)))
+ACHTONS_CHECK(machine/endian.h, NEED_ENDIAN)
+ACHTONS_CHECK(netinet/in.h, NEED_NETINET_IN)
+ACHTONS_CHECK(net/nh.h, NEED_NH)
+ACHTONS_CHECK(sys/byteorder.h, NEED_BYTEORDER)
 
 ############################################################################
 # Build configured files
