@@ -421,21 +421,21 @@ short LoadBitmaps(void)
     register int i;
     short ret;
 
-    if (ret = LoadOneBitmap("man", NULL, &man, player)) return ret;
-    if (ret = LoadOneBitmap("saveman", "man", &saveman, playerstore))
+    if ((ret = LoadOneBitmap("man", NULL, &man, player))) return ret;
+    if ((ret = LoadOneBitmap("saveman", "man", &saveman, playerstore)))
       return ret;
-    if (ret = LoadOneBitmap("object", NULL, &object, packet)) return ret;
-    if (ret = LoadOneBitmap("treasure", NULL, &treasure, save)) return ret;
-    if (ret = LoadOneBitmap("goal", NULL, &goal, store)) return ret;
-    if (ret = LoadOneBitmap("floor", NULL, &floor, ground)) return ret;
+    if ((ret = LoadOneBitmap("object", NULL, &object, packet))) return ret;
+    if ((ret = LoadOneBitmap("treasure", NULL, &treasure, save))) return ret;
+    if ((ret = LoadOneBitmap("goal", NULL, &goal, store))) return ret;
+    if ((ret = LoadOneBitmap("floor", NULL, &floor, ground))) return ret;
 
     if(optwalls) {
 	for(i = 0; i < NUM_WALLS; i++) {
-	    if(ret = LoadOneBitmap(wallname[i], "wall", &walls[i], wall))
+	    if ((ret = LoadOneBitmap(wallname[i], "wall", &walls[i], wall)))
 	      return ret;
 	}
     } else {
-	if(ret = LoadOneBitmap("wall", NULL, &walls[0], wall)) return ret;
+	if ((ret = LoadOneBitmap("wall", NULL, &walls[0], wall))) return ret;
     }
     return 0;
 }
