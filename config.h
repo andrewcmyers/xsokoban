@@ -74,7 +74,7 @@
 /*
    MAXSCOREENTRIES: defines the maximum number of entries in the scoretable
 */
-#define MAXSCOREENTRIES 10000
+#define MAXSCOREENTRIES 20000
 
 /*
    SUPERUSER: defines the name of the local game owner. Almost never "root"!
@@ -99,7 +99,7 @@
    MAXSOLNRANK: The maximum solution rank for which an entry is retained
    in the score table.
 */
-#define MAXSOLNRANK 5
+#define MAXSOLNRANK 10
 
 /*
    STACKDEPTH: Number of previous positions remembered in the move stack
@@ -107,7 +107,8 @@
 #define STACKDEPTH 1000
 
 /*
-   TIMEOUT: How long a lock can be held on the score file, in seconds
+   TIMEOUT: How long a lock can be held on the score file, in seconds.
+   Doesn't matter if WWW == 1.
 */
 #define TIMEOUT 10
 
@@ -177,13 +178,13 @@
 #endif
 
 #ifndef WWWREADSCORECMD
-#define WWWREADSCORECMD "GET /cgi-bin/sok-scores\n"
+#define WWWREADSCORECMD "GET /cgi-bin/sok-scores HTTP/1.0\n\n"
 #endif
 
 /*
    WWWSCREENPATH: Path to access in order to get screen files. $L
-   means the requested level number.
+   means the requested level number. Not currently used.
 */
 #ifndef WWWSCREENPATH
-#define WWWSCREENPATH "GET /cgi-bin/sok-screens?level=$L\n"
+#define WWWSCREENPATH "GET /cgi-bin/sok-screens?level=$L HTTP/1.0\n\n"
 #endif
