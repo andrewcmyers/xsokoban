@@ -17,6 +17,7 @@
 
 #include "externs.h"
 #include "globals.h"
+#include "score.h"
 
 #define SCORE_VERSION "xs02"
 
@@ -25,12 +26,53 @@ struct st_entry scoretable[MAXSCOREENTRIES];
 
 /* Forward decls */
 static short ParseScoreText(char *text, Boolean all_users);
+static short ParseUserLevel(char *text, short *lv);
 
-#if !WWW
-static FILE *scorefile;
-static int sfdbn;
-#endif
+static short MakeScore();
+/* Adds a new user score to the score table, if appropriate. Users' top
+ * level scores, and the best scores for a particular level (in moves and
+ * pushes, separately considered), are always preserved.
+ */
 
+static void FlushDeletedScores(Boolean delete[]);
+/* Deletes entries from the score table for which the boolean array
+   contains true.
+*/
+
+static void CopyEntry(short i1, short i2);
+/* Duplicate a score entry: overwrite entry i1 with contents of i2. */
+
+static void CleanupScoreTable();
+/* Removes all score entries for a user who has multiple entries,
+ * that are for a level below the user's top level, and that are not "best
+ * solutions" as defined by "SolnRank". Also removes duplicate entries
+ * for a level that is equal to the user's top level, but which are not
+ * the user's best solution as defined by table position.
+ *
+ * The current implementation is O(n^2) in the number of actual score entries.
+ * A hash table would fix this.
+ */
+
+static char *subst_names(char const *template);
+/*
+    Copy the string in "template" to a newly-allocated string, which
+    should be freed with "free". Any occurrences of '$M' are subsituted
+    with the current compressed move history. Occurrences of '$L' are
+    subsituted with the current level. '$U' is substituted with the
+    current username. '$R' is substituted with the current WWW URL.
+    '$$' is substituted with the plain character '$'.
+*/
+
+static short FindPos();
+/* Find the position for a new score in the score table */ 
+
+static short FindUser();
+/* Search the score table to find a specific player, returning the
+   index of the highest level that user has played, or -1 if none. */
+
+static short GetUserLevel_WWW(short *lv);
+
+static short LockScore();
 /* Acquire the lock on the score file. This is done by creating a new
    directory. If someone else holds the lock, the directory will exist.
    Since mkdir() should be done synchronously, even over NFS,  it will
@@ -53,7 +95,34 @@ static int sfdbn;
    though it's extremely unlikely.
 */
 
+static void ShowScore(int level);
+/* displays the score table to the user. If level == 0, show all
+   levels. */
+
+static void ShowScoreLine(int i);
+/* Print out line "i" of the score file. */
+
+static short ReadScore();
+/* Read in an existing score file.  Uses the ntoh() and hton() functions
+   so that the score files transfer across systems. Update "scoretable",
+   "scoreentries", and "date_stamp" appropriately.
+*/
+
+static short WriteScore();
+/* Update the score file to contain a new score. See comments below. */
+
+static short WriteScore_WWW();
+/* Write a solution out to the WWW server */
+
+static short ReadScore_WWW();
+/* Read in an existing score file.  Uses the ntoh() and hton() functions
+ * so that the score files transfer across systems.
+ */
+
 #if !WWW
+static FILE *scorefile;
+static int sfdbn;
+
 static time_t lock_time;
 /* This timer is used to allow the writer to back out voluntarily if it
    notices that its time has expired. This is not a guarantee that no
@@ -62,7 +131,10 @@ static time_t lock_time;
 */
 #endif
 
-short LockScore(void)
+static time_t date_stamp;
+/* The most recent date stamp on the score file */
+
+short LockScore()
 {
 #if !WWW
      int i, result;
@@ -117,7 +189,7 @@ short LockScore(void)
 #endif
 }
 
-void UnlockScore(void)
+void UnlockScore()
 {
 #if !WWW
      if (0 > rmdir(LOCKFILE)) {
@@ -126,8 +198,6 @@ void UnlockScore(void)
 #endif
 }
      
-/* print out the score list for level "level". If "level" == 0, show
-   scores for all levels. */
 short OutputScore(int level)
 {
   short ret;
@@ -139,16 +209,39 @@ short OutputScore(int level)
   }
 
   DEBUG_SERVER("score file locked");
-  if ((ret = ReadScore()) == 0)
-    ShowScore(level);
-    DEBUG_SERVER("about to unlock score file");
+  if ((ret = ReadScore()) == 0) ShowScore(level);
+  DEBUG_SERVER("about to unlock score file");
   UnlockScore();
   DEBUG_SERVER("score file unlocked");
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
-/* Create a new score file. If "textfile" is non-zero, read the
-   scores out of the text file of that name. */
+short OutputScoreLines(int line1, int line2)
+{
+    short ret;
+    DEBUG_SERVER("entering OutputPartialScore");
+    if ((ret = LockScore())) {
+	DEBUG_SERVER("couldn't lock score file");
+	return ret;
+    }
+    DEBUG_SERVER("score file locked");
+    if ((ret = ReadScore()) == 0) {
+	int i;
+	if (line1 > scoreentries) line1 = scoreentries;
+	if (line2 > scoreentries) line2 = scoreentries;
+	printf("Entries: %d\n", scoreentries);
+	printf("Line1: %d\n", line1);
+	printf("Line2: %d\n", line2);
+	printf("Date: %d\n", date_stamp);
+	printf("======================================================================\n");
+	for (i = line1; i < line2; i++) ShowScoreLine(scoreentries - i - 1);
+    }
+    DEBUG_SERVER("about to unlock score file");
+    UnlockScore();
+    DEBUG_SERVER("score file unlocked");
+    return ((ret == 0) ? E_ENDGAME : ret);
+}
+
 short MakeNewScore(char *textfile)
 {
 #if !WWW
@@ -199,40 +292,41 @@ short MakeNewScore(char *textfile)
 #endif
 }
 
-/* get the players current level based on the level they last scored on */
 short GetUserLevel(short *lv)
 {
   short ret = 0, pos;
 
-#if !WWW
+#if WWW
+  return GetUserLevel_WWW(lv);
+#else
   if ((ret = LockScore()))
        return ret;
 
   if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
     ret = E_FOPENSCORE;
   else {
-#endif
     if ((ret = ReadScore()) == 0)
       *lv = ((pos = FindUser()) > -1) ? scoretable[pos].lv + 1 : 1;
-#if !WWW
   }
   UnlockScore();
 #endif
   return (ret);
 }
 
-/* Add a new score to the score file. Show the current scores if "show". */
-short Score(Boolean show)
+short Score()
 {
   short ret;
 
+#if !WWW
   if ((ret = LockScore()))
        return ret;
   if ((ret = ReadScore()) == 0)
     if ((ret = MakeScore()) == 0)
-      if ((ret = WriteScore()) == 0)
-	if (show) ShowScore(0);
+      ret = WriteScore();
   UnlockScore();
+#else
+  if (!(ret = MakeScore())) ret = WriteScore_WWW();
+#endif
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
@@ -244,20 +338,22 @@ void ntohs_entry(struct st_entry *entry)
     entry->date = ntohl(entry->date);
 }
 
-/* read in an existing score file.  Uses the ntoh() and hton() functions
- * so that the score files transfer across systems.
- */
-short ReadScore_WWW();
 #if !WWW
-short ReadOldScoreFile01();
+static short ReadOldScoreFile01();
 #endif
-short ReadScore(void)
+static short ReadScore()
 {
 #if WWW
     return ReadScore_WWW();
 #else
   short ret = 0;
   long tmp;
+  struct stat s;
+
+  if (0 > stat(SCOREFILE, &s)) {
+    return E_FOPENSCORE;
+  }
+  date_stamp = s.st_mtime;
 
   sfdbn = open(SCOREFILE, O_RDONLY);
   if (0 > sfdbn)
@@ -327,20 +423,6 @@ short ReadOldScoreFile01()
 }
 #endif
 
-/* Return the solution rank for table index "j". The solution rank for
-   an entry is one greater than the number of entries that are better
-   than it, unless there is a better or equal solution that is by the
-   same person, in which case the solution rank is at least "BADSOLN".
-   If two solutions are equal, the one that was arrived at first, and
-   thus has a lower table index, is considered to be better.
-   One solution is at least as good as another solution if it is at
-   least as good in numbers of moves and pushes. Note that
-   non-comparable solutions may exist.
-
-   The array "ignore" indicates that some scoretable entries should
-   be ignored for the purpose of computing rank.
-*/
-#define BADSOLN 100
 int SolnRank(int j, Boolean *ignore)
 {
     int i, rank = 1;
@@ -366,17 +448,7 @@ int SolnRank(int j, Boolean *ignore)
     return rank;
 }
 
-/* Removes all score entries for a user who has multiple entries,
- * that are for a level below the user's top level, and that are not "best
- * solutions" as defined by "SolnRank". Also removes duplicate entries
- * for a level that is equal to the user's top level, but which are not
- * the user's best solution as defined by table position.
- *
- * The current implementation is O(n^2) in the number of actual score entries.
- * A hash table would fix this.
- */
-
-void CleanupScoreTable()
+static void CleanupScoreTable()
 {
     int i;
     Boolean deletable[MAXSCOREENTRIES];
@@ -394,10 +466,7 @@ void CleanupScoreTable()
     FlushDeletedScores(deletable);
 }
 
-/* Deletes entries from the score table for which the boolean array
-   contains true.
-*/
-void FlushDeletedScores(Boolean delete[])
+static void FlushDeletedScores(Boolean delete[])
 {
     int i, k = 0;
     for (i = 0; i < scoreentries; i++) {
@@ -407,11 +476,7 @@ void FlushDeletedScores(Boolean delete[])
     scoreentries = k;
 }
 
-/* Adds a new user score to the score table, if appropriate. Users' top
- * level scores, and the best scores for a particular level (in moves and
- * pushes, separately considered), are always preserved.
- */
-short MakeScore(void)
+static short MakeScore()
 {
   short pos, i;
 
@@ -438,8 +503,7 @@ short MakeScore(void)
 }
 
 
-/* searches the score table to find a specific player. */
-short FindUser(void)
+static short FindUser()
 {
   short i;
   Boolean found = _false_;
@@ -449,8 +513,7 @@ short FindUser(void)
   return ((found) ? i - 1 : -1);
 }
 
-/* finds the position for a new score in the score table */ 
-short FindPos(void)
+static short FindPos()
 {
   short i;
   Boolean found = _false_;
@@ -493,9 +556,7 @@ short FindPos(void)
 
 char const *tempnm = SCOREFILE "XXXXXX";
 
-short WriteScore_WWW();
-
-short WriteScore(void)
+static short WriteScore()
 {
 #if WWW
   return WriteScore_WWW();
@@ -580,6 +641,7 @@ char *mos[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 char date_buf[10];
+
 char *DateToASCII(time_t date)
 {
     if (datemode) {
@@ -603,12 +665,21 @@ char *DateToASCII(time_t date)
     return date_buf;
 }
 
-/* displays the score table to the user. If level == 0, show all
-   levels. */
-
 #define TRY(name,expr) do { if (0>(expr)) { perror(name); }} while (0)
 
-void ShowScore(int level)
+static void ShowScoreLine(int i)
+{
+    int rank = SolnRank(i, 0);
+    if (rank <= MAXSOLNRANK) TRY("printf", printf("%4d", rank));
+    else TRY("printf", printf("    "));
+    TRY("printf",
+    fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
+	    scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
+	    DateToASCII(scoretable[i].date)));
+}
+
+
+static void ShowScore(int level)
 {
   register i;
 
@@ -621,19 +692,12 @@ void ShowScore(int level)
    "======================================================================\n"));
   for (i = 0; i < scoreentries; i++) {
     if (level == 0 || scoretable[i].lv == level) {
-	int rank = SolnRank(i, 0);
-	if (rank <= MAXSOLNRANK) TRY("printf", printf("%4d", rank));
-	else TRY("printf", printf("    "));
-	TRY("printf",
-	fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
-		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
-		DateToASCII(scoretable[i].date)));
+	ShowScoreLine(i);
     }
   }
 }
 
-/* duplicates a score entry */
-void CopyEntry(short i1, short i2)
+static void CopyEntry(short i1, short i2)
 {
   strcpy(scoretable[i1].user, scoretable[i2].user);
   scoretable[i1].lv = scoretable[i2].lv;
@@ -686,15 +750,7 @@ static int compress_moves(char *buf)
 static char movelist[MOVE_HISTORY_SIZE];
 static int movelen;
 
-/*
-    Copy the string in "template" to a newly-allocated string, which
-    should be freed with "free". Any occurrences of '$M' are subsituted
-    with the current compressed move history. Occurrences of '$L' are
-    subsituted with the current level. '$U' is substituted with the
-    current username. '$R' is substituted with the current WWW URL.
-    '$$' is substituted with the plain character '$'.
-*/
-char *subst_names(char const *template)
+static char *subst_names(char const *template)
 {
     char buffer[4096];
     char *buf = &buffer[0];
@@ -770,17 +826,30 @@ short WriteScore_WWW()
 }
 
 /* Extract one line from "text".  Return 0 if there is no line to extract. */
-char *getline(char *text, char *linebuf)
+char *getline(char *text, char *linebuf, int bufsiz)
 {
     if (*text == 0) {
 	*linebuf = 0;
 	return 0;
     }
-    while (*text != '\n' && *text) {
+    bufsiz--; /* for trailing null */
+    while (*text != '\n' && *text && bufsiz != 0) {
 	*linebuf++ = *text++;
+	bufsiz--;
     }
     *linebuf = 0;
     return (*text) ? text + 1 : text ;
+	/* point to next line or final null */
+}
+
+char *skip_past_header(char *text)
+{
+    char line[256];
+    do {
+	text = getline(text, line, sizeof(line));
+	if (!text) return 0;
+    } while (0 != strcmp(line, ""));
+    return text;
 }
 
 /*
@@ -801,51 +870,136 @@ short ReadScore_WWW()
     return ret;
 }
 
-short ParseScoreText(char *text, Boolean allusers)
+static char *ParseScoreLine(int i, char *text)
+{
+    char *user, *date_str;
+    int level, moves, pushes;
+    time_t date = 0;
+    int rank;
+    char rank_s[4];
+    char line[256];
+    text = getline(text, line, sizeof(line));
+    if (!text) return 0;
+    strncpy(rank_s, line, 4);
+    rank = atoi(rank_s);
+    user = strtok(line + 4, ws);
+    if (!user) break;
+    if (rank != 0 || allusers || 0 == strcmp(user, username)) {
+	level = atoi(strtok(0, ws)); if (!level) return E_READSCORE;
+	moves = atoi(strtok(0, ws)); if (!moves) return E_READSCORE;
+	pushes = atoi(strtok(0, ws)); if (!pushes) return E_READSCORE;
+	date_str = strtok(0, ws);
+	if (date_str) date = (time_t)atoi(date_str);
+	if (!date) {
+	    date = time(0);
+	    if (!baddate) {
+		baddate = _true_;
+		fprintf(stderr,
+			"Warning: Bad or missing date in ASCII scores\n");
+	    }
+	}
+	strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
+	scoretable[scoreentries].lv = (unsigned short)level;
+	scoretable[scoreentries].mv = (unsigned short)moves;
+	scoretable[scoreentries].ps = (unsigned short)pushes;
+	scoretable[scoreentries].date = date;
+    }
+}
+
+static short ParseScoreText(char *text, Boolean allusers)
 {
     char line[256];
     char *ws = " \t\r\n";
     Boolean baddate = _false_;
-    for (;;)  {
+    do {
+	text = getline(text, line, sizeof(line));
 	if (!text) return E_READSCORE;
-	text = getline(text, line);
-	if (line[0] == '=') break;
-    }
+    } while (line[0] != '=');
     scoreentries = 0;
-    for (;;) {
-	char *user, *date_str;
-	int level, moves, pushes;
-	time_t date = 0;
-	int rank;
-	char rank_s[4];
-	text = getline(text, line);
-	if (!text) break;
-	strncpy(rank_s, line, 4);
-	rank = atoi(rank_s);
-	user = strtok(line + 4, ws);
-	if (!user) break;
-	if (rank != 0 || allusers || 0 == strcmp(user, username)) {
-	    level = atoi(strtok(0, ws));
-	    moves = atoi(strtok(0, ws));
-	    pushes = atoi(strtok(0, ws));
-	    date_str = strtok(0, ws);
-	    if (date_str) date = (time_t)atoi(date_str);
-	    if (!date) {
-		date = time(0);
-		if (!baddate) {
-		    baddate = _true_;
-		    fprintf(stderr,
-			    "Warning: Bad or missing date in ASCII scores\n");
-		}
-	    }
-	    if (level == 0 || moves == 0 || pushes == 0) return E_READSCORE;
-	    strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
-	    scoretable[scoreentries].lv = (unsigned short)level;
-	    scoretable[scoreentries].mv = (unsigned short)moves;
-	    scoretable[scoreentries].ps = (unsigned short)pushes;
-	    scoretable[scoreentries].date = date;
-	    scoreentries++;
+    while (text) text = ParseScoreLine(scoreentries++, text);
+    return 0;
+}
+
+short GetUserLevel_WWW(short *lv)
+{
+    char *cmd, *text;
+    short ret;
+    movelist[0] = 0;
+    cmd = subst_names(WWWGETLEVELPATH);
+    text = qtelnet(WWWHOST, WWWPORT, cmd);
+    free(cmd);
+/* Now, skip past all the initial crud */
+    if (!text) return E_READSCORE;
+    ret = ParseUserLevel(text, lv);
+    free(text);
+    return ret;
+}
+
+static short ParseUserLevel(char *text, short *lv)
+{
+    char line[256];
+    text = skip_past_header(text);
+    if (!text) return E_READSCORE;
+    text = getline(text, line, sizeof(line));
+    if (!text) return E_READSCORE;
+    if (0 == strncmp(line, "Level: ", 7)) {
+	*lv = atoi(text + 7);
+	return 0;
+    } else {
+	return E_READSCORE;
+    }
+}
+
+static void DeleteAllEntries()
+{
+    int i;
+    for (i = 0; i < scoreentries; i++) scoretable[i].user[0] = 0;
+}
+
+#define GRAB(tag, stmt) 					\
+    text = getline(text, line, sizeof(line)); 			\
+    if (!text) return E_READSCORE; 		 		\
+    if (0 == strncmp(line, tag, strlen(tag))) { stmt; } 	\
+    else return E_READSCORE;
+    
+short FetchScoreLines_WWW(int *line1 /* in/out */, int *line2 /* int/out */)
+{
+    char *start, *text, *cmd = subst_names(WWWGETLINESPATH);
+    char cmdbuf[256];
+    char line[256];
+    time_t newdate;
+    short ret;
+    int i;
+    sprintf(cmdbuf, line1, line2);
+    start = text = qtelnet(WWWHOST, WWWPORT, cmd);
+    free(cmd);
+    if (!text) { free(start); return E_READSCORE; }
+    ret = ParseScoreLines(start, line1, line2);
+    free(start);
+    return ret;
+}
+
+short ParseScoreLines(char *text, int *line1, int *line2)
+{
+    text = skip_past_header(text);
+    if (!text) return E_READSCORE;
+    GRAB("Entries: ", scoreentries = atoi(line + 9));
+    GRAB("Line1: ", line1 = atoi(line + 7));
+    GRAB("Line2: ", line2 = atoi(line + 7));
+    GRAB("Date: ", newdate = atoi(line + 6));
+    GRAB("==========", );
+
+    if (newdate == 0) return E_READSCORE;
+    if (newdate != datestamp) DeleteAllEntries();
+
+    datestamp = newdate;
+
+    for (i = line1; i < line2; i++) {
+	text = ParseScoreLine(scoreentries - i, text);
+	if (!text) {
+	    DeleteAllEntries();
+	    free(start);
+	    return 0;
 	}
     }
-    return 0;
 }

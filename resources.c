@@ -5,6 +5,7 @@
 #include "externs.h"
 #include "globals.h"
 #include "defaults.h"
+#include "display.h"
 
 /* rewritten slightly from the xantfarm code by Jef Poskanzer */
 

@@ -15,7 +15,7 @@
 	    variable in the installed version, but you know best...
 */
 #ifndef ROOTDIR
-#define ROOTDIR "."
+#define ROOTDIR "/usr/local/lib/xsokoban"
 #endif
 
 /*
@@ -93,7 +93,7 @@
 /*
    ANYLEVEL: Allow any user to play any level and enter a score for it
 */
-#define ANYLEVEL 0
+#define ANYLEVEL 1
 
 /*
    MAXSOLNRANK: The maximum solution rank for which an entry is retained
@@ -107,8 +107,7 @@
 #define STACKDEPTH 1000
 
 /*
-   TIMEOUT: How long a lock can be held on the score file, in seconds.
-   Doesn't matter if WWW == 1.
+   TIMEOUT: How long a lock can be held on the score file, in seconds
 */
 #define TIMEOUT 10
 
@@ -161,7 +160,7 @@
    do not have HERE appended to them.
 */
 #ifndef HERE
-#define HERE "@somewhere.somedomain"
+#define HERE "@lcs.mit.edu"
 #endif
 
 /*
@@ -197,13 +196,13 @@
 #define WWWGETLEVELPATH "GET /cgi-bin/xsokoban/user-level?user=$U HTTP/1.0\n\n"
 #endif
 
-/* 
-   DEBUG_SERVER: Change this only if you want to debug an xsokoban
-   score server.
+/*
+   WWWGETLINESPATH: Path to access in order to get a section of the
+   score file by line number. The first %d is substituted with "line1",
+   the second with "line2".
 */
-#if 1
-#define DEBUG_SERVER(x)
-#else
-int getpid();
-#define DEBUG_SERVER(x) fprintf(stderr, "xsokoban %d: %s\n", getpid(), x)
+#ifndef WWWGETLINESPATH
+#define WWWGETLINESPATH "GET /cgi-bin/xsokoban/score-lines?line1=%d,line2=%d HTTP/1.0\n\n"
 #endif
+
+#define DEBUG_SERVER(x)

@@ -198,7 +198,7 @@ There is more information about
 in the WWW, at
 .br
 .sp
-http://clef.lcs.mit.edu/~andru/xsokoban.html
+http://www.pmg.lcs.mit.edu/~andru/xsokoban.html
 .sp
 A global score file is also located there.
 
@@ -214,7 +214,7 @@ Kevin Solie - simultaneously developed X implementation (merged in).
 .P
 Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
 .P
-Andrew Myers(http://clef.lcs.mit.edu/~andru) - Improved mouse UI, score ranking, color and WWW support.
+Andrew Myers(http://www.pmg.lcs.mit.edu/~andru) - Improved mouse UI, score ranking, color and WWW support.
 
 Code has also been donated by many 
 .I xsokoban

@@ -6,6 +6,7 @@
 
 #include "externs.h"
 #include "globals.h"
+#include "display.h"
 
 extern int abs(int);
 
@@ -221,9 +222,8 @@ short Play(void)
 	  case XK_h:
 	  case XK_H:
 	  case XK_Left:
-	    /* A move, A move!! we have a MOVE!! */
+	    /* Ordinary move keys */
 	    MakeMove(sym);
-	    RedisplayScreen();
 	    RecordChange();
 	    break;
 	  default:

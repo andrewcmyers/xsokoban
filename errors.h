@@ -33,10 +33,11 @@ char *errmess[] = {
 
 /* usage message */
 #define USAGESTR \
- "usage: %s [-{r|<nn>|C} -s[level] -c[file] -display <disp> -{w|walls} -{f|font} \n\
+ "usage: %s [-{r|<nn>|C} -s[level] -display <disp> -c[file] -{w|walls} -{f|font} \n\
                  -{rv|reverse} -{b|bitdir} <path> -{fg|foreground} <color> \n\
                  -{bg|background} <color> -{bd|border} <color> \n\
-                 -{pr|pointer} <color> -xrm <arg>] [-v <level> <user> <bytes>\n\n"
+                 -{pr|pointer} <color> -xrm <arg>] [-l line1 line2]\n\
+                 [-v <level> <user> <bytes>]\n\n"
 
 char *usages[] = {
   "\t-c[textfile]        : create a new score file (\"superuser\" only)\n",
@@ -62,6 +63,7 @@ char *usages[] = {
   "\t-pr <color>         :\n",
   "\t-pointer <color>    : use <color> as the pointer foreground color\n",
   "\t-xrm <arg>          : specify that <arg> is an X resource.\n",
+  "\t-l <line1> <line2>  : dump score file, lines in [line1,line2)\n",
   "\t-v <level> <user> <bytes> : verify and score a solution. Soln on stdin.\n",
   NULL
 };

@@ -7,4 +7,8 @@ Have score forwarding for servers.
 Handle WWW forwarding messages.
 Put rank max in score file
 add motd
-Only get scores for particular level in WWW mode.
+Only get scores for particular level or levels viewed in WWW mode.
+integrate all X code
+separate X code out of play.c
+have help screen always accessible
+make WWW a switch

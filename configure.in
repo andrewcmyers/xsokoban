@@ -36,7 +36,7 @@ if test $use_xpm = 1; then
 	    fi
 	  done
 	  if test $libok = no; then
-	      echo "Can't find libXpm.a! You must add to LIBS in Makefile.">&2
+	      echo "Can't find libXpm.a! You must add it to LIBS in Makefile.">&2
 	  fi
 	])
     AC_HEADER_CHECK(xpm.h,,
@@ -53,7 +53,7 @@ if test $use_xpm = 1; then
 	    fi
 	  done
 	  if test $incok = no; then
-	    echo "Can't find xpm.h! You must add to INCS in Makefile.">&2
+	    echo "Can't find xpm.h! You must add its location to INCS in Makefile.">&2
 	  fi
 	  ])
 fi
@@ -185,8 +185,8 @@ define(ACHTONS_CHECK,
 #include <sys/types.h>
 #include <$1>
     ],
-    [short x,y; x = htons(y);],
-    AC_DEFINE($2)))
+    [unsigned short x,y; x = htons(y);],
+    AC_DEFINE($2), AC_VERBOSE(nope)))
 ACHTONS_CHECK(machine/endian.h, NEED_ENDIAN)
 ACHTONS_CHECK(netinet/in.h, NEED_NETINET_IN)
 ACHTONS_CHECK(net/nh.h, NEED_NH)

@@ -14,10 +14,21 @@
 #include "globals.h"
 #include "defaults.h"
 #include "help.h"
+#include "display.h"
 
 #if USE_XPM
 #include "xpm.h"
 #endif
+
+static short LoadBitmaps(void);
+static short LoadOneBitmap(char *fname, char *altname, Pixmap *pix, int map);
+static void MakeHelpWindows(void);
+static Pixmap GetObjectPixmap(int, int, char);
+static int PickWall(int, int);
+static void DrawString(int, int, char *);
+static void DisplayLevel(void);
+static void DisplayPackets(void);
+static void DisplayHelp(void);
 
 /* mnemonic defines to help orient some of the text/line drawing, sizes */
 #define HELPLINE ((bit_height * MAXROW) + 30)
@@ -39,13 +50,13 @@ static Boolean font_alloc = _false_, gc_alloc = _false_,
         pix_alloc = _false_, cmap_alloc = _false_, win_alloc = _false_;
 static int hlpscrn = -1;
 static char buf[500];
+static int scr;
 
 /* globals */
 Display *dpy;
-int scr;
-unsigned bit_width, bit_height;
 Atom wm_delete_window, wm_protocols;
 Boolean display_alloc = _false_;
+unsigned bit_width, bit_height;
 Colormap cmap;
 
 /* names of the fancy wall bitmap files.  If you define a set of fancy
@@ -494,7 +505,6 @@ void MakeHelpWindows(void)
   DrawPixmap(help[0], saveman, playerstore, 507, 388);
 }
 
-/* wipe out the entire contents of the screen */
 void ClearScreen(void)
 {
   register int i,j;
@@ -507,9 +517,6 @@ void ClearScreen(void)
             bit_height*MAXROW);
 }
 
-/* redisplay the current screen.. Has to handle the help screens if one
- * is currently active..  Copys the correct bitmaps onto the window.
- */
 void RedisplayScreen(void)
 {
   if(hlpscrn == -1)
@@ -519,15 +526,11 @@ void RedisplayScreen(void)
   XFlush(dpy);
 }
 
-/* Flush all X events to the screen and wait for them to get there. */
 void SyncScreen(void)
 {
   XSync(dpy, 0);
 }
 
-/* Draws all the neat little pictures and text onto the working pixmap
- * so that RedisplayScreen is happy.
- */
 void ShowScreen(void)
 {
   register int i,j;
@@ -544,9 +547,6 @@ void ShowScreen(void)
   RedisplayScreen();
 }
 
-/* Draws a single pixmap, translating from the character map to the pixmap
- * rendition. If "copy_area", also push the change through to the actual window.
- */
 void MapChar(char c, int i, int j, Boolean copy_area)
 {
   Pixmap this;
@@ -677,9 +677,6 @@ Boolean WaitForEnter(void)
   }
 }
 
-/* Displays the first help page, and flips help pages (one per key press)
- * until a return is pressed.
- */
 void ShowHelp(void)
 {
   int i = 0;
@@ -708,9 +705,6 @@ short DisplayScores(short *newlev)
 }
 
 
-/* since the 'press ? for help' is ALWAYS displayed, just beep when there is
- * a problem.
- */
 void HelpMessage(void)
 {
   XBell(dpy, 0);

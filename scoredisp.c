@@ -9,10 +9,16 @@
 #include "externs.h"
 #include "globals.h"
 #include "defaults.h"
+#include "display.h"
+#include "score.h"
 
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE -1
 #endif
+
+static void DrawPanel(XWindowAttributes *wa, Window panel);
+static void DrawScores(XWindowAttributes *wa, Window win);
+static void DrawThumb(Window thumb);
 
 static Boolean initted = _false_;
 static unsigned long sb_bg, panel_bg[3], border_color, panel_fg, 
@@ -39,7 +45,7 @@ char *strdup(const char *s)
 }
 #endif
 
-unsigned int GetIntResource(char *resource_name, unsigned int def)
+static unsigned int GetIntResource(char *resource_name, unsigned int def)
 {
     char *ret;
     ret = GetResource(resource_name);
@@ -47,12 +53,12 @@ unsigned int GetIntResource(char *resource_name, unsigned int def)
     return atoi(ret);
 }
 
-u_short darken(u_short x)
+static u_short darken(u_short x)
 {
     return (u_short)((u_int)x * (0xFFFF - bevel_darkening)/0xFFFF);
 }
 
-u_short lighten(u_short x)
+static u_short lighten(u_short x)
 {
     return x + bevel_darkening - (u_short)(bevel_darkening * (u_int)x/0xFFFF);
 }
@@ -62,7 +68,7 @@ u_short lighten(u_short x)
    a darker version of the same color, shades[2] contains a
    lighter version. For use in drawing Motif-oid beveled panels.
 */
-char *GetColorShades(Display *dpy, 
+static char *GetColorShades(Display *dpy, 
 		     XWindowAttributes *wa,
 		     char *resource_name,
 		     char *default_name_8,
@@ -102,7 +108,7 @@ char *GetColorShades(Display *dpy,
 
 
 /* Return 0 on success, else return an error message. */
-char *InitDisplayScores(Display *dpy, Window win)
+static char *InitDisplayScores(Display *dpy, Window win)
 {
     Status status = XGetWindowAttributes(dpy, win, &wa);
     XGCValues gc_values;
@@ -156,9 +162,6 @@ char *InitDisplayScores(Display *dpy, Window win)
     return 0;
 }
 
-static void DrawPanel(XWindowAttributes *wa, Window panel);
-static void DrawScores(XWindowAttributes *wa, Window win);
-static void DrawThumb(Window thumb);
 
 static int font_height;
 static int vmax, vposn;

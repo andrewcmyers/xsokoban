@@ -11,6 +11,8 @@
 #include "globals.h"
 #include "options.h"
 #include "errors.h"
+#include "display.h"
+#include "score.h"
 
 short VerifyScore(short optlevel);
 
@@ -25,10 +27,12 @@ char *optfile = 0;
 XrmDatabase rdb;
 Boolean ownColormap = _false_, datemode = _false_;
 
-static short optlevel = 0, userlevel;
-static Boolean optshowscore = _false_, optmakescore = _false_,
+static short optlevel = 0, userlevel = 0;
+static short line1 = 0, line2 = 0;
+static Boolean opt_show_score = _false_, opt_make_score = _false_,
 	       optrestore = _false_, superuser = _false_,
-	       optverify = _false_;
+	       opt_verify = _false_, opt_partial_score = _false_,
+	       opt_user_level = _false_;
 static struct passwd *pwd;
 
 static char *FixUsername(char *name);
@@ -54,7 +58,7 @@ void main(int argc, char **argv)
 
   /* make the program name be what it is invoked with */
   progname = strrchr(argv[0], '/');
-  if(progname == NULL)
+  if (progname == NULL)
     progname = argv[0];
   else
     progname++;
@@ -66,7 +70,7 @@ void main(int argc, char **argv)
    * build the Xresources stuff later.
    */
   pwd = getpwuid(getuid());
-  if(pwd == NULL)
+  if (pwd == NULL)
     /* we MUST be being played by somebody, sorry */
     ret = E_NOUSER;
   else {
@@ -90,28 +94,36 @@ void main(int argc, char **argv)
 #endif
     /* see if we are the superuser */
     superuser = (strcmp(username, SUPERUSER) == 0) ? _true_ : _false_;
-    if(ret == 0) {
-      if(optshowscore) {
+    if (ret == 0) {
+      if (opt_show_score) {
 	DEBUG_SERVER("sending score file");
 	ret = OutputScore(optlevel);
-      } else if (optverify) {
+      } else if (opt_verify) {
 	DEBUG_SERVER("verifying score");
 	ret = VerifyScore(optlevel);
-      } else if(optmakescore) {
-	if(superuser) {
+      } else if (opt_partial_score) {
+	ret = OutputScoreLines(line1, line2);
+      } else if (opt_make_score) {
+	if (superuser) {
 	  /* make sure of that, shall we? */
 	  ret = GetGamePassword();
-	  if(ret == 0)
+	  if (ret == 0)
 	    ret = MakeNewScore(optfile);
 	} else
 	  /* sorry, BAD superuser */
 	  ret = E_NOSUPER;
-      } else if(optrestore) {
+      } else if (optrestore) {
 	ret = RestoreGame();
+      } else if (opt_user_level) {
+	ret = GetUserLevel(&userlevel);
+	if (ret == 0) {
+	    printf("Level: %d\n", userlevel);
+	    ret = E_ENDGAME;
+	}
       } else {
 	ret = GetUserLevel(&userlevel);
-	if(ret == 0) {
-	    if(optlevel > 0) {
+	if (ret == 0) {
+	    if (optlevel > 0) {
 #if !ANYLEVEL
 		if (userlevel < optlevel) {
 		    if (superuser) {
@@ -132,7 +144,7 @@ void main(int argc, char **argv)
       }
     }
   }
-  if(ret == 0) {
+  if (ret == 0) {
     /* play till we drop, then nuke the good stuff */
     ret = GameLoop();
     DestroyDisplay();
@@ -143,11 +155,7 @@ void main(int argc, char **argv)
    * Sigh.. it would be so much easier to just do it right.
    */
   Error(ret);
-  /* see if they score, and do it (again report an error */
-  if((scorelevel > 0) && scoring) {
-    ret2 = Score(_true_);
-    Error(ret2);
-  }
+
   /* exit with whatever status we ended with */
   switch(ret)
   {
@@ -173,6 +181,13 @@ static char *FixUsername(char *name)
     return strdup(namebuf);
 }
 
+Boolean mode_selected()
+{
+    return (opt_show_score || opt_make_score || optrestore || (optlevel > 0) ||
+	     opt_verify || opt_partial_score || opt_user_level)
+	   ? _true_ : _false_;
+}
+	     
 /* Oh boy, the fun stuff.. Follow along boys and girls as we parse the command
  * line up into little bitty pieces and merge in all the xdefaults that we
  * need.
@@ -200,24 +215,19 @@ short CheckCommandLine(int *argcP, char **argv)
    * Remember, they are all exclusive of one another.
    */
   for(option = 1; option < *argcP; option++) {
-    if(argv[option][0] == '-') {
+    if (argv[option][0] == '-') {
+      char *optarg;
       switch(argv[option][1]) {
 	case 's':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
-	     optverify)
-	    return E_USAGE;
-	  optshowscore = _true_;
-	  optlevel = atoi(&argv[option][2]);
-	  if (optlevel == 0 && argv[option+1] &&
-	      argv[option+1][0] != '-') {
-		optlevel = atoi(argv[option+1]);
-		option++;
-	    }
+	  if (mode_selected()) return E_USAGE;
+	  opt_show_score = _true_;
+	  optarg = &argv[option][2];
+	  if (!*optarg && argv[option+1] && argv[option+1][0] != '-')
+	    optarg = &argv[option+1][0];
+	  optlevel = atoi(optarg);
 	  break;
 	case 'c':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
-	     optverify)
-	    return E_USAGE;
+	  if (mode_selected()) return E_USAGE;
 	  optfile = 0;
 	  if (argv[option][2] != 0) 
 	    optfile = &argv[option][2];
@@ -225,21 +235,17 @@ short CheckCommandLine(int *argcP, char **argv)
 	    optfile = &argv[option + 1][0];
 	    option++;
 	  }
-	  optmakescore = _true_;
+	  opt_make_score = _true_;
 	  break;
 	case 'C':
 	  ownColormap = _true_;
 	  break;
 	case 'r':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
-	     optverify)
-	    return E_USAGE;
+	  if (mode_selected()) return E_USAGE;
 	  optrestore = _true_;
 	  break;
 	case 'v':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
-	     optverify)
-	    return E_USAGE;
+	  if (mode_selected()) return E_USAGE;
 	  option++;
 	  optlevel = atoi(argv[option++]);
 	  if (!optlevel || !argv[option]) return E_USAGE;
@@ -247,18 +253,31 @@ short CheckCommandLine(int *argcP, char **argv)
 	  if (!argv[option]) return E_USAGE;
 	  movelen = atoi(argv[option++]);
 	  if (!movelen) return E_USAGE;
-	  optverify = _true_;
+	  opt_verify = _true_;
+	  break;
+	case 'l':
+	  if (mode_selected()) return E_USAGE;
+	  option++;
+	  if (!argv[option]) return E_USAGE;
+	  line1 = atoi(argv[option++]);
+	  if (!argv[option]) return E_USAGE;
+	  line2 = atoi(argv[option++]);
+	  if (line1 >= line2) return E_USAGE;
+	  opt_partial_score = _true_;
+	  break;
+	case 'u':
+	  if (mode_selected()) return E_USAGE;
+	  option++;
+	  username = FixUsername(argv[option++]);
+	  opt_user_level = _true_;
 	  break;
 	case 'd':
 	  datemode = _true_;
 	  break;
 	default:
-	  if(optshowscore || optrestore || optmakescore || (optlevel > 0) ||
-	     optverify)
-	    return E_USAGE;
+	  if (mode_selected()) return E_USAGE;
 	  optlevel = atoi(argv[option]+1);
-	  if(optlevel == 0)
-	    return E_USAGE;
+	  if (optlevel == 0) return E_USAGE;
 	  break;
       }
     } else
@@ -266,7 +285,8 @@ short CheckCommandLine(int *argcP, char **argv)
       return E_USAGE;
   }
 
-  if (optshowscore || optmakescore || optverify)
+  if (opt_partial_score || opt_show_score || opt_make_score || opt_verify ||
+      opt_user_level)
       return 0; /* Don't mess with X any more */
   /* okay.. NOW, find out what display we are currently attached to. This
    * allows us to put the display on another machine
@@ -275,20 +295,20 @@ short CheckCommandLine(int *argcP, char **argv)
 
   /* open up the display */
   dpy = XOpenDisplay(res);
-  if(dpy == (Display *)NULL)
+  if (dpy == (Display *)NULL)
     return E_NODISPLAY;
   display_alloc = _true_;
 
   /* okay, we have a display, now we can get the std xdefaults and stuff */
   res = XResourceManagerString(dpy);
-  if(res != NULL)
+  if (res != NULL)
     /* try to get it off the server first (ya gotta love R4) */
     rdb = XrmGetStringDatabase(res);
   else {
     /* can't get it from the server, let's do it the slow way */
     /* try HOME first in case you have people sharing accounts :) */
     res = getenv("HOME");
-    if(res != NULL)
+    if (res != NULL)
       strcpy(buf, res);
     else
       /* no HOME, let's try and make one from the pwd (whee) */
@@ -299,7 +319,7 @@ short CheckCommandLine(int *argcP, char **argv)
 
   /* let's merge in the X environment */
   res = getenv("XENVIRONMENT");
-  if(res != NULL) {
+  if (res != NULL) {
     temp = XrmGetFileDatabase(res);
     XrmMergeDatabases(temp, &rdb);
   }
@@ -358,17 +378,15 @@ short GameLoop(void)
 	ret = InitX();
     }
     
-    if(ret != 0)
-      return ret;
+    if (ret != 0) return ret;
     
     /* get where we are starting from */
-    if(!optrestore)
-      ret = ReadScreen();
+    if (!optrestore) ret = ReadScreen();
     
     /* until we quit or get an error, just keep on going. */
     while(ret == 0) {
 	ret = Play();
-	if((scorelevel > 0) && scoring) {
+	if ((scorelevel > 0) && scoring) {
 	    int ret2;
 	    ret2 = Score(_false_);
 	    Error(ret2);
@@ -394,7 +412,7 @@ short GameLoop(void)
 	    }
 		
 	}
-	if(ret == 0) {
+	if (ret == 0) {
 	    moves = pushes = packets = savepack = 0;
 	    ret = ReadScreen();
 	}
@@ -444,11 +462,11 @@ void Error(short err)
     case E_NOMEM:
     case E_NOCOLOR:
       fprintf(stderr, "%s: %s\n", progname, errmess[err]);
-      if(err == E_USAGE)
+      if (err == E_USAGE)
         Usage();
       break;
     default:
-      if(err != E_ENDGAME && err != E_ABORTLEVEL)
+      if (err != E_ENDGAME && err != E_ABORTLEVEL)
 	fprintf(stderr, "%s: %s\n", progname, errmess[0]);
       break;
   }
