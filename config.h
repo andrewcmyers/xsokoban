@@ -53,16 +53,6 @@
 #define MAXSCOREENTRIES 10000
 
 /**/
-/* NUMBESTSCORES: the number of best scores kept for a given level */
-/**/
-#define NUMBESTSCORES 5
-
-/**/
-/* MAXLEVELS: The number of levels for which best scores are kept */
-/**/
-#define MAXLEVELS 50
-
-/**/
 /* SUPERUSER: defines the name of the game superuser */
 /**/
 #ifndef SUPERUSER
@@ -79,7 +69,7 @@
 /**/
 /* ANYLEVEL: Allow any user to play any level and get a score for it */
 /**/
-#define ANYLEVEL
+#undef ANYLEVEL
 
 /**/
 /* MAXSOLNRANK: The maximum solution rank for which an entry is retained */

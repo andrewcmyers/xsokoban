@@ -1,3 +1,6 @@
+XSokoban 3.0
+------------
+
 This is the third release of XSokoban.
 
 This distribution contains all the files to compile and run the game,
@@ -14,6 +17,9 @@ Installation -
     When you're bringing the system up, it may be useful to set
     ROOTDIR="." in config.h. This will allow you to test the program
     while saving score files under the build directory.
+  
+  - Edit Makefile to set the compiler and compiler flags correctly, and
+    select the right libraries to compile with.
 
   - Compile by typing 'make'.  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
@@ -21,7 +27,9 @@ Installation -
 
   - Create the scorefile by typing 'xsokoban -c'.  (If you have a sokoban
     game already on your system, you should be able to just use that score
-    file by setting the config.h defines correctly).
+    file by setting the config.h defines correctly). If you can't create
+    a new score file, it's probably because the necessary structure
+    under ROOTDIR doesn't exist.
 
   - Play the game by typing 'xsokoban'.
 
