@@ -168,14 +168,17 @@ short ReadScore(void)
    One solution is at least as good as another solution if it is at
    least as good in numbers of moves and pushes. Note that
    non-comparable solutions may exist.
+
+   The array "ignore" indicates that some scoretable entries should
+   be ignored for the purpose of computing rank.
 */
 #define BADSOLN 100
-int SolnRank(int j)
+int SolnRank(int j, Boolean ignore[])
 {
     int i, rank = 1;
     short level = scoretable[j].lv;
     for (i = 0; i < j; i++) {
-	if (scoretable[i].lv == level) {
+	if ((!ignore || !ignore[i]) && scoretable[i].lv == level) {
 	    if (scoretable[i].mv <= scoretable[j].mv &&
 		scoretable[i].ps <= scoretable[j].ps)
 	    {
@@ -199,13 +202,14 @@ int SolnRank(int j)
  * The current implementation is O(n^2) in the number of actual score entries.
  * A hash table would fix this.
  */
+
 void CleanupScoreTable()
 {
-    int i,k;
+    int i;
     Boolean deletable[MAXSCOREENTRIES];
     for (i = 0; i < scoreentries; i++) {
 	deletable[i] = _false_;
-	if (SolnRank(i) > MAXSOLNRANK) {
+	if (SolnRank(i, deletable) > MAXSOLNRANK) {
 	    char *user = scoretable[i].user;
 	    int j;
 	    for (j = 0; j < i; j++) {
@@ -214,10 +218,18 @@ void CleanupScoreTable()
 	    }
 	}
     }
-    k = 0;
+    FlushDeletedScores(deletable);
+}
+
+/* Deletes entries from the score table for which the boolean array
+   contains true.
+*/
+void FlushDeletedScores(Boolean delete[])
+{
+    int i, k = 0;
     for (i = 0; i < scoreentries; i++) {
 	if (i != k) CopyEntry(k, i);
-	if (!deletable[i]) k++;
+	if (!delete[i]) k++;
     }
     scoreentries = k;
 }
@@ -329,8 +341,8 @@ void ShowScore(void)
   fprintf(stdout, "Rank      User     Level     Moves    Pushes\n");
   fprintf(stdout, "============================================\n");
   for (i = 0; i < scoreentries; i++) {
-    int rank = SolnRank(i);
-    if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", SolnRank(i));
+    int rank = SolnRank(i, 0);
+    if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
     else fprintf(stdout, "    ");
     fprintf(stdout, "%10s  %8d  %8d  %8d\n", scoretable[i].user,
 	    scoretable[i].lv, scoretable[i].mv, scoretable[i].ps);
