@@ -189,6 +189,14 @@
 #define WWWSCREENPATH "GET /cgi-bin/xsokoban/screen?level=$L HTTP/1.0\n\n"
 #endif
 
+/*
+   WWWGETLEVELPATH: Path to access in order to get a user's level. $U
+   is the user name.
+*/
+#ifndef WWWGETLEVELPATH
+#define WWWGETLEVELPATH "GET /cgi-bin/xsokoban/user-level?user=$U HTTP/1.0\n\n"
+#endif
+
 /* 
    DEBUG_SERVER: Change this only if you want to debug an xsokoban
    score server.
