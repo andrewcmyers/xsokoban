@@ -98,3 +98,8 @@
 /* STACKDEPTH: Number of previous positions remembered in the move stack */
 /**/
 #define STACKDEPTH 1000
+
+/**/
+/* TIMEOUT: How long a lock can be held on the score file, in seconds */
+/**/
+#define TIMEOUT 10
