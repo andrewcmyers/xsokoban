@@ -182,7 +182,7 @@ short CheckCommandLine(int *argcP, char **argv)
       return E_USAGE;
   }
 
-  if (optshowscore) return 0; /* Don't mess with X any more */
+  if (optshowscore || optmakescore) return 0; /* Don't mess with X any more */
   /* okay.. NOW, find out what display we are currently attached to. This
    * allows us to put the display on another machine
    */
