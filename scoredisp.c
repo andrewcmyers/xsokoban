@@ -295,15 +295,14 @@ short DisplayScores_(Display *dpy, Window win)
       
     for (;;) {
 	if (scores_dirty) {
-	    if (!XCheckWindowEvent(dpy, scrollbar, PointerMotionMask, &xev)) {
+	    if (0 == XPending(dpy)) {
 		scores_dirty = _false_;
 		XClearWindow(dpy, win);
 		DrawScores(&wa, win);
-		XNextEvent(dpy, &xev);
+		XSync(dpy, FALSE); /* make sure we don't get ahead */
 	    }
-	} else {
-	    XNextEvent(dpy, &xev);
 	}
+	XNextEvent(dpy, &xev);
 	switch(xev.type) {
 	  default:
 	    fprintf(stderr, "X event type %d seen\n", xev.type);
@@ -372,6 +371,7 @@ short DisplayScores_(Display *dpy, Window win)
 			scores_dirty = _true_;
 		    }
 		}
+		XFlush(dpy);
 	    }
 	    break;
 	}
