@@ -81,6 +81,7 @@ extern char *GetDatabaseResource(XrmDatabase, char *);
 extern char *GetResource(char *);
 extern Boolean StringToBoolean(char *);
 extern Boolean GetColorResource(char *, unsigned long *);
+extern XFontStruct *GetFontResource(char *);
 
 /* stuff from play.c */
 extern short Play(void);

@@ -3,6 +3,7 @@
 
 #include "externs.h"
 #include "globals.h"
+#include "defaults.h"
 
 /* rewritten slightly from the xantfarm code by Jef Poskanzer */
 
@@ -46,6 +47,18 @@ Boolean GetColorResource(char *res, unsigned long *cP)
     return _false_;
   *cP = color.pixel;
   return _true_;
+}
+
+XFontStruct *GetFontResource(char *font)
+{
+    char *rval = GetResource(font);
+    XFontStruct *finfo;
+    if (!rval) rval = DEF_FONT;
+    finfo = XLoadQueryFont(dpy, rval);
+    if (!finfo) {
+	finfo = XLoadQueryFont(dpy, "fixed");
+    }
+    return finfo;
 }
 
 char *boolopts[] = {
