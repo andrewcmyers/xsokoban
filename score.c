@@ -597,22 +597,28 @@ char *DateToASCII(time_t date)
 
 /* displays the score table to the user. If level == 0, show all
    levels. */
+
+#define TRY(name,expr) do { if (0>(expr)) { perror(name); }} while (0)
+
 void ShowScore(int level)
 {
   register i;
 
-
-    
-  fprintf(stdout, "Rank                             User  Level   Moves  Pushes   Date\n");
-  fprintf(stdout, "======================================================================\n");
+  TRY("printf",
+  printf(
+   "Rank                             User  Level   Moves  Pushes   Date\n"));
+  TRY("printf",
+  printf(
+   "======================================================================\n"));
   for (i = 0; i < scoreentries; i++) {
     if (level == 0 || scoretable[i].lv == level) {
 	int rank = SolnRank(i, 0);
-	if (rank <= MAXSOLNRANK) fprintf(stdout, "%4d", rank);
-	else fprintf(stdout, "    ");
-	fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
+	if (rank <= MAXSOLNRANK) TRY("printf", printf("%4d", rank));
+	else TRY("printf", printf("    "));
+	TRY("printf",
+	printf(" %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
-		DateToASCII(scoretable[i].date));
+		DateToASCII(scoretable[i].date)));
     }
   }
 }
@@ -800,30 +806,36 @@ short ParseScoreText(char *text)
 	char *user, *date_str;
 	int level, moves, pushes;
 	time_t date = 0;
+	int rank;
+	char rank_s[4];
 	text = getline(text, line);
 	if (!text) break;
+	strncpy(rank_s, line, 4);
+	rank = atoi(rank_s);
 	user = strtok(line + 4, ws);
 	if (!user) break;
-	level = atoi(strtok(0, ws));
-	moves = atoi(strtok(0, ws));
-	pushes = atoi(strtok(0, ws));
-	date_str = strtok(0, ws);
-	if (date_str) date = (time_t)atoi(date_str);
-	if (!date) {
-	    date = time(0);
-	    if (!baddate) {
-		baddate = _true_;
-		fprintf(stderr,
-			"Warning: Bad or missing date in ASCII scores\n");
+	if (rank != 0 || 0 == strcmp(user, username)) {
+	    level = atoi(strtok(0, ws));
+	    moves = atoi(strtok(0, ws));
+	    pushes = atoi(strtok(0, ws));
+	    date_str = strtok(0, ws);
+	    if (date_str) date = (time_t)atoi(date_str);
+	    if (!date) {
+		date = time(0);
+		if (!baddate) {
+		    baddate = _true_;
+		    fprintf(stderr,
+			    "Warning: Bad or missing date in ASCII scores\n");
+		}
 	    }
+	    if (level == 0 || moves == 0 || pushes == 0) return E_READSCORE;
+	    strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
+	    scoretable[scoreentries].lv = (unsigned short)level;
+	    scoretable[scoreentries].mv = (unsigned short)moves;
+	    scoretable[scoreentries].ps = (unsigned short)pushes;
+	    scoretable[scoreentries].date = date;
+	    scoreentries++;
 	}
-	if (level == 0 || moves == 0 || pushes == 0) return E_READSCORE;
-	strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
-	scoretable[scoreentries].lv = (unsigned short)level;
-	scoretable[scoreentries].mv = (unsigned short)moves;
-	scoretable[scoreentries].ps = (unsigned short)pushes;
-	scoretable[scoreentries].date = date;
-	scoreentries++;
     }
     return 0;
 }
