@@ -2,6 +2,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "config_local.h"
+
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #else
