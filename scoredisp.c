@@ -12,15 +12,19 @@
 #include "display.h"
 #include "score.h"
 
-#ifndef EXIT_FAILURE
-#define EXIT_FAILURE -1
-#endif
-
 #define DEBUG_FETCH 0
 
+/* local functions */
 static void DrawPanel(XWindowAttributes *wa, Window panel);
 static void DrawScores(XWindowAttributes *wa, Window win);
 static void DrawThumb(Window thumb);
+static void PositionThumb(Window thumb);
+static char *InitDisplayScores(Display *dpy, Window win);
+static short InitialPosition(int *vposn);
+static void handleMotion(XEvent *xev, Boolean dragging, Boolean *scores_dirty);
+static void ComputeRanks();
+static void TrimPosn();
+static short ValidateLines(int top, int bottom);
 
 static Boolean initted = _false_;
 static unsigned long sb_bg, panel_bg[3], border_color, panel_fg, 
@@ -35,292 +39,15 @@ static GC gc, scroll_gc;
 static XFontStruct *finfo, *score_finfo;
 static char *selected_user;
 
-static u_short rank[MAXSCOREENTRIES];
-
-#if !defined(STRDUP_PROTO)
-char *strdup(const char *s)
-{
-    int l = strlen(s);
-    char *ret = (char *)malloc((size_t)(l + 1));
-    strcpy(ret, s);
-    return ret;
-}
-#endif
-
-static unsigned int GetIntResource(char *resource_name, unsigned int def)
-{
-    char *ret;
-    ret = GetResource(resource_name);
-    if (!ret) return def;
-    return atoi(ret);
-}
-
-static u_short darken(u_short x)
-{
-    return (u_short)((u_int)x * (0xFFFF - bevel_darkening)/0xFFFF);
-}
-
-static u_short lighten(u_short x)
-{
-    return x + bevel_darkening - (u_short)(bevel_darkening * (u_int)x/0xFFFF);
-}
-
-/* Return 0 on success, an error message on error.
-   shades[0] contains the requested color, shades[1] contains
-   a darker version of the same color, shades[2] contains a
-   lighter version. For use in drawing Motif-oid beveled panels.
-*/
-static char *GetColorShades(Display *dpy, 
-		     XWindowAttributes *wa,
-		     char *resource_name,
-		     char *default_name_8,
-		     Boolean default_white_2,
-		     unsigned long shades[])
-{
-    char *rval = GetResource(resource_name);
-    char buf[500];
-    XColor normal, light, dark;
-    if (!rval) {
-	if (wa->depth >= 8) rval = default_name_8;
-	else rval = default_white_2 ? "white" : "black";
-    }
-    if (!XParseColor(dpy, wa->colormap, rval, &normal)) {
-	sprintf(buf, "Cannot parse color name for resource %s: %s",
-		resource_name, rval);
-	return strdup(buf);
-    }
-    dark.red = darken(normal.red);
-    dark.green = darken(normal.green);
-    dark.blue = darken(normal.blue);
-    light.red = lighten(normal.red);
-    light.green = lighten(normal.green);
-    light.blue = lighten(normal.blue);
-    if (!XAllocColor(dpy, wa->colormap, &normal) ||
-	!XAllocColor(dpy, wa->colormap, &light) ||
-	!XAllocColor(dpy, wa->colormap, &dark)) {
-	sprintf(buf, "Cannot allocate color shades for resource %s: %s",
-		resource_name, rval);
-	return strdup(buf);
-    }
-    shades[0] = normal.pixel;
-    shades[1] = dark.pixel;
-    shades[2] = light.pixel;
-    return 0;
-}
-
-
-/* Return 0 on success, else return an error message. */
-static char *InitDisplayScores(Display *dpy, Window win)
-{
-    Status status = XGetWindowAttributes(dpy, win, &wa);
-    XGCValues gc_values;
-    u_long value_mask;
-    if (!status) return "Cannot get window attributes";
-    bevel_darkening = GetIntResource("bevel.darkening", 16000);
-    sb_bg = GetColorOrDefault(dpy, "scrollbar.background",
-			      wa.depth, "gray", _true_);
-    GetColorShades(dpy, &wa,
-		   "panel.background", "beige", _true_,
-		   panel_bg);
-		   
-    panel_fg = GetColorOrDefault(dpy, "panel.foreground",
-				 wa.depth, "black", _true_);
-    border_color = GetColorOrDefault(dpy, "border.color",
-				     wa.depth, "black", _false_);
-    text_color = GetColorOrDefault(dpy, "text.color",
-				   wa.depth, "black", _false_);
-    text_highlight = GetColorOrDefault(dpy, "text.highlight",
-				       wa.depth, "red3", _false_);
-				     
-    text_indent = GetIntResource("text.indent", 3);
-    white = GetColorOrDefault(dpy, "highlight.color",
-			      wa.depth, "white", _true_);
-    border_width = GetIntResource("border.width", 1);
-    sb_width = GetIntResource("scrollbar.width", 25);
-    panel_height = GetIntResource("panel.height", 25);
-    bevel_width = GetIntResource("bevel.width", 3);
-    thumb_height = GetIntResource("scrollbar.thumb.height", sb_width);
-    thumb_width = GetIntResource("scrollbar.thumb.width", sb_width);
-    separation_color = GetColorOrDefault(dpy, "sep.color", wa.depth,
-					 "gray", _false_);
-    GetColorShades(dpy, &wa, "scrollbar.thumb.color", "gray", _true_,
-		   thumb_colors);
-    finfo = GetFontResource("panel.font");
-    score_finfo = GetFontResource("text.font");
-    if (!score_finfo || !finfo) {
-	return "Either cannot get font for panel or for text";
-    }
-
-    gc_values.function = GXcopy;
-    gc_values.foreground = panel_fg;
-    gc_values.background = panel_bg[0];
-    gc_values.line_width = 1;
-    gc_values.font = finfo->fid;
-    value_mask = GCForeground | GCBackground | GCFunction | GCFont |
-      GCLineWidth;
-      
-    gc = XCreateGC(dpy, win, value_mask, &gc_values);
-    initted = _true_;
-    return 0;
-}
-
-
 static int font_height;
 static int vmax, vposn;
 static int win_height;
 static int thumb_range;
 static int yclip;
     
-static void ComputeRanks()
-{
-    int i;
-    for (i = 0; i < scoreentries; i++) {
-	rank[i] = SolnRank(i, 0);
-    }
-}
+static u_short rank[MAXSCOREENTRIES];
 
-/* Make "vposn" an allowable position. */
-static void TrimPosn()
-{
-    if (vposn >= vmax)
-      vposn = vmax - 1;
-    if (vposn < 0) vposn = 0; /* must do this after prev stmt */
-}
-
-#if WWW
-void ComputeRanksLines(int line1, int line2)
-{
-    int i;
-    for (i = scoreentries - line2; i < scoreentries - line1; i++) {
-	if (VALID_ENTRY(i)) rank[i] = SolnRank(i, 0);
-    }
-}
-
-static short ValidateLines(int top, int bottom)
-{
-    int i,j;
-    int line1, line2;
-    short ret;
-
-    if (bottom < 0) {
-	top -= bottom;
-	bottom = 0;
-    }
-#if DEBUG_FETCH
-    fprintf(stderr, "Validating: %d - %d\n", bottom, top);
-#endif
-    for (i = top; i > bottom; i--) {
-	if (i < scoreentries && !VALID_ENTRY(scoreentries - 1 - i)) break;
-    }
-    for (j = bottom; j < i; j++) {
-	if (j < scoreentries && !VALID_ENTRY(scoreentries - 1 - j)) break;
-    }
-#if DEBUG_FETCH
-    fprintf(stderr, "Now validating: %d - %d\n", j, i);
-#endif
-    if (i <= j) return 0;
-    line2 = i + 1;
-    line1 = j;
-    assert (line1 < line2);
-#if DEBUG_FETCH
-    fprintf(stderr, "Fetch request: %d - %d\n", line1, line2);
-#endif
-    ret = FetchScoreLines_WWW(&line1, &line2);
-#if DEBUG_FETCH
-    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
-#endif
-    ComputeRanksLines(line1, line2);
-    switch (ret) {
-	case 0:
-	    return 0;
-	case E_OUTOFDATE: /* try again! */
-#if DEBUG_FETCH
-	    fprintf(stderr, "Out of date, trying again...\n");
-#endif
-	    return ValidateLines(top, bottom);
-	default: return ret;
-    }
-}
-#endif
-
-static short InitialPosition(int *vposn)
-{
-    int fc1, fc2;
-#if WWW
-    {
-    /* get the number of lines in the file */
-	int line1 = 0, line2 = 0;
-	short ret = FetchScoreLevel_WWW(&line1, &line2);
-#if DEBUG_FETCH
-    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
-#endif
-	ComputeRanksLines(line1, line2);
-	if (ret == E_OUTOFDATE) ret = 0;
-	if (ret) return ret;
-    }
-    
-#endif
-    fc2 = FindCurrent();
-
-#if WWW
-/* We may have empty entries that cause FindCurrent() to return the
-   wrong answer. Therefore, repeatedly grab the region around
-   FindCurrent() until we determine that we have a valid region that
-   includes the current level and is large enough to fill the screen.
-*/
-    do {
-	int lines = (win_height - 1)/font_height + 2;
-	int bottom = fc2 + lines/2;
-	int top = bottom - lines;
-	short ret;
-
-	top = scoreentries - top;
-	bottom = scoreentries - bottom - 1;
-#if DEBUG_FETCH
-	fprintf(stderr, "Guess of bracketed area: %d - %d\n", bottom, top);
-#endif
-	if ((ret = ValidateLines(top, bottom))) return ret;
-	fc1 = fc2;
-	fc2 = FindCurrent();
-    } while (fc1 != fc2);
-#endif
-
-    assert(fc2 != -1);
-    *vposn = (int)(fc2 * font_height) - (int)(win_height/2);
-    return 0;
-}
-
-static void PositionThumb(Window thumb)
-{
-    int x = (thumb_width - sb_width)/2 - 1;
-    int y = (int)((float)vposn/vmax * (float)thumb_range);
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (y > thumb_range) y = thumb_range;
-    XMoveWindow(dpy, thumb, x - 1, y - 1);
-    /* subtract 1 to fudge thumb into place */
-}
-
-void handleMotion(XEvent *xev, Boolean dragging, Boolean *scores_dirty)
-{
-    int old_vposn = vposn;
-    int y = xev->xbutton.y;
-    if (dragging) {
-	vposn = (float)(y - (int)thumb_height/2)/
-	  thumb_range * vmax;
-	TrimPosn();
-	if (old_vposn != vposn) {
-	    *scores_dirty = _true_;
-	}
-    }
-    XFlush(dpy);
-}
-
-/* Display scores. Return E_ENDGAME if user wanted to quit from here.
-   If user middle-clicked on a level, and "newlev" is non-zero, put
-   the level clicked-on into "newlev".
-*/
-short DisplayScores_(Display *dpy, Window win, short *newlev)
+extern short DisplayScores_(Display *dpy, Window win, short *newlev)
 {
     Status status;
     XEvent xev;
@@ -636,3 +363,276 @@ static void DrawThumb(Window thumb)
     XSetForeground(dpy, gc, white);
     XDrawLine(dpy, thumb, gc, 0, 0, bevel_width, bevel_width);
 }
+#if !defined(STRDUP_PROTO)
+char *strdup(const char *s)
+{
+    int l = strlen(s);
+    char *ret = (char *)malloc((size_t)(l + 1));
+    strcpy(ret, s);
+    return ret;
+}
+#endif
+
+static unsigned int GetIntResource(char *resource_name, unsigned int def)
+{
+    char *ret;
+    ret = GetResource(resource_name);
+    if (!ret) return def;
+    return atoi(ret);
+}
+
+static u_short darken(u_short x)
+{
+    return (u_short)((u_int)x * (0xFFFF - bevel_darkening)/0xFFFF);
+}
+
+static u_short lighten(u_short x)
+{
+    return x + bevel_darkening - (u_short)(bevel_darkening * (u_int)x/0xFFFF);
+}
+
+/* Return 0 on success, an error message on error.
+   shades[0] contains the requested color, shades[1] contains
+   a darker version of the same color, shades[2] contains a
+   lighter version. For use in drawing Motif-oid beveled panels.
+*/
+static char *GetColorShades(Display *dpy, 
+		     XWindowAttributes *wa,
+		     char *resource_name,
+		     char *default_name_8,
+		     Boolean default_white_2,
+		     unsigned long shades[])
+{
+    char *rval = GetResource(resource_name);
+    char buf[500];
+    XColor normal, light, dark;
+    if (!rval) {
+	if (wa->depth >= 8) rval = default_name_8;
+	else rval = default_white_2 ? "white" : "black";
+    }
+    if (!XParseColor(dpy, wa->colormap, rval, &normal)) {
+	sprintf(buf, "Cannot parse color name for resource %s: %s",
+		resource_name, rval);
+	return strdup(buf);
+    }
+    dark.red = darken(normal.red);
+    dark.green = darken(normal.green);
+    dark.blue = darken(normal.blue);
+    light.red = lighten(normal.red);
+    light.green = lighten(normal.green);
+    light.blue = lighten(normal.blue);
+    if (!XAllocColor(dpy, wa->colormap, &normal) ||
+	!XAllocColor(dpy, wa->colormap, &light) ||
+	!XAllocColor(dpy, wa->colormap, &dark)) {
+	sprintf(buf, "Cannot allocate color shades for resource %s: %s",
+		resource_name, rval);
+	return strdup(buf);
+    }
+    shades[0] = normal.pixel;
+    shades[1] = dark.pixel;
+    shades[2] = light.pixel;
+    return 0;
+}
+
+
+/* Return 0 on success, else return an error message. */
+static char *InitDisplayScores(Display *dpy, Window win)
+{
+    Status status = XGetWindowAttributes(dpy, win, &wa);
+    XGCValues gc_values;
+    u_long value_mask;
+    if (!status) return "Cannot get window attributes";
+    bevel_darkening = GetIntResource("bevel.darkening", 16000);
+    sb_bg = GetColorOrDefault(dpy, "scrollbar.background",
+			      wa.depth, "gray", _true_);
+    GetColorShades(dpy, &wa,
+		   "panel.background", "beige", _true_,
+		   panel_bg);
+		   
+    panel_fg = GetColorOrDefault(dpy, "panel.foreground",
+				 wa.depth, "black", _true_);
+    border_color = GetColorOrDefault(dpy, "border.color",
+				     wa.depth, "black", _false_);
+    text_color = GetColorOrDefault(dpy, "text.color",
+				   wa.depth, "black", _false_);
+    text_highlight = GetColorOrDefault(dpy, "text.highlight",
+				       wa.depth, "red3", _false_);
+				     
+    text_indent = GetIntResource("text.indent", 3);
+    white = GetColorOrDefault(dpy, "highlight.color",
+			      wa.depth, "white", _true_);
+    border_width = GetIntResource("border.width", 1);
+    sb_width = GetIntResource("scrollbar.width", 25);
+    panel_height = GetIntResource("panel.height", 25);
+    bevel_width = GetIntResource("bevel.width", 3);
+    thumb_height = GetIntResource("scrollbar.thumb.height", sb_width);
+    thumb_width = GetIntResource("scrollbar.thumb.width", sb_width);
+    separation_color = GetColorOrDefault(dpy, "sep.color", wa.depth,
+					 "gray", _false_);
+    GetColorShades(dpy, &wa, "scrollbar.thumb.color", "gray", _true_,
+		   thumb_colors);
+    finfo = GetFontResource("panel.font");
+    score_finfo = GetFontResource("text.font");
+    if (!score_finfo || !finfo) {
+	return "Either cannot get font for panel or for text";
+    }
+
+    gc_values.function = GXcopy;
+    gc_values.foreground = panel_fg;
+    gc_values.background = panel_bg[0];
+    gc_values.line_width = 1;
+    gc_values.font = finfo->fid;
+    value_mask = GCForeground | GCBackground | GCFunction | GCFont |
+      GCLineWidth;
+      
+    gc = XCreateGC(dpy, win, value_mask, &gc_values);
+    initted = _true_;
+    return 0;
+}
+
+
+static void ComputeRanks()
+{
+    int i;
+    for (i = 0; i < scoreentries; i++) {
+	rank[i] = SolnRank(i, 0);
+    }
+}
+
+/* Make "vposn" an allowable position. */
+static void TrimPosn()
+{
+    if (vposn >= vmax)
+      vposn = vmax - 1;
+    if (vposn < 0) vposn = 0; /* must do this after prev stmt */
+}
+
+#if WWW
+static void ComputeRanksLines(int line1, int line2)
+{
+    int i;
+    for (i = scoreentries - line2; i < scoreentries - line1; i++) {
+	if (VALID_ENTRY(i)) rank[i] = SolnRank(i, 0);
+    }
+}
+
+static short ValidateLines(int top, int bottom)
+{
+    int i,j;
+    int line1, line2;
+    short ret;
+
+    if (bottom < 0) {
+	top -= bottom;
+	bottom = 0;
+    }
+#if DEBUG_FETCH
+    fprintf(stderr, "Validating: %d - %d\n", bottom, top);
+#endif
+    for (i = top; i > bottom; i--) {
+	if (i < scoreentries && !VALID_ENTRY(scoreentries - 1 - i)) break;
+    }
+    for (j = bottom; j < i; j++) {
+	if (j < scoreentries && !VALID_ENTRY(scoreentries - 1 - j)) break;
+    }
+#if DEBUG_FETCH
+    fprintf(stderr, "Now validating: %d - %d\n", j, i);
+#endif
+    if (i <= j) return 0;
+    line2 = i + 1;
+    line1 = j;
+    assert (line1 < line2);
+#if DEBUG_FETCH
+    fprintf(stderr, "Fetch request: %d - %d\n", line1, line2);
+#endif
+    ret = FetchScoreLines_WWW(&line1, &line2);
+#if DEBUG_FETCH
+    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
+#endif
+    ComputeRanksLines(line1, line2);
+    switch (ret) {
+	case 0:
+	    return 0;
+	case E_OUTOFDATE: /* try again! */
+#if DEBUG_FETCH
+	    fprintf(stderr, "Out of date, trying again...\n");
+#endif
+	    return ValidateLines(top, bottom);
+	default: return ret;
+    }
+}
+#endif
+
+static short InitialPosition(int *vposn)
+{
+    int fc1, fc2;
+#if WWW
+    {
+    /* get the number of lines in the file */
+	int line1 = 0, line2 = 0;
+	short ret = FetchScoreLevel_WWW(&line1, &line2);
+#if DEBUG_FETCH
+    fprintf(stderr, "Actually fetched: %d - %d\n", line1, line2);
+#endif
+	ComputeRanksLines(line1, line2);
+	if (ret == E_OUTOFDATE) ret = 0;
+	if (ret) return ret;
+    }
+    
+#endif
+    fc2 = FindCurrent();
+
+#if WWW
+/* We may have empty entries that cause FindCurrent() to return the
+   wrong answer. Therefore, repeatedly grab the region around
+   FindCurrent() until we determine that we have a valid region that
+   includes the current level and is large enough to fill the screen.
+*/
+    do {
+	int lines = (win_height - 1)/font_height + 2;
+	int bottom = fc2 + lines/2;
+	int top = bottom - lines;
+	short ret;
+
+	top = scoreentries - top;
+	bottom = scoreentries - bottom - 1;
+#if DEBUG_FETCH
+	fprintf(stderr, "Guess of bracketed area: %d - %d\n", bottom, top);
+#endif
+	if ((ret = ValidateLines(top, bottom))) return ret;
+	fc1 = fc2;
+	fc2 = FindCurrent();
+    } while (fc1 != fc2);
+#endif
+
+    assert(fc2 != -1);
+    *vposn = (int)(fc2 * font_height) - (int)(win_height/2);
+    return 0;
+}
+
+static void PositionThumb(Window thumb)
+{
+    int x = (thumb_width - sb_width)/2 - 1;
+    int y = (int)((float)vposn/vmax * (float)thumb_range);
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (y > thumb_range) y = thumb_range;
+    XMoveWindow(dpy, thumb, x - 1, y - 1);
+    /* subtract 1 to fudge thumb into place */
+}
+
+static void handleMotion(XEvent *xev, Boolean dragging, Boolean *scores_dirty)
+{
+    int old_vposn = vposn;
+    int y = xev->xbutton.y;
+    if (dragging) {
+	vposn = (float)(y - (int)thumb_height/2)/
+	  thumb_range * vmax;
+	TrimPosn();
+	if (old_vposn != vposn) {
+	    *scores_dirty = _true_;
+	}
+    }
+    XFlush(dpy);
+}
+

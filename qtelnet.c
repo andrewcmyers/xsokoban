@@ -20,14 +20,8 @@
 
 int lingerval = 1;
  
-/* Open a TCP-IP connection to machine "hostname" on port "port", and
-   send it the text in "msg". Return all output from the connection
-   in a newly-allocated string that must be freed to reclaim its
-   storage.
-
-   Return 0 on failure.
-*/
-char *qtelnet(char *hostname, int port, char *msg) {
+/* see externs.h for spec */
+extern char *qtelnet(char *hostname, int port, char *msg) {
     int sock;
     struct hostent *h;
     struct sockaddr_in client;

@@ -15,9 +15,16 @@
 #include "score.h"
 #include "www.h"
 
-short VerifyScore(short optlevel);
+/* locally-defined functions */
+static short VerifyScore(short optlevel);
+static short GameLoop(void);
+static short GetGamePassword(void);
+static void Error(short);
+static void Usage(void);
+static short CheckCommandLine(int *, char **);
+static char *FixUsername(char *name);
 
-/* useful globals */
+/* exported globals */
 Boolean scoring = _true_;
 short level, packets, savepack, moves, pushes, rows, cols;
 unsigned short scorelevel, scoremoves, scorepushes;
@@ -36,23 +43,15 @@ static Boolean opt_show_score = _false_, opt_make_score = _false_,
 	       opt_user_level = _false_;
 static struct passwd *pwd;
 
-static char *FixUsername(char *name);
-/* FixUsername makes sure that the username contains no spaces or
-   unprintable characters, and is less than MAXUSERNAME characters
-   long. */
 
-int movelen;
+static int movelen;
 /* Length of the verified move sequence waiting on stdin if -v is used */
 
-/* do all the setup foo, and make sure command line gets parsed. */
 void main(int argc, char **argv)
 {
   short ret = 0;
 
   DEBUG_SERVER("starting");
-#ifdef VICE
-  Authenticate();
-#endif
 
   scorelevel = 0;
   moves = pushes = packets = savepack = 0;
@@ -169,6 +168,9 @@ void main(int argc, char **argv)
   exit(ret);
 }
 
+/* FixUsername makes sure that the username contains no spaces or
+   unprintable characters, and is less than MAXUSERNAME characters
+   long. */
 static char *FixUsername(char *name)
 {
     char namebuf[MAXUSERNAME];
@@ -182,7 +184,7 @@ static char *FixUsername(char *name)
     return strdup(namebuf);
 }
 
-Boolean mode_selected()
+static Boolean mode_selected()
 {
     return (opt_show_score || opt_make_score || optrestore || (optlevel > 0) ||
 	     opt_verify || opt_partial_score || opt_user_level)
@@ -373,7 +375,7 @@ short VerifyScore(short optlevel)
 }
 
 /* we just sit here and keep playing level after level after level after .. */
-short GameLoop(void)
+static short GameLoop(void)
 {
     short ret = 0;
     
@@ -430,7 +432,7 @@ short GameLoop(void)
 }
 
 /* Does this really need a comment :) */
-short GetGamePassword(void)
+static short GetGamePassword(void)
 {
   return ((strcmp(getpass("Password: "), PASSWORD) == 0) ? 0 : E_ILLPASSWORD);
 }
@@ -440,7 +442,7 @@ short GetGamePassword(void)
  * silly error message cause it's not really an error, and E_USAGE, in which
  * case we want to give a really nice list of all the legal options.
  */
-void Error(short err)
+static void Error(short err)
 {
   switch(err) {
     case E_FOPENSCREEN:
@@ -482,7 +484,7 @@ void Error(short err)
 }
 
 /* this simply prints out the usage string nicely. */
-void Usage(void)
+static void Usage(void)
 {
   short i;
 

@@ -10,6 +10,17 @@
 
 extern int abs(int);
 
+/* forward declarations */
+static Boolean RunTo(int, int);
+static void PushMan(int, int);
+static void FindTarget(int, int, int);
+static void MoveMan(int, int);
+static void DoMove(short);
+static short TestMove(KeySym);
+static void MakeMove(KeySym);
+static void MultiPushPacket(int, int);
+static Boolean ApplyMoves(int moveseqlen, char *moveseq);
+
 /* defining the types of move */
 #define MOVE            1
 #define PUSH            2
@@ -52,7 +63,7 @@ static int x1, y1;
 static int Dx[4] = {0, -1,  0, 1};
 static int Dy[4] = {1,  0, -1, 0};
 static int moveKeys[4] = {XK_Right, XK_Up, XK_Left, XK_Down};
-void MultiPushPacket(int, int);
+
 
 
 static XEvent xev;
@@ -88,14 +99,7 @@ static void InitMoveStack(void);
 static int tempsave;
 /* The move index at which a temporary save request was made */
 
-Boolean ApplyMoves(int moveseqlen, char *moveseq);
-/* forward decl */
-
-/* Play a particular level.
-   All we do here is wait for input, and dispatch to appropriate routines
-   to deal with it nicely.
-*/
-short Play(void)
+extern short Play(void)
 {
   short ret;
   int bufs = 1;
@@ -258,8 +262,22 @@ short Play(void)
   return ret;
 }
 
+extern Boolean Verify(int moveseqlen, char *moveseq)
+{
+    InitMoveStack();
+    tempsave = moves = pushes = 0;
+    if (ApplyMoves(moveseqlen, moveseq) && savepack == packets) {
+	scorelevel = level;
+	scoremoves = moves;
+	scorepushes = pushes;
+	return _true_;
+    } else {
+	return _false_;
+    }
+}
+
 /* Perform a user move based on the key in "sym". */
-void MakeMove(KeySym sym)
+static void MakeMove(KeySym sym)
 {
   do {
     action = TestMove(sym);
@@ -282,7 +300,7 @@ void MakeMove(KeySym sym)
 }
 
 /* make sure a move is valid and if it is, return type of move */
-short TestMove(KeySym action)
+static short TestMove(KeySym action)
 {
   short ret;
   char tc;
@@ -335,7 +353,7 @@ short TestMove(KeySym action)
 }
 
 /* actually update the internal map with the results of the move */
-void DoMove(short moveaction)
+static void DoMove(short moveaction)
 {
   map[ppos.x][ppos.y] = (map[ppos.x][ppos.y] == player) ? ground : store;
   switch( moveaction) {
@@ -386,7 +404,7 @@ void DoMove(short moveaction)
 }
 
 /* find the shortest path to the target via a fill search algorithm */
-void FindTarget(int px, int py, int pathlen)
+static void FindTarget(int px, int py, int pathlen)
 {
   if(!(ISCLEAR(px, py) || ISPLAYER(px, py)))
     return;
@@ -405,7 +423,7 @@ void FindTarget(int px, int py, int pathlen)
 }
 
 /* Do all the fun movement stuff with the mouse */
-void MoveMan(int mx, int my)
+static void MoveMan(int mx, int my)
 {
   int x, y;
 
@@ -439,7 +457,7 @@ void MoveMan(int mx, int my)
 }
 
 /* Return whether (x,y) is on the board */
-Boolean ValidPosn(int x, int y)
+static Boolean ValidPosn(int x, int y)
 {
     return (x >= 0) && (x <= MAXROW) && (y >= 0) && (y <= MAXCOL);
 }
@@ -452,7 +470,7 @@ Boolean ValidPosn(int x, int y)
    from the player; place its coordinates in (*ox, *oy) and return _true_.
    If no such object exists, return _false_.
 */
-Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
+static Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
 {
     int dir;
     int bestdist = BADMOVE;
@@ -493,7 +511,7 @@ Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
 
 
 /* Kind of a self explanatory name, ehh? */
-Boolean PossibleToReach(int x, int y)
+static Boolean PossibleToReach(int x, int y)
 {
   int i,j;
 
@@ -509,7 +527,7 @@ Boolean PossibleToReach(int x, int y)
 
 /* Try to find the goal from (x, y), coming from 'direction', */
 /* having walked 'dist' units.                                */
-int PushFromDir(int x, int y, int direction, int dist)
+static int PushFromDir(int x, int y, int direction, int dist)
 {
   int r, res, d, fx = ppos.x, fy = ppos.y;
 
@@ -559,7 +577,7 @@ int PushFromDir(int x, int y, int direction, int dist)
    Give help message (i.e. beep...) if it is not possible.
    Code by Jan Sparud.
 */
-void MultiPushPacket(int x0, int y0)
+static void MultiPushPacket(int x0, int y0)
 {
   int i, j, k, d = 0, r, result;
   char manChar; 
@@ -644,7 +662,7 @@ void MultiPushPacket(int x0, int y0)
 }
 
 /* Push a nearby stone to the position indicated by (mx, my). */
-void PushMan(int mx, int my)
+static void PushMan(int mx, int my)
 {
   int i, x, y, ox, oy, dist;
 
@@ -713,7 +731,7 @@ void PushMan(int mx, int my)
 /* Move the player to the position (x,y), if possible. Return _true_
    iff successful. The position (x,y) must be clear.
 */
-Boolean RunTo(int x, int y)
+static Boolean RunTo(int x, int y)
 {
   int i,j,cx,cy;
   /* Fill the trace map */
@@ -848,29 +866,6 @@ static void UndoChange()
 
 char move_history[MOVE_HISTORY_SIZE];
 
-/* Verify: Determine whether the move sequence solves
-   the current level. Return "_true_" if so.  Set "moves" and "pushes"
-   appropriately.
-
-   "moveseqlen" must be the number of characters in "moveseq".
-
-   The format of "moveseq" is as described in "ApplyMoves".
-*/
-
-Boolean Verify(int moveseqlen, char *moveseq)
-{
-    InitMoveStack();
-    tempsave = moves = pushes = 0;
-    if (ApplyMoves(moveseqlen, moveseq) && savepack == packets) {
-	scorelevel = level;
-	scoremoves = moves;
-	scorepushes = pushes;
-	return _true_;
-    } else {
-	return _false_;
-    }
-}
-
 /* ApplyMoves:
 
     Receive a move sequence, and apply it to the current level as if
@@ -905,7 +900,7 @@ static Boolean SingleMove(char c)
     return _true_;
 }
 
-Boolean ApplyMoves(int moveseqlen, char *moveseq)
+static Boolean ApplyMoves(int moveseqlen, char *moveseq)
 {
     int i = 0;
     char lastc = 0;

@@ -78,14 +78,6 @@ int fsync(int);
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
 
-/* stuff from main.c */
-extern short CheckCommandLine(int *, char **);
-extern void main(int, char **);
-extern short GameLoop(void);
-extern short GetGamePassword(void);
-extern void Error(short);
-extern void Usage(void);
-
 /* stuff from resources.c */
 extern char *GetDatabaseResource(XrmDatabase, char *);
 extern char *GetResource(char *);
@@ -97,17 +89,20 @@ extern unsigned long GetColorOrDefault(Display *, char *,
 
 /* stuff from play.c */
 extern short Play(void);
-extern void MakeMove(KeySym);
-extern short TestMove(KeySym);
-extern void DoMove(short);
-extern void TempSave(void);
-extern void TempReset(void);
-extern Boolean WaitForEnter(void);
-extern void MoveMan(int, int);
-extern void FindTarget(int, int, int);
-extern Boolean RunTo(int, int);
-extern void PushMan(int, int);
+/* Play a particular level. All we do here is wait for input, and
+   dispatch to appropriate routines to deal with it nicely.
+*/
+
 extern Boolean Verify(int, char *);
+/* Determine whether the move sequence solves
+   the current level. Return "_true_" if so.  Set "moves" and "pushes"
+   appropriately.
+
+   "moveseqlen" must be the number of characters in "moveseq".
+
+   The format of "moveseq" is as described in "ApplyMoves".
+*/
+
 
 /* stuff from screen.c */
 extern short ReadScreen(void);
@@ -118,6 +113,17 @@ extern short RestoreGame(void);
 
 /* stuff from scoredisp.c */
 extern short DisplayScores_(Display *, Window, short *);
+/* Display scores. Return E_ENDGAME if user wanted to quit from here.
+   If user middle-clicked on a level, and "newlev" is non-zero, put
+   the level clicked-on into "newlev".
+   */
 
 /* stuff from qtelnet.c */
 extern char *qtelnet(char *host, int port, char *msg);
+/* Open a TCP-IP connection to machine "hostname" on port "port", and
+   send it the text in "msg". Return all output from the connection
+   in a newly-allocated string that must be freed to reclaim its
+   storage.
+
+   Return 0 on failure.
+*/

@@ -62,6 +62,11 @@ extern void HelpMessage(void);
     help message is always displayed.
 */
 
+extern Boolean WaitForEnter(void);
+/*
+    Wait for the enter key to be pressed.
+*/
+
 extern Display *dpy;
 extern Boolean display_alloc;
 
