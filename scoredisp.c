@@ -115,7 +115,6 @@ char *InitDisplayScores(Display *dpy, Window win)
     Status status = XGetWindowAttributes(dpy, win, &wa);
     XGCValues gc_values;
     u_long value_mask;
-    char *panel_font, *score_font;
     assert(status);
     bevel_darkening = GetIntResource("bevel.darkening", 16000);
     sb_bg = GetColorOrDefault(dpy, &wa,
@@ -138,7 +137,6 @@ char *InitDisplayScores(Display *dpy, Window win)
     border_width = GetIntResource("border.width", 1);
     sb_width = GetIntResource("scrollbar.width", 25);
     panel_height = GetIntResource("panel.height", 25);
-    panel_font = GetResource("panel.font");
     bevel_width = GetIntResource("bevel.width", 3);
     thumb_height = GetIntResource("scrollbar.thumb.height", sb_width);
     thumb_width = GetIntResource("scrollbar.thumb.width", sb_width);
@@ -146,16 +144,10 @@ char *InitDisplayScores(Display *dpy, Window win)
 					 _false_);
     GetColorShades(dpy, &wa, "scrollbar.thumb.color", "gray", _true_,
 		   thumb_colors);
-    if (!panel_font) panel_font = DEF_FONT;
-    finfo = XLoadQueryFont(dpy, panel_font);
-    if (!finfo) {
-	return "Cannot get panel font";
-    }
-    score_font = GetResource("text.font");
-    if (!score_font) score_font = DEF_FONT;
-    score_finfo = XLoadQueryFont(dpy, score_font);
-    if (!score_finfo) {
-	return "Cannot get score font";
+    finfo = GetFontResource("panel.font");
+    score_finfo = GetFontResource("text.font");
+    if (!score_finfo || !finfo) {
+	return "Either cannot get font for panel or for text";
     }
 
     gc_values.function = GXcopy;
@@ -305,8 +297,19 @@ short DisplayScores_(Display *dpy, Window win)
 	XNextEvent(dpy, &xev);
 	switch(xev.type) {
 	  default:
-	    fprintf(stderr, "X event type %d seen\n", xev.type);
+	    fprintf(stderr,
+		"Warning: unexpected X event type %d seen\n", xev.type);
 	    break;
+	  case ClientMessage:
+	    {
+		XClientMessageEvent *cm = (XClientMessageEvent *)&xev;
+		if (cm->message_type == wm_protocols &&
+		    cm->data.l[0] == wm_delete_window) {
+		      ret = E_ENDGAME;
+		      goto done;
+		    }
+		    
+	    }
 	  case NoExpose:
 	    break;
 	  case Expose: {
