@@ -18,6 +18,7 @@ Display *dpy;
 Window win;
 int scr;
 GC gc, rgc, drgc;
+Atom wm_delete_window, wm_protocols;
 XFontStruct *finfo;
 unsigned int width, height, depth, bit_height, bit_width;
 Boolean display_alloc = False, font_alloc = False, gc_alloc = False,
@@ -63,6 +64,7 @@ short InitX(void)
   XGCValues val, reval;
   XTextProperty wname, iname;
   XColor cfg, cbg;
+  Atom protocols[1];
 
   /* these are always needed */
   scr = DefaultScreen(dpy);
@@ -183,6 +185,12 @@ short InitX(void)
   XSetClassHint(dpy, win, &clh);
   XSetWMName(dpy, win, &wname);
   XSetWMIconName(dpy, win, &iname);
+
+  /* Turn on WM_DELETE_WINDOW */
+  wm_delete_window = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);
+  wm_protocols = XInternAtom(dpy, "WM_PROTOCOLS", 0);
+  protocols[0] = wm_delete_window;
+  XSetWMProtocols(dpy, win, protocols, 1);
 
   work = XCreatePixmap(dpy, win, width, height, depth);
 

@@ -178,6 +178,14 @@ short Play(void)
 	    break;
 	}
 	break;
+      case ClientMessage:
+	{
+	    XClientMessageEvent *cm = (XClientMessageEvent *)&xev;
+	    if (cm->message_type == wm_protocols &&
+		cm->data.l[0] == wm_delete_window)
+		  ret = E_ENDGAME;
+	}
+	break;
       default:
 	break;
     }
