@@ -1,4 +1,4 @@
-XSokoban 3.0
+XSokoban 3.1
 ------------
 
 This is the third release of XSokoban.
@@ -37,17 +37,18 @@ Installation -
     doesn't work, it is probably because you need to create the score
     directory. See config.h.
 
-  - Set ROOTDIR to the desired location for the xsokoban data files,
+  - Set ROOTDIR to the desired final location for the xsokoban data files,
     and rebuild.  Install the game by typing 'make install' or by
     manually copying the executable. Install the directories screens/,
     scores/, bitmaps/, and saves/ under ROOTDIR.
 
 Notes -
+
   - The screen files need to be publically readable and should not be
     writable.
 
   - The score file should be readable/writeable ONLY by the 'superuser' of the
-    program (see config.h).
+    program (see config.h for what 'superuser' means).
 
   - The save files should be readable/writeable ONLY by the 'superuser'.
 
@@ -55,14 +56,16 @@ Notes -
     'superuser'.
 
 Credits -
-  Unknown Hacker - Original curses(1) implementation.
-  Joseph L. Traub - X windows interface.
-  Kevin Solie - simultaneously developed X implementation (merged in).
-  Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
-  Andrew Myers - Improved mouse UI and score ranking
+
+    Unknown Hacker - Original curses(1) implementation.
+    Joseph L. Traub - X windows interface.
+    Kevin Solie - simultaneously developed X implementation (merged in).
+    Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
+    Andrew Myers - Improved mouse UI, score ranking and color support
 
 Fixes/Bug Reports/Modifications -
-  - If you make any changes to this program, fix any bugs, add any neat
+
+    If you make any changes to this program, fix any bugs, add any neat
     features, or whatever, please send mail to "andru@lcs.mit.edu"
     so that I can add them in to the newest release.
 
