@@ -718,7 +718,7 @@ static void UndoChange()
 	int ret;
 	InitMoveStack();
 	ret = ReadScreen();
-	moves = pushes = savepack = 0;
+	moves = pushes = 0;
 	if (ret) {
 	    fprintf(stderr, "Can't read screen file\n");
 	    exit(-1);
