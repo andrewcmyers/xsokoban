@@ -1,30 +1,9 @@
-/*
- * If you are compiling in an AFS environment, and you understand what
- * -DVICE does in this code, then uncomment this.
- */
-#AFS_DEFINES=	-DVICE
-#AFS_LIBS=	$(AUTHLIBS)
+EXTRA_DEFINES=	-DNDEBUG
 
-/*
- * If you don't want to edit config.h, you can set these here.
- * Otherwise, you can comment out this macro definition and edit
- * config.h.
- */
-CONFIG_DEFINES=	-DSCREENPATH=\"$(SRCDIR)/screens\" \
-		-DSAVEPATH=\"/usr/tmp\" \
-		-DBITPATH=\"$(SRCDIR)/bitmaps/defaults\" \
-		-DLOCKFILE=\"$(SRCDIR)/scores/sok.lock\" \
-		-DSCOREFILE=\"$(SRCDIR)/scores/sok.scores\" \
-		-DSUPERUSER=\"jik\" \
-		-DPASSWORD=\"awkpffft\"
-
-DEFINES=	$(AFS_DEFINES) $(CONFIG_DEFINES)
-SYS_LIBRARIES=	$(AFS_LIBS) $(XLIB)
-SRCS=		display.c main.c resources.c play.c score.c screen.c\
-		save.c
-OBJS=		display.o main.o resources.o play.o score.o screen.o\
-		save.o
-SRCDIR=		/mit/games/src/X/sokoban
+DEFINES=	$(CONFIG_DEFINES)
+SYS_LIBRARIES=	$(XLIB)
+SRCS=		display.c main.c resources.c play.c score.c screen.c save.c
+OBJS=		display.o main.o resources.o play.o score.o screen.o save.o
 
 ComplexProgramTarget(xsokoban)
 
