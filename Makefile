@@ -60,13 +60,14 @@ install: xsokoban
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-display.o: externs.h config.h defaults.h help.h display.h
-main.o: config_local.h globals.h config.h options.h errors.h display.h
+display.o: externs.h globals.h config.h defaults.h help.h display.h
+main.o: externs.h config_local.h globals.h config.h options.h errors.h display.h
 main.o: score.h www.h
-play.o: config_local.h globals.h config.h display.h
-qtelnet.o: externs.h 
-resources.o: defaults.h display.h
-save.o: config_local.h externs.h config.h
-score.o: config_local.h externs.h config.h score.h www.h
+play.o:  externs.h config_local.h globals.h config.h display.h
+qtelnet.o: config_local.h externs.h  
+resources.o:  externs.h config_local.h globals.h config.h defaults.h display.h
+save.o: config_local.h externs.h globals.h config.h
+score.o: config_local.h externs.h globals.h config.h score.h www.h
+scoredisp.o: externs.h config_local.h globals.h config.h
 scoredisp.o: defaults.h display.h score.h
-screen.o: config_local.h globals.h config.h
+screen.o: externs.h config_local.h globals.h config.h

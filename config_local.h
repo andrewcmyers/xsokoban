@@ -37,7 +37,8 @@
 /* Is there a prototype for "perror" in <errno.h>? */
 #define PERROR_PROTO 1
 
-/* Is there a prototype for "rename" in <unistd.h>? */
+/* Is there a prototype for "rename" in <unistd.h>? or (choke) in
+    <stdio.h>? */
 #define RENAME_PROTO 1
 
 /* Does the system support "strdup" and have a prototype in <string.h>? */
@@ -50,7 +51,7 @@
 #define HAVE_LIMITS_H 1
 
 /* Is there a <sys/select.h>? (AIX requires it for fd_sets) */
-/* #undef HAVE_SYS_SELECT_H */
+#define HAVE_SYS_SELECT_H 1
 
 #define BZERO_PROTO 1
 
