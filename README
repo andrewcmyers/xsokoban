@@ -1,111 +1,111 @@
-<head>
-<title>XSokoban 3.2c</title>
-</head>
-<body>
-<h1> XSokoban 3.2c </h1>
-<hr>
 
-<A HREF="ftp://pion.lcs.mit.edu/pub/xsokoban">This distribution</A>
+XSokoban 3.2c
+
+
+ XSokoban 3.2c 
+
+
+This distribution
 contains all the files to compile and run the game,
 the original 50 sokoban screen files, 40 additional screen files
 gleaned from various public domain versions of sokoban, and a manual
-page that explains how the game works.<P>
+page that explains how the game works.
 
-<ul>
-<li><a href="#installation">Installation
-<li><a href="#credits">Credits
-<li><a href="#fixes">Fixes, Bug Reports, and Modifications
-<li><a href="#redist">Redistribution
-<li><a href="#nowarranty">NO WARRANTY!
-</ul>
 
-<a name=installation><h2>Installation</h2></a>
-<ul>
-<li>Edit the header file config.h to define the
+Installation
+Credits
+Fixes, Bug Reports, and Modifications
+Redistribution
+NO WARRANTY!
+
+
+Installation
+
+Edit the header file config.h to define the
     appropriate paths and options for your system.  These defines
     should be checked carefully to make sure they are correct. 
 
-<ul>
-<li>	You can compile xsokoban in either WWW mode or local mode.
+
+	You can compile xsokoban in either WWW mode or local mode.
 	Where it stores scores depends on the mode. The mode is
-	controlled by the <code>WWW</code> option; see "config.h" for
+	controlled by the WWW option; see "config.h" for
 	more details.
 
-<li>    <em> If compiling in WWW mode, make sure you change the variable
-	<code>HERE</code> to refer to your location! </em>
-</ul>
+     If compiling in WWW mode, make sure you change the variable
+	HERE to refer to your location! 
 
-<li>Do one of the following (A,B, or C) to produce a Makefile:
-<ul>
-<li>  A. (Easy) Run the script "configure" to produce the include file
+
+Do one of the following (A,B, or C) to produce a Makefile:
+
+  A. (Easy) Run the script "configure" to produce the include file
 	"config_local.h" and a Makefile.
 
-<li>  B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
+  B. OR: Edit "config_local.h" by hand, and use "xmkmf" to
         produce a Makefile from the Imakefile provided.
 	
-<li>  C. OR: Edit "config_local.h" and "Makefile" by hand to set the
+  C. OR: Edit "config_local.h" and "Makefile" by hand to set the
         compiler and compiler flags correctly and select the right
-	libraries to compile with. <P>
+	libraries to compile with. 
     
-</ul>
+
 	If you want to have the game run in color, you will need the
 	XPM library. In this case, make sure that if you used options B
-	or C, the variable <code>EXTRA_INCLUDES</code> points to the directory
-	containing "xpm.h", and that <code>EXTRA_LIBRARIES</code> references the
-	directory containing the library "libXpm.a". <P>
+	or C, the variable EXTRA_INCLUDES points to the directory
+	containing "xpm.h", and that EXTRA_LIBRARIES references the
+	directory containing the library "libXpm.a". 
 
 	Last time I checked, XPM could be obtained by FTP from
 	export.lcs.mit.edu:contrib. Make sure your version of XPM is up
 	to date. The current pixmaps definitely work with versions 3.2g
 	and 3.3, but not with version 2. They should work with version 3.4,
-	too. <P>
+	too. 
 
-<li>Compile by typing "make".  If something goes wrong, and you can track
+Compile by typing "make".  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
-    to make, and I will see about fixing it for later distributions). <P>
+    to make, and I will see about fixing it for later distributions). 
 
     Some systems have non-ANSI X header files, and you will need to
     turn off function prototypes in those headers, or get better header
     files.  You will know this is happening if reams of errors start
-    popping up in "Xlib.h" <P>
+    popping up in "Xlib.h" 
 
-<li>Play the game by typing "xsokoban". If it complains about not being
+Play the game by typing "xsokoban". If it complains about not being
     able to read the scorefile, create one with "xsokoban -c". If this
     doesn't work, it is probably because you need to create the score
     directory. See config.h.
 
-<li>Set <code>ROOTDIR</code> to the desired final location for the xsokoban
+Set ROOTDIR to the desired final location for the xsokoban
     data files, and rebuild.  Install the game by typing "make install" or by
     manually copying the executable. Install the directories screens/,
-    scores/, bitmaps/, and saves/ under <code>ROOTDIR</code>.
+    scores/, bitmaps/, and saves/ under ROOTDIR.
 
-</ul>
 
-<a name=credits><h2>Credits</h2></a>
 
-    Unknown Hacker - Original curses(1) implementation.<P>
-    Joseph L. Traub - X windows interface.<P>
-    Kevin Solie - simultaneously developed X implementation (merged in).<P>
-    Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).<P>
-    Andrew Myers - Improved mouse UI, score ranking, WWW and color support<P>
+Credits
 
-<a name=fixes><h2>Fixes, Bug Reports, and Modifications</h2></a>
+    Unknown Hacker - Original curses(1) implementation.
+    Joseph L. Traub - X windows interface.
+    Kevin Solie - simultaneously developed X implementation (merged in).
+    Mark Linderman, Christos Zoulas - Mouse code (added to Solie's version).
+    Andrew Myers - Improved mouse UI, score ranking, WWW and color support
+
+Fixes, Bug Reports, and Modifications
 
     If you make any changes to this program, fix any bugs, add any neat
     features, or whatever, please send mail to "andru@lcs.mit.edu"
     so that I can add them in to the newest release.
 
-<a name=redist><h2>Redistribution</h2></a>
+Redistribution
 
     XSokoban is distributed in the public domain and may be freely
     redistributed.
 
-<a name=nowarranty><h2>NO WARRANTY!</h2></a>
+NO WARRANTY!
 
     XSokoban comes without absolutely no warranty. The entire risk as
     to the quality and performance of the program is with you. Should
     xsokoban prove defective, you assume the cost of all necessary
-    servicing, repair or correction.<P>
+    servicing, repair or correction.
 
     In no event unless required by applicable law will Andrew Myers or
     any other party be liable to you for damages, including any lost
@@ -114,7 +114,7 @@ page that explains how the game works.<P>
     the program (including but not limited to loss of data or data
     being rendered inaccurate or losses sustained by third parties),
     even if you have been advised of the possibility of such damages,
-    or for any claim by any other party.<P>
+    or for any claim by any other party.
 
 Andrew Myers
-<address>andru@lcs.mit.edu</address>
+andru@lcs.mit.edu
