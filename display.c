@@ -20,7 +20,7 @@
 
 /* local to this file */
 static Window win;
-static GC gc, rgc, drgc, clr_gc;
+static GC gc, rgc, drgc;
 static unsigned int width, height, depth;
 static XFontStruct *finfo;
 static Boolean optwalls;
@@ -492,7 +492,7 @@ void MapChar(char c, int i, int j, Boolean copy_area)
   Pixmap this;
 
   this = GetObjectPixmap(i, j, c); /* i, j are passed so walls can be done */
-  if (full_pixmap[c])
+  if (full_pixmap[(int)c])
   XCopyArea(dpy, this, work, gc, 0, 0, bit_width, bit_height, cX(j), cY(i));
   else
   XCopyPlane(dpy, this, work, gc, 0, 0, bit_width, bit_height, cX(j), cY(i), 1);
