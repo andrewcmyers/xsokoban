@@ -1,0 +1,52 @@
+/*
+    This file contains only definitions required to make compilation
+    occur successfully. These definitions control whether various
+    include files or extern declarations are needed.
+
+    If the answer to any of these questions is yes, the corresponding
+    symbol should be defined.
+*/
+/* Is there a prototype for "getpass"? */
+#undef GETPASS_PROTO
+
+/* Are "htons" and "ntohs" defined in <machine/endian.h>? */
+#undef NEED_ENDIAN
+
+/* Are "htons" and "ntohs" defined in <net/nh.h>? */
+#undef NEED_NH
+
+/* Are "htons" and "ntohs" defined in <netinet/in.h>? */
+#undef NEED_NETINET_IN
+
+/* Are "htons" and "ntohs" defined in <sys/byteorder.h>? */
+#undef NEED_BYTEORDER
+
+/* Is there a prototype for "fprintf" in <stdio.h>? */
+#undef FPRINTF_PROTO
+
+/* Is there a prototype for "fclose" in <stdio.h>? */
+#undef FCLOSE_PROTO
+
+/* Is there a prototype for "time"? */
+#undef TIME_PROTO
+
+/* Is there a prototype for "mktemp"? */
+#undef MKTEMP_PROTO
+
+/* Is there a prototype for "perror" in <errno.h>? */
+#undef PERROR_PROTO
+
+/* Is there a prototype for "rename" in <unistd.h>? */
+#undef RENAME_PROTO
+
+/* Does the system support "strdup" and have a prototype in <string.h>? */
+#undef STRDUP_PROTO
+
+/* Does the system have "usleep"? */
+#undef HAS_USLEEP
+
+/* Is there a <limits.h>? (Otherwise, there had better be a <sys/limits.h>) */
+#undef HAVE_LIMITS_H
+
+
+#undef BZERO_PROTO
