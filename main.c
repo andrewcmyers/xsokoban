@@ -270,7 +270,7 @@ short GameLoop(void)
 #if !ANYLEVEL
 		    newlev <= userlevel &&
 #endif
-		    TRUE) {
+		    1) {
 		    level = newlev;
 		} else {
 		    if (ret == 0) level++;
