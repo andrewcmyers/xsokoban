@@ -158,7 +158,7 @@ name is used.
 Create a new score file (can be ran only by the owner of the game).
 If the argument "scorefile-text" is supplied, the file of that name
 is assumed to contain the textual output compatible with the
-output of "xsokoban -s". The scorefile is initialized
+output of "xsokoban -s -D". The scorefile is initialized
 to contain the scores described in that text file. If no argument is
 supplied, the score file is initialized to be empty.
 .TP 8
