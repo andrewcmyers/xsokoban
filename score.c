@@ -34,11 +34,6 @@ short scoreentries;
 struct st_entry scoretable[MAXSCOREENTRIES];
 
 /* Forward decls */
-static short ParseScoreText(char *text, Boolean all_users);
-static short ParseUserLevel(char *text, short *lv);
-static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users);
-static short ParsePartialScore(char *text, int *line1, int *line2);
-
 static short MakeScore();
 /* Adds a new user score to the score table, if appropriate. Users' top
  * level scores, and the best scores for a particular level (in moves and
@@ -65,6 +60,16 @@ static void CleanupScoreTable();
  * A hash table would fix this.
  */
 
+static short FindPos();
+/* Find the position for a new score in the score table */ 
+
+static short ParseScoreText(char *text, Boolean all_users);
+static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users);
+
+#if WWW
+static short ParseUserLevel(char *text, short *lv);
+static short ParsePartialScore(char *text, int *line1, int *line2);
+static short GetUserLevel_WWW(short *lv);
 static char *subst_names(char const *template);
 /*
     Copy the string in "template" to a newly-allocated string, which
@@ -75,8 +80,15 @@ static char *subst_names(char const *template);
     '$$' is substituted with the plain character '$'.
 */
 
-static short FindPos();
-/* Find the position for a new score in the score table */ 
+static short WriteScore_WWW();
+/* Write a solution out to the WWW server */
+
+static short ReadScore_WWW();
+/* Read in an existing score file.  Uses the ntoh() and hton() functions
+ * so that the score files transfer across systems.
+ */
+
+#endif
 
 #if !WWW
 static short FindUser();
@@ -84,7 +96,6 @@ static short FindUser();
    index of the highest level that user has played, or -1 if none. */
 #endif
 
-static short GetUserLevel_WWW(short *lv);
 
 static short LockScore();
 /* Acquire the lock on the score file. This is done by creating a new
@@ -125,17 +136,7 @@ static short ReadScore();
 #if !WWW
 static short WriteScore();
 /* Update the score file to contain a new score. See comments below. */
-#endif
 
-static short WriteScore_WWW();
-/* Write a solution out to the WWW server */
-
-static short ReadScore_WWW();
-/* Read in an existing score file.  Uses the ntoh() and hton() functions
- * so that the score files transfer across systems.
- */
-
-#if !WWW
 static FILE *scorefile;
 static int sfdbn;
 
@@ -794,6 +795,25 @@ static void CopyEntry(short i1, short i2)
   scoretable[i1].date = scoretable[i2].date;
 }
 
+/* Extract one line from "text".  Return 0 if there is no line to extract. */
+char *getline(char *text, char *linebuf, int bufsiz)
+{
+    if (*text == 0) {
+	*linebuf = 0;
+	return 0;
+    }
+    bufsiz--; /* for trailing null */
+    while (*text != '\n' && *text != '\r' && *text && bufsiz != 0) {
+	*linebuf++ = *text++;
+	bufsiz--;
+    }
+    if (text[0] == '\r' && text[1] == '\n') text++; /* skip over CRLF */
+    *linebuf = 0;
+    return (*text) ? text + 1 : text ;
+	/* point to next line or final null */
+}
+
+#if WWW
 static int blurt(char *buf, int bufptr, int count, char c)
 {
     if (count == 1) {
@@ -880,7 +900,6 @@ static char *subst_names(char const *template)
     return strdup(buffer);
 }
 
-#if WWW
 static const char *www_score_command = WWWSCORECOMMAND;
 
 short WriteScore_WWW()
@@ -914,23 +933,6 @@ short WriteScore_WWW()
     return 0;
 }
 
-/* Extract one line from "text".  Return 0 if there is no line to extract. */
-char *getline(char *text, char *linebuf, int bufsiz)
-{
-    if (*text == 0) {
-	*linebuf = 0;
-	return 0;
-    }
-    bufsiz--; /* for trailing null */
-    while (*text != '\n' && *text && bufsiz != 0) {
-	*linebuf++ = *text++;
-	bufsiz--;
-    }
-    *linebuf = 0;
-    return (*text) ? text + 1 : text ;
-	/* point to next line or final null */
-}
-
 char *skip_past_header(char *text)
 {
     char line[256];
@@ -957,63 +959,6 @@ short ReadScore_WWW()
     ret = ParseScoreText(text, _false_);
     free(text);
     return ret;
-}
-#endif
-
-static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users)
-{
-    char *user, *date_str;
-    char *ws = " \t\r\n";
-    int level, moves, pushes;
-    time_t date = 0;
-    Boolean baddate = _false_;
-    int rank;
-    char rank_s[4];
-    char line[256];
-    *text = getline(*text, line, sizeof(line));
-    if (!*text) return 0;
-    strncpy(rank_s, line, 4);
-    rank = atoi(rank_s);
-    user = strtok(line + 4, ws);
-    if (!user) { *text = 0; return 0; }
-    if (all_users || rank != 0 || 0 == strcmp(user, username)) {
-	level = atoi(strtok(0, ws)); if (!level) return E_READSCORE;
-	moves = atoi(strtok(0, ws)); if (!moves) return E_READSCORE;
-	pushes = atoi(strtok(0, ws)); if (!pushes) return E_READSCORE;
-	date_str = strtok(0, ws);
-	if (date_str) date = (time_t)atoi(date_str);
-	if (!date) {
-	    date = time(0);
-	    if (!baddate) {
-		baddate = _true_;
-		fprintf(stderr,
-			"Warning: Bad or missing date in ASCII scores\n");
-	    }
-	}
-	strncpy(scoretable[i].user, user, MAXUSERNAME);
-	scoretable[i].lv = (unsigned short)level;
-	scoretable[i].mv = (unsigned short)moves;
-	scoretable[i].ps = (unsigned short)pushes;
-	scoretable[i].date = date;
-    } else {
-	scoretable[i].user[0] = 0;
-    }
-    return 0;
-}
-
-static short ParseScoreText(char *text, Boolean allusers)
-{
-    char line[256];
-    do {
-	text = getline(text, line, sizeof(line));
-	if (!text) return E_READSCORE;
-    } while (line[0] != '=');
-    scoreentries = 0;
-    while (text) {
-	ParseScoreLine(scoreentries, &text, allusers);
-	if (VALID_ENTRY(scoreentries)) scoreentries++;
-    }
-    return 0;
 }
 
 short GetUserLevel_WWW(short *lv)
@@ -1117,6 +1062,63 @@ short ParsePartialScore(char *text, int *line1, int *line2)
     }
     if (ret == 0 && outofdate) return E_OUTOFDATE;
     else return ret;
+}
+#endif
+
+static short ParseScoreText(char *text, Boolean allusers)
+{
+    char line[256];
+    do {
+	text = getline(text, line, sizeof(line));
+	if (!text) return E_READSCORE;
+    } while (line[0] != '=');
+    scoreentries = 0;
+    while (text) {
+	ParseScoreLine(scoreentries, &text, allusers);
+	if (VALID_ENTRY(scoreentries)) scoreentries++;
+    }
+    return 0;
+}
+
+static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users)
+{
+    char *user, *date_str;
+    char *ws = " \t\r\n";
+    int level, moves, pushes;
+    time_t date = 0;
+    Boolean baddate = _false_;
+    int rank;
+    char rank_s[4];
+    char line[256];
+    *text = getline(*text, line, sizeof(line));
+    if (!*text) return 0;
+    strncpy(rank_s, line, 4);
+    rank = atoi(rank_s);
+    user = strtok(line + 4, ws);
+    if (!user) { *text = 0; return 0; }
+    if (all_users || rank != 0 || 0 == strcmp(user, username)) {
+	level = atoi(strtok(0, ws)); if (!level) return E_READSCORE;
+	moves = atoi(strtok(0, ws)); if (!moves) return E_READSCORE;
+	pushes = atoi(strtok(0, ws)); if (!pushes) return E_READSCORE;
+	date_str = strtok(0, ws);
+	if (date_str) date = (time_t)atoi(date_str);
+	if (!date) {
+	    date = time(0);
+	    if (!baddate) {
+		baddate = _true_;
+		fprintf(stderr,
+			"Warning: Bad or missing date in ASCII scores\n");
+	    }
+	}
+	strncpy(scoretable[i].user, user, MAXUSERNAME);
+	scoretable[i].lv = (unsigned short)level;
+	scoretable[i].mv = (unsigned short)moves;
+	scoretable[i].ps = (unsigned short)pushes;
+	scoretable[i].date = date;
+    } else {
+	scoretable[i].user[0] = 0;
+    }
+    return 0;
 }
 
 int FindCurrent()

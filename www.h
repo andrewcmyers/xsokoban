@@ -5,7 +5,7 @@
    WWWHOST: Host where WWW scores are stored
 */
 #ifndef WWWHOST
-#define WWWHOST "www.pmg.lcs.mit.edu"
+#define WWWHOST "xsokoban.lcs.mit.edu"
 #endif
 
 /*

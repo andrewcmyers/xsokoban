@@ -24,7 +24,10 @@ static short InitialPosition(int *vposn);
 static void handleMotion(XEvent *xev, Boolean dragging, Boolean *scores_dirty);
 static void ComputeRanks();
 static void TrimPosn();
+
+#if WWW
 static short ValidateLines(int top, int bottom);
+#endif
 
 static Boolean initted = _false_;
 static unsigned long sb_bg, panel_bg[3], border_color, panel_fg, 
@@ -236,7 +239,6 @@ static void DrawScores(XWindowAttributes *wa, Window win)
     int first_index = vposn/font_height;
     int last_index = (vposn + win_height - 1)/font_height;
     int i;
-    int top, bottom;
     char * header = "Rank                             User  Level   Moves  Pushes   Date";
     XSetForeground(dpy, gc, text_color);
     XDrawString(dpy, win, gc, text_indent, font_height, header,
@@ -245,15 +247,17 @@ static void DrawScores(XWindowAttributes *wa, Window win)
 	      yclip-1);
     
 #if WWW
-    top = scoreentries - first_index;
-    bottom = scoreentries - last_index - 1;
-    if (ValidateLines(top, bottom)) {
-	fprintf(stderr, "Oops! Bad lines from server: %d-%d\n",
-	    first_index, last_index);
-	exit(EXIT_FAILURE);
+    {
+	int top = scoreentries - first_index;
+	int bottom = scoreentries - last_index - 1;
+	if (ValidateLines(top, bottom)) {
+	    fprintf(stderr, "Oops! Bad lines from server: %d-%d\n",
+		first_index, last_index);
+	    exit(EXIT_FAILURE);
+	}
+	first_index = scoreentries - top;
+	last_index = scoreentries - bottom - 1;
     }
-    first_index = scoreentries - top;
-    last_index = scoreentries - bottom - 1;
 #endif
 
     for (i = first_index; i <= last_index && i < scoreentries; i++) {
@@ -565,8 +569,9 @@ static short ValidateLines(int top, int bottom)
 
 static short InitialPosition(int *vposn)
 {
-    int fc1, fc2;
+    int fc2;
 #if WWW
+    int fc1;
     {
     /* get the number of lines in the file */
 	int line1 = 0, line2 = 0;
