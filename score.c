@@ -251,7 +251,7 @@ void DumpLinesWithHeader(int top, int bottom)
     printf("Entries: %d\n", scoreentries);
     printf("Line1: %d\n", scoreentries - 1 - bottom);
     printf("Line2: %d\n", scoreentries - top);
-    printf("Date: %d\n", date_stamp);
+    printf("Date: %ld\n", (long)date_stamp);
     printf("========================================"
 	   "==============================\n");
     for (i = bottom; i >= top; i--) ShowScoreLine(i);
@@ -466,7 +466,7 @@ short ReadOldScoreFile01()
 	scoretable[tmp].mv = ntohs(t[tmp].mv);
 	scoretable[tmp].ps = ntohs(t[tmp].ps);
 	strncpy(scoretable[tmp].user, t[tmp].user, MAXUSERNAME);
-	scoretable[tmp].date = now;
+	scoretable[tmp].date = (int)now;
       }
     }
     (void)close(sfdbn);
@@ -558,7 +558,7 @@ static short MakeScore()
   scoretable[pos].lv = scorelevel;
   scoretable[pos].mv = scoremoves;
   scoretable[pos].ps = scorepushes;
-  scoretable[pos].date = time(0);
+  scoretable[pos].date = (int)time(0);
   scoreentries++;
 
   CleanupScoreTable();
@@ -720,9 +720,10 @@ char *DateToASCII(time_t date)
     if (datemode) {
 	sprintf(date_buf, "%d", (int)date);
     } else {
-	struct tm then = *localtime(&date);
+	struct tm then, now;
 	time_t dnow = time(0);
-	struct tm now = *localtime(&dnow);
+	now = *localtime(&dnow);
+	then = *localtime(&date);
 	if (then.tm_year != now.tm_year) {
 	    sprintf(date_buf, "%s %d", MONTH(then.tm_mon), then.tm_year % 100);
 	} else if (then.tm_mon != now.tm_mon ||
@@ -748,7 +749,7 @@ static void ShowScoreLine(int i)
     TRY("printf",
     fprintf(stdout, " %32s %4d     %4d     %4d   %s\n", scoretable[i].user,
 	    scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
-	    DateToASCII(scoretable[i].date)));
+	    DateToASCII((time_t)scoretable[i].date)));
 }
 
 
@@ -1085,7 +1086,7 @@ static short ParseScoreLine(int i, char **text /* in out */, Boolean all_users)
     char *user, *date_str;
     char *ws = " \t\r\n";
     int level, moves, pushes;
-    time_t date = 0;
+    int date = 0; /* time_t */
     Boolean baddate = _false_;
     int rank;
     char rank_s[4];

@@ -17,7 +17,9 @@ AC_PROG_CPP
 # Find Xpm if needed
 
 define(AC_VAR_CHECK,
-$1=`(cat config.h; echo $2) | cpp | egrep -v "^#"`
+$1=`(cat config.h; echo $2) > configure.tmp.$$.h
+$CPP configure.tmp.$$.h | egrep -v "^#"`
+rm configure.tmp.$$.h
 $1=`echo $$1`
 # last line strips out extra whitespace
 )
@@ -104,11 +106,22 @@ AC_SUBST(INCS)
 AC_MSG_CHECKING(owner of game)
 AC_VAR_CHECK(OWNER, OWNER)
 OWNER=`echo $OWNER | sed -e 's/"//g'`
-awk -F: '{if ($1 == "'$OWNER'") exit 1}' /etc/passwd &&
-    AC_MSG_ERROR(\"$OWNER\" seems not to be a username. \nEdit \"config.h\" and change OWNER.)
-AC_MSG_RESULT($OWNER)
-AC_SUBST(OWNER)
-rm -f tmp.$$.c tmp2.$$
+AC_TRY_RUN([
+#include <stdio.h>
+#include <pwd.h>
+#include <stdlib.h>
+
+main(int argc, char **argv) {
+    struct passwd *p;
+    p = getpwnam("$OWNER");
+    exit((p == 0) ? 1 : 0);
+}], ownerok=1, ownerok="", ownerok=1)
+if test -n "$ownerok"; then
+    AC_MSG_RESULT("owner is $OWNER")
+    AC_SUBST(OWNER)
+else
+    AC_MSG_WARN(\"$OWNER\" seems not to be a username. \nEdit \"config.h\" and change OWNER.),
+fi
 
 ##############
 # DEC bogosity

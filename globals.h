@@ -82,8 +82,7 @@ extern Boolean datemode, headermode;
 extern unsigned bit_width, bit_height; /* for macros wX, wY */
 extern char *progname, *bitpath, *username;
 
-char move_history[MOVE_HISTORY_SIZE];
+extern char move_history[MOVE_HISTORY_SIZE];
 /* The characters "move_history[0..moves-1]" describe the entire
    sequence of moves applied to this level so far, in a format
    compatible with "Verify".  */
-

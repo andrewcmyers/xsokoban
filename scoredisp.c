@@ -280,7 +280,7 @@ static void DrawScores(XWindowAttributes *wa, Window win)
 	sprintf(buf + 4, " %32s %4d     %4d     %4d   %s",
 		VALID_ENTRY(i) ? scoretable[i].user : "CACHE ERROR",
 		scoretable[i].lv, scoretable[i].mv, scoretable[i].ps,
-		DateToASCII(scoretable[i].date));
+		DateToASCII((time_t)scoretable[i].date));
 	XDrawString(dpy, win, scroll_gc, text_indent, y, buf, strlen(buf));
     }
 }

@@ -103,7 +103,7 @@ struct old_st_entry {
 extern struct st_entry {
   char user[MAXUSERNAME]; /* If "", this is an empty entry */
   unsigned short lv, pad1, mv, pad2, ps, pad3;
-  time_t date;
+  int date; /* really a time_t */
 } scoretable[MAXSCOREENTRIES];
 
 #endif /* _SCORE_H */
