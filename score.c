@@ -180,7 +180,7 @@ short ReadScore(void)
    be ignored for the purpose of computing rank.
 */
 #define BADSOLN 100
-int SolnRank(int j, Boolean ignore[])
+int SolnRank(int j, Boolean *ignore)
 {
     int i, rank = 1;
     unsigned short level = scoretable[j].lv;
