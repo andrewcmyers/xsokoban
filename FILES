@@ -1,3 +1,4 @@
+xsokoban-3.0/Imakefile
 xsokoban-3.0/Makefile
 xsokoban-3.0/README
 xsokoban-3.0/config.h
@@ -18,6 +19,7 @@ xsokoban-3.0/scores
 xsokoban-3.0/screen.c
 xsokoban-3.0/screens
 xsokoban-3.0/xsokoban.man
+xsokoban-3.0/patchlevel.h
 xsokoban-3.0/saves
 xsokoban-3.0/bitmaps
 xsokoban-3.0/bitmaps/defaults
