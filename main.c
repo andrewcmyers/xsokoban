@@ -111,7 +111,14 @@ void main(int argc, char **argv)
     Error(ret2);
   }
   /* exit with whatever status we ended with */
-  exit(ret == E_ENDGAME ? 0 : ret);
+  switch(ret)
+  {
+  case E_ENDGAME:
+  case E_SAVED:
+	ret = 0;	/* normal exits */
+	break;
+  }
+  exit(ret);
 }
 
 /* Oh boy, the fun stuff.. Follow along boys and girls as we parse the command
