@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <assert.h>
 #include "externs.h"
 #include "globals.h"
+
+extern int abs(int);
 
 /* defining the types of move */
 #define MOVE            1
@@ -76,8 +79,8 @@ short Play(void)
 	    MoveMan(xev.xbutton.x, xev.xbutton.y);
 	    break;
 	  case Button2:
-	    /* redo the last move */
-	    MakeMove(oldmove);
+	    /* Push a ball */
+	    PushMan(xev.xbutton.x, xev.xbutton.y);
 	    break;
 	  case Button3:
 	    /* undo last move */
@@ -436,7 +439,7 @@ void FindTarget(int px, int py, int pathlen)
 /* Do all the fun movement stuff with the mouse */
 void MoveMan(int mx, int my)
 {
-  int i, j, cx, cy, x, y;
+  int i, j, x, y;
 
   shift = cntrl = _false_;
 
@@ -448,6 +451,96 @@ void MoveMan(int mx, int my)
   /* make sure we are within the bounds of the array */
   if((x < 0) || (x > MAXROW) || (y < 0) || (y > MAXCOL)) {
     HelpMessage();
+    return;
+  }
+
+  if(ISPACKET(x, y)) {
+    HelpMessage();
+    return;
+  }
+  /* if we clicked on the player or a wall (or an object but that was already
+   * handled) the we don't want to move.
+   */
+  if(!ISCLEAR(x, y)) {
+    HelpMessage();
+    return;
+  }
+  if (!RunTo(x, y)) HelpMessage();
+}
+
+/* Return whether (x,y) is on the board */
+Boolean ValidPosn(int x, int y)
+{
+    return (x >= 0) && (x <= MAXROW) && (y >= 0) && (y <= MAXCOL);
+}
+
+/* 
+   Find the object at a position orthogonal to (x, y) that is
+   closest to (ppos.x, ppos.y), is separated from (x,y) only
+   by empty spaces, and has the player or an empty space on the far
+   side of (x,y), and is not directly opposite the destination space
+   from the player; place its coordinates in (*ox, *oy) and return _true_.
+   If no such object exists, return _false_.
+*/
+Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
+{
+    int dir;
+    int bestdist = BADMOVE;
+    Boolean foundOne = _false_;
+    for (dir = 0; dir < 4; dir++) {
+	int dx, dy, x1, y1, dist;
+	switch(dir) {
+	    case 0: dx = 1; dy = 0; break;
+	    case 1: dx = -1; dy = 0; break;
+	    case 2: dx = 0; dy = 1; break;
+	    case 3: dx = 0; dy = -1; break;
+	}
+	if ((ppos.x == x && ((ppos.y - y)*dy) < 0)
+	    || (ppos.y == y && ((ppos.x - x)*dx) < 0)) continue;
+	/* Eliminate case where player would push in the opposite
+	   direction. */
+	x1 = x; y1 = y;
+        while (ValidPosn(x1, y1)) {
+	    x1 += dx; y1 += dy;
+	    dist = abs(ppos.x - x1) + abs(ppos.y - y1);
+	    if (dist <= bestdist && ISPACKET(x1, y1) &&
+		(ISPLAYER(x1 + dx, y1 + dy) || ISCLEAR(x1 + dx, y1 + dy))) {
+		if (dist < bestdist) {
+		    bestdist = dist;
+		    *ox = x1;
+		    *oy = y1;
+		    foundOne = _true_;
+		    break;
+		} else {
+		    foundOne = _false_; /* found one that was just as good */
+		}
+	    }
+	    if (!ISCLEAR(x1, y1)) break;
+	}
+    }
+    return foundOne ? _true_ : _false_ ;
+}
+
+#define DEBUGPUSH 0
+
+/* Push a nearby stone to the position indicated by (mx, my). */
+void PushMan(int mx, int my)
+{
+  int i, j, x, y, ox, oy, dist;
+
+  shift = cntrl = _false_;
+
+  /* reverse the screen coords to get the internal coords (yes, I know this 
+   * should be fixed) RSN */
+  y = wX(mx);
+  x = wY(my);
+
+  /* make sure we are within the bounds of the array */
+  if(!ValidPosn(x,y)) {
+    HelpMessage();
+#if DEBUGPUSH
+    printf("Outside array\n");
+#endif
     return;
   }
 
@@ -476,22 +569,88 @@ void MoveMan(int mx, int my)
    */
   if(!ISCLEAR(x, y)) {
     HelpMessage();
+#if DEBUGPUSH
+    printf("Not a clear space\n"); */
+#endif
     return;
   }
-  /* okay.. this is a legal place to click, so set it up by filling the
-   * trace map with all impossible values
-   */
+
+#if 0
+  if (abs(x - ppos.x) < 2 && abs(ppos.y - y) < 2) {
+#if DEBUGPUSH
+    printf("Too close to destination (%d, %d)\n",
+		abs(x - ppos.x) , abs(y - ppos.y));
+#endif
+    HelpMessage();
+    /* Player must be sufficiently far from the destination that there
+       can be no ambiguity about which stone to push */
+    return;
+  }
+#endif
+
+  if (!FindOrthogonalObject(x, y, &ox, &oy)) {
+    HelpMessage();
+#if DEBUGPUSH
+    printf("Can't find packet\n");
+#endif
+    return;
+  }
+
+  assert(x == ox || y == oy);
+  dist = abs(ox - x) + abs(oy - y);
+
+  if (x > ox) ox--;
+  if (x < ox) ox++;
+  if (y > oy) oy--;
+  if (y < oy) oy++;
+
+  /* (ox,oy) now denotes the place we need to run to to be able to push */
+
+  if (ox != ppos.x || oy != ppos.y) {
+      if (!ISCLEAR(ox, oy)) {
+#if DEBUGPUSH
+	printf("Can't move into an occupied space! (%d,%d)\n",
+	    ox - ppos.x, oy - ppos.y);
+#endif
+	HelpMessage();
+	return;
+      }
+      if (!RunTo(ox, oy)) {
+	HelpMessage();
+#if DEBUGPUSH
+	printf("Can't get in position to push\n"); */
+#endif
+	return;
+      }
+  }
+  assert(ppos.x == ox && ppos.y == oy);
+
+  for (i = 0; i < dist; i++) {
+    if (ppos.x < x) MakeMove(XK_Down);
+    if (ppos.x > x) MakeMove(XK_Up);
+    if (ppos.y < y) MakeMove(XK_Right);
+    if (ppos.y > y) MakeMove(XK_Left);
+  }
+}
+
+/* Move the player to the position (x,y), if possible. Return _true_
+   if succeeded. The position (x,y) must be clear.
+*/
+Boolean RunTo(int x, int y)
+{
+  int i,j,cx,cy;
+  /* Fill the trace map */
   for(i = 0; i < MAXROW + 1; i++)
     for (j = 0; j < MAXCOL + 1; j++)
       findmap[i][j] = BADMOVE;
-  /* flood fill search to find any shortest path. */
+  /* flood fill search to find a shortest path to the push point. */
   FindTarget(x, y, 0);
 
   /* if we didn't make it back to the players position, there is no valid path
    * to that place.
    */
   if(findmap[ppos.x][ppos.y] == BADMOVE) {
-    HelpMessage();
+    return _false_;
   } else {
     /* we made it back, so let's walk the path we just built up */
     cx = ppos.x;
@@ -515,4 +674,5 @@ void MoveMan(int mx, int my)
       }
     }
   }
+  return _true_;
 }
