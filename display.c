@@ -420,7 +420,7 @@ void ShowScreen(void)
 
   for(i = 0; i < rows; i++)
     for(j = 0; j < cols && map[i][j] != 0; j++)
-      MapChar(map[i][j], i, j);
+      MapChar(map[i][j], i, j, 0);
   DisplayLevel();
   DisplayPackets();
   DisplaySave();
@@ -433,12 +433,16 @@ void ShowScreen(void)
 /* Draws a single pixmap, translating from the character map to the pixmap
  * rendition.
  */
-void MapChar(char c, int i, int j)
+void MapChar(char c, int i, int j, int copy_area)
 {
   Pixmap this;
 
   this = GetObjectPixmap(i, j, c); /* i, j are passed so walls can be done */
   XCopyPlane(dpy, this, work, gc, 0, 0, bit_width, bit_height, cX(j), cY(i), 1);
+  if (copy_area) {
+    XCopyArea(dpy, work, win, gc, cX(j), cY(i), bit_width, bit_height,
+	      cX(j), cY(i));
+  }
 }
 
 /* figures out the appropriate pixmap from the internal game representation.

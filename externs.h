@@ -16,7 +16,7 @@ extern void MakeHelpWindows(void);
 extern void ClearScreen(void);
 extern void RedisplayScreen(void);
 extern void ShowScreen(void);
-extern void MapChar(char, int, int);
+extern void MapChar(char, int, int, int);
 extern Pixmap GetObjectPixmap(int, int, char);
 extern int PickWall(int, int);
 extern void DrawString(int, int, char *);

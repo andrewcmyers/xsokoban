@@ -303,10 +303,9 @@ void DoMove(short moveaction)
   DisplayMoves();
   DisplayPushes();
   DisplaySave();
-  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y);
-  MapChar(map[tpos1.x][tpos1.y], tpos1.x, tpos1.y);
-  MapChar(map[tpos2.x][tpos2.y], tpos2.x, tpos2.y);
-  RedisplayScreen();
+  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
+  MapChar(map[tpos1.x][tpos1.y], tpos1.x, tpos1.y, 1);
+  MapChar(map[tpos2.x][tpos2.y], tpos2.x, tpos2.y, 1);
   ppos.x = tpos1.x;
   ppos.y = tpos1.y;
 }
@@ -348,10 +347,9 @@ void UndoMove(void)
   DisplayMoves();
   DisplayPushes();
   DisplaySave();
-  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y);
-  MapChar(map[lasttpos1.x][lasttpos1.y], lasttpos1.x, lasttpos1.y);
-  MapChar(map[lasttpos2.x][lasttpos2.y], lasttpos2.x, lasttpos2.y);
-  RedisplayScreen();
+  MapChar(map[ppos.x][ppos.y], ppos.x, ppos.y, 1);
+  MapChar(map[lasttpos1.x][lasttpos1.y], lasttpos1.x, lasttpos1.y, 1);
+  MapChar(map[lasttpos2.x][lasttpos2.y], lasttpos2.x, lasttpos2.y, 1);
 }
 
 /* make a temporary save so we don't screw up too much at once */
