@@ -56,7 +56,7 @@
 /* files and produces pixmaps. Set the BITPATH variable, above, accordingly. */
 /**/
 #ifndef USE_XPM
-#define USE_XPM 1
+#define USE_XPM TRUE
 #endif
 
 /**/
