@@ -102,6 +102,17 @@ AC_SUBST(LIBS)
 AC_SUBST(INCS)
 
 ##############
+# Check HERE
+if test $www = 1; then
+    AC_MSG_CHECKING(location of client)
+    AC_VAR_CHECK(HERE,HERE)
+    AC_MSG_RESULT($HERE)
+    if test "$HERE" = '"@somewhere.somedomain"'; then
+      AC_MSG_ERROR(You have not defined the variable HERE in config.h! Do it.)
+    fi
+fi
+
+##############
 # Figure out OWNER
 AC_MSG_CHECKING(owner of game)
 AC_VAR_CHECK(OWNER, OWNER)
