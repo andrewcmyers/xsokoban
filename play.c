@@ -496,8 +496,6 @@ Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
     return foundOne ? _true_ : _false_ ;
 }
 
-#define DEBUGPUSH 0
-
 /* Push a nearby stone to the position indicated by (mx, my). */
 void PushMan(int mx, int my)
 {
@@ -513,9 +511,6 @@ void PushMan(int mx, int my)
   /* make sure we are within the bounds of the array */
   if(!ValidPosn(x,y)) {
     HelpMessage();
-#if DEBUGPUSH
-    printf("Outside array\n");
-#endif
     return;
   }
 
@@ -544,30 +539,11 @@ void PushMan(int mx, int my)
    */
   if(!ISCLEAR(x, y)) {
     HelpMessage();
-#if DEBUGPUSH
-    printf("Not a clear space\n"); */
-#endif
     return;
   }
-
-#if 0
-  if (abs(x - ppos.x) < 2 && abs(ppos.y - y) < 2) {
-#if DEBUGPUSH
-    printf("Too close to destination (%d, %d)\n",
-		abs(x - ppos.x) , abs(y - ppos.y));
-#endif
-    HelpMessage();
-    /* Player must be sufficiently far from the destination that there
-       can be no ambiguity about which stone to push */
-    return;
-  }
-#endif
 
   if (!FindOrthogonalObject(x, y, &ox, &oy)) {
     HelpMessage();
-#if DEBUGPUSH
-    printf("Can't find packet\n");
-#endif
     return;
   }
 
@@ -583,18 +559,11 @@ void PushMan(int mx, int my)
 
   if (ox != ppos.x || oy != ppos.y) {
       if (!ISCLEAR(ox, oy)) {
-#if DEBUGPUSH
-	printf("Can't move into an occupied space! (%d,%d)\n",
-	    ox - ppos.x, oy - ppos.y);
-#endif
 	HelpMessage();
 	return;
       }
       if (!RunTo(ox, oy)) {
 	HelpMessage();
-#if DEBUGPUSH
-	printf("Can't get in position to push\n"); */
-#endif
 	return;
       }
   }
