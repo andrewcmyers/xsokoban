@@ -670,6 +670,7 @@ short ReadScore_WWW()
     result = qtelnet(WWWHOST, WWWPORT, cmd);
 /* Now, skip past all the initial crud */
     text = result;
+    if (!text) return E_READSCORE;
     for (;;)  {
 	text = getline(text, line);
 	if (line[0] == '=') break;
