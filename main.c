@@ -38,7 +38,7 @@ Boolean ownColormap = _false_, datemode = _false_, headermode = _false_;
 static short optlevel = 0, userlevel = 0;
 static short line1 = 0, line2 = 0;
 static Boolean opt_show_score = _false_, opt_make_score = _false_,
-	       optrestore = _false_, superuser = _false_,
+	       optrestore = _false_, owner = _false_,
 	       opt_verify = _false_, opt_partial_score = _false_,
 	       opt_user_level = _false_;
 static struct passwd *pwd;
@@ -92,8 +92,8 @@ void main(int argc, char **argv)
 	username = FixUsername(username);
     }
 #endif
-    /* see if we are the superuser */
-    superuser = (strcmp(username, SUPERUSER) == 0) ? _true_ : _false_;
+    /* see if we are the owner */
+    owner = (strcmp(username, OWNER) == 0) ? _true_ : _false_;
     if (ret == 0) {
       if (opt_show_score) {
 	DEBUG_SERVER("sending score file");
@@ -104,13 +104,13 @@ void main(int argc, char **argv)
       } else if (opt_partial_score) {
 	ret = OutputScoreLines(line1, line2);
       } else if (opt_make_score) {
-	if (superuser) {
+	if (owner) {
 	  /* make sure of that, shall we? */
 	  ret = GetGamePassword();
 	  if (ret == 0)
 	    ret = MakeNewScore(optfile);
 	} else
-	  /* sorry, BAD superuser */
+	  /* sorry, BAD owner */
 	  ret = E_NOSUPER;
       } else if (optrestore) {
 	ret = RestoreGame();
@@ -126,8 +126,8 @@ void main(int argc, char **argv)
 	    if (optlevel > 0) {
 #if !ANYLEVEL
 		if (userlevel < optlevel) {
-		    if (superuser) {
-			/* superusers can play any level (but not score),
+		    if (owner) {
+			/* owners can play any level (but not score),
 			 * which is useful for testing out new boards.
 			 */
 			level = optlevel;

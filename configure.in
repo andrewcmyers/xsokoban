@@ -7,7 +7,7 @@ AC_CONFIG_HEADER(config_local.h)
 ############################################################################
 # Check for programs
 
-AC_WITH(CC,CC="$withval")
+AC_ARG_WITH(CC,CC="$withval")
 
 AC_PROG_INSTALL
 AC_PROG_CC
@@ -16,27 +16,44 @@ AC_PROG_CPP
 #####################
 # Find Xpm if needed
 
-(cat config.h; echo "use_xpm=USE_XPM;www=WWW") > tmp.$$.c
-$CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
-. ./tmp2.$$
+define(AC_VAR_CHECK,
+$1=`(cat config.h; echo $2) | cpp | egrep -v "^#"`
+$1=`echo $$1`
+# last line strips out extra whitespace
+)
+
+define(AC_FEATURE_CHECK,
+AC_MSG_CHECKING(whether $3 is turned on);
+AC_VAR_CHECK($1,$2)
+if test $$1 = 1; then
+    AC_MSG_RESULT(yes)
+else
+    AC_MSG_RESULT(no)
+fi
+)
+
+
+AC_FEATURE_CHECK(use_xpm, USE_XPM, use of color bitmaps through XPM)
+AC_FEATURE_CHECK(www, WWW, WWW scoring)
+
 if test $use_xpm = 1; then
-    echo "Looking for Xpm">&2
     libxpm=1
     incxpm=1
-    AC_HAVE_LIBRARY(-lXpm, [LIBS="$LIBS -lXpm"],
+    AC_CHECK_LIB(Xpm, main, [LIBS="$LIBS -lXpm"],
 	[ 
 	  libok=no;
+	  AC_MSG_CHECKING(other locations for libXpm)
 	  for lib in /usr/local/lib xpm*/lib ../xpm*/lib;
 	  do
 	    if test -r $lib/libXpm.a; then
-		echo "  Found it in $lib!" >&2;
+		AC_MSG_RESULT(Found it in $lib!)
 		LIBS="$LIBS -L$lib -lXpm";
 		libok=yes;
 		break;
 	    fi
 	  done
 	  if test $libok = no; then
-	      echo "Can't find libXpm.a! You must add it to LIBS in Makefile.">&2
+	    AC_MSG_WARN(Can't find libXpm.a! You must add it to LIBS in Makefile.)
 	  fi
 	])
     AC_HEADER_CHECK(xpm.h,,
@@ -46,14 +63,14 @@ if test $use_xpm = 1; then
 		/usr/local/X11*/include xpm*/lib ../xpm*/lib;
 	  do
 	    if test -r $inc/xpm.h; then
-		echo "  Found it in $inc!" >&2;
+		AC_MSG_RESULT(Found it in $inc!)
 		INCS="$INCS -I$inc";
 		incok=yes;
 		break;
 	    fi
 	  done
 	  if test $incok = no; then
-	    echo "Can't find xpm.h! You must add its location to INCS in Makefile.">&2
+	    AC_MSG_WARN(Can't find xpm.h! You must add its location to INCS in Makefile.)
 	  fi
 	  ])
 fi
@@ -64,7 +81,7 @@ rm -f tmp.$$.c tmp2.$$
 
 AC_FIND_X
 if test -n "$no_x"; then
-  echo "Cannot find X libraries! Package may not compile">&2
+  AC_MSG_WARN(Cannot find X libraries! Package may not compile)
   x_includes=
   x_libraries=-lX11
 else
@@ -83,21 +100,20 @@ AC_SUBST(LIBS)
 AC_SUBST(INCS)
 
 ##############
-# Figure out SUPERUSER
-(cat config.h; echo "superuser=SUPERUSER;www=WWW") > tmp.$$.c
-$CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
-. ./tmp2.$$
-SUPERUSER="$superuser"
-echo "checking for owner of game"
-awk -F: '{if ($1 == "'$SUPERUSER'") exit 1}' /etc/passwd &&
-    echo "  \"$SUPERUSER\" seems not to be a username. Edit \"config.h\" and change SUPERUSER."
-AC_SUBST(SUPERUSER)
+# Figure out OWNER
+AC_MSG_CHECKING(owner of game)
+AC_VAR_CHECK(OWNER, OWNER)
+OWNER=`echo $OWNER | sed -e 's/"//g'`
+awk -F: '{if ($1 == "'$OWNER'") exit 1}' /etc/passwd &&
+    AC_MSG_ERROR(\"$OWNER\" seems not to be a username. \nEdit \"config.h\" and change OWNER.)
+AC_MSG_RESULT($OWNER)
+AC_SUBST(OWNER)
 rm -f tmp.$$.c tmp2.$$
 
 ##############
 # DEC bogosity
 
-AC_HAVE_LIBRARY(-ldnet_stub)
+AC_CHECK_LIB(dnet_stub,main)
 
 ####################################
 # Turn on all compiler warning flags
@@ -119,90 +135,98 @@ AC_SUBST(WARN)
 ############################################################################
 # Check for library functions and C++ prototypes
 
-AC_COMPILE_CHECK([getpass prototype],
-[#include <stdlib.h>],
+AC_MSG_CHECKING(function prototypes)
+AC_TRY_LINK([#include <stdlib.h>],
 [char *s = getpass("prompt");],
 AC_DEFINE(GETPASS_PROTO))
 
-AC_COMPILE_CHECK([fprintf prototype],
-[#include <stdio.h>],
+AC_TRY_LINK([#include <stdio.h>],
 [fprintf(stderr, "foo");],
 AC_DEFINE(FPRINTF_PROTO))
 
-AC_COMPILE_CHECK([fclose prototype],
-[#include <stdio.h>],
+AC_TRY_LINK([#include <stdio.h>],
 [FILE *f; fclose(f);],
 AC_DEFINE(FCLOSE_PROTO))
 
-AC_COMPILE_CHECK([time prototype],
-[#include <time.h>],
+AC_TRY_LINK([#include <time.h>],
 [time_t t; t = time(&t);],
 AC_DEFINE(TIME_PROTO))
 
-AC_COMPILE_CHECK([localtime prototype],
-[#include <time.h>],
+AC_TRY_LINK([#include <time.h>],
 [time_t t; struct tm stm = *localtime(&t);],
 AC_DEFINE(LOCALTIME_PROTO))
 
-AC_COMPILE_CHECK([mktemp prototype],
-[#include <stdlib.h>],
+AC_TRY_LINK([#include <stdlib.h>],
 [char *s = mktemp("fooXXXXXX"); ],
 AC_DEFINE(MKTEMP_PROTO))
 
-AC_COMPILE_CHECK([perror prototype],
+AC_TRY_LINK(
 [#include <errno.h>
 #include <stdio.h>],
 [perror("bleah"); ],
 AC_DEFINE(PERROR_PROTO))
 
-AC_COMPILE_CHECK([rename prototype],
+AC_TRY_LINK(
 [#include <unistd.h>
 #include <stdio.h>],
 [int x = rename("foo", "bar");],
 AC_DEFINE(RENAME_PROTO))
 
-AC_COMPILE_CHECK([strdup prototype],
+AC_TRY_LINK(
 [#include <string.h>],
 [char *s = strdup("foo");],
 AC_DEFINE(STRDUP_PROTO))
 
-AC_COMPILE_CHECK([usleep],
+AC_TRY_LINK(
 [#include <stdlib.h>
 #include <unistd.h>],
 [usleep(1);],
 AC_DEFINE(HAS_USLEEP)
 AC_DEFINE(USLEEP_PROTO))
 
-AC_COMPILE_CHECK([bzero prototype],
+AC_TRY_LINK(
 [#include <stdlib.h>],
 [char *x; int l; bzero(x, l);],
 AC_DEFINE(BZERO_PROTO))
 
-AC_COMPILE_CHECK([nl_langinfo],
+AC_TRY_LINK(
 [#include <langinfo.h>],
 [char *jan = nl_langinfo(ABMON_1);],
 AC_DEFINE(HAVE_NL_LANGINFO))
 
-AC_COMPILE_CHECK([sys/param.h],
+AC_TRY_LINK(
 [#include <sys/param.h>],
 [int x;],
 AC_DEFINE(HAVE_SYS_PARAM_H))
 
+AC_MSG_RESULT(yes)
+
 AC_HAVE_HEADERS(limits.h sys/limits.h sys/select.h)
 
-echo "looking for htons, ntohs" >&2
+
+found_htons=""
+
 define(ACHTONS_CHECK,
-    AC_COMPILE_CHECK([htons in $1],
-    [
+    AC_MSG_CHECKING(whether htons & ntohs in $1)
+    AC_TRY_LINK([
 #include <sys/types.h>
 #include <$1>
     ],
     [unsigned short x,y; x = htons(y);],
-    AC_DEFINE($2), AC_VERBOSE(nope)))
+    [AC_DEFINE($2)
+     found_htons=yes
+     AC_MSG_RESULT(yes)],
+    AC_MSG_RESULT(no)))
+
 ACHTONS_CHECK(machine/endian.h, NEED_ENDIAN)
 ACHTONS_CHECK(netinet/in.h, NEED_NETINET_IN)
 ACHTONS_CHECK(net/nh.h, NEED_NH)
 ACHTONS_CHECK(sys/byteorder.h, NEED_BYTEORDER)
+
+if test -z "$found_htons"
+then
+  AC_MSG_ERROR(no)
+fi
 
 ############################################################################
 # Build configured files

@@ -2,24 +2,24 @@
 ############################################################
 # C compiler
 ############################################################
-CC = cc
+CC = gcc
 
 ############################################################
 # C compiler flags
 ############################################################
 #
-#OPTIMIZER = -O -DNDEBUG
-OPTIMIZER = -g -UNDEBUG
-INCS =  -I/usr/local/include
-WARN = -std1
-LIBS =  -lXpm -lX11 -ldnet_stub
+OPTIMIZER = -O -DNDEBUG
+#OPTIMIZER = -g -UNDEBUG
+INCS = 
+WARN = -Wall
+LIBS = -ldnet_stub  -lXpm -lX11
 DEFS =
-SUPERUSER = andru
+OWNER = andru
 
 ############################################################
 # Other programs
 ############################################################
-INSTALL = /bin/installbsd -c -o $(SUPERUSER)
+INSTALL = /bin/installbsd -c -o $(OWNER)
 CP = /bin/cp
 CHOWN = /bin/chown
 MKDIR = /bin/mkdir
@@ -44,10 +44,10 @@ clean:
 	rm -f $(OBJECTS)
 
 clobber: clean
-	rm -f xsokoban
+	rm -f xsokoban config.cache config.status Makefile
 
 install: xsokoban
-	$(INSTALL) -s -o $(SUPERUSER) -m 4755 xsokoban $(INSTALL_BIN)/xsokoban
+	$(INSTALL) -s -o $(OWNER) -m 4755 xsokoban $(INSTALL_BIN)/xsokoban
 	$(INSTALL) xsokoban.man $(INSTALL_MAN)/xsokoban.1
 	-$(MKDIR) $(INSTALL_LIB)
 	-$(MKDIR) $(INSTALL_LIB)/scores
@@ -55,7 +55,7 @@ install: xsokoban
 	-$(MKDIR) $(INSTALL_LIB)/screens
 	$(CP) screens/screen.* $(INSTALL_LIB)/screens
 	$(CP) -r bitmaps $(INSTALL_LIB)
-	$(CHOWN) $(SUPERUSER) $(INSTALL_LIB)/scores
+	$(CHOWN) $(OWNER) $(INSTALL_LIB)/scores
 	@echo "Remember to run 'xsokoban -c' if you have no score file yet."
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

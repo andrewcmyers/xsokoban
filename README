@@ -63,10 +63,10 @@ Do one of the following (A,B, or C) to produce a Makefile:
 	directory containing the library "libXpm.a". 
 
 	Last time I checked, XPM could be obtained by FTP from
-	export.lcs.mit.edu:contrib. Make sure your version of XPM is up
-	to date. The current pixmaps definitely work with versions 3.2g
-	and 3.3, but not with version 2. They should work with version 3.4,
-	too. 
+	export.lcs.mit.edu:contrib/libraries. Make sure your version of
+	XPM is up to date. The current pixmaps definitely work with
+	versions 3.2g and 3.3, but not with version 2. They should work
+	with version 3.4, too.
 
 	If the xsokoban window doesn't fit on your screen, the default
 	pixmaps may be too large. This is a problem if the vertical

@@ -92,10 +92,10 @@
 #define MAXSCOREENTRIES 20000
 
 /*
-   SUPERUSER: defines the name of the local game owner. Almost never "root"!
+   OWNER: defines the name of the local game owner.
 */
-#ifndef SUPERUSER
-#define SUPERUSER "andru"
+#ifndef OWNER
+#define OWNER "andru"
 #endif
 
 /*

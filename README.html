@@ -72,11 +72,6 @@ page that explains how the game works.<P>
 	and 3.3, but not with version 2. They should work with version 3.4,
 	too. <P>
 
-	If the xsokoban window doesn't fit on your screen, the default
-	pixmaps may be too large. This is a problem if the vertical
-	height is less than about 800 pixels. In this case, try using
-	the pixmaps in bitmaps/36/ by changing the variable "BITPATH"
-	to point there.
 
 <li>
     Compile by typing "make".  If something goes wrong, and you can track
@@ -93,6 +88,17 @@ page that explains how the game works.<P>
     able to read the scorefile, create one with "xsokoban -c". If this
     doesn't work, it is probably because you need to create the score
     directory. See config.h.
+
+<li>
+    If the xsokoban window doesn't fit on your screen, the default
+    pixmaps may be too large. This is a problem if the vertical
+    height is less than about 850 pixels. In this case, try using
+    the pixmaps in bitmaps/36/ by changing the variable "BITPATH" 
+    to point there, or by copying the bitmaps from that directory into
+    bitmaps/defaults. If the height of your screen is even smaller, try
+    using the pixmaps in bitmaps/20/ instead.  These pixmaps will work for
+    screens as small as 480 pixels high. For such small screens you
+    will want to change the default fonts; change DEF_FONT in "defaults.h".
 
 <li>
     Set <code>ROOTDIR</code> to the desired final location for the xsokoban
