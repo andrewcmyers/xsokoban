@@ -7,6 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <time.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -17,39 +20,83 @@ struct st_entry scoretable[MAXSCOREENTRIES];
 static FILE *scorefile;
 static long sfdbn;
 
+/* Acquire the lock on the score file. This is done by creating a new
+   directory. If someone else holds the lock, the directory will exist.
+   Since mkdir() should be done synchronously, even over NFS,  it will
+   fail if someone else holds the lock.
+
+   TIMEOUT is the number of seconds which you get to hold the lock on
+   the score file for. Also, the number of seconds after which we give
+   up on trying to acquire the lock nicely and start trying to break
+   the lock. In theory, there are still some very unlikely ways to get
+   hosed.  See comments in WriteScore about this. Portable locking over
+   NFS is hard.  
+
+   After TIMEOUT seconds, we break the lock, assuming that the old
+   lock-holder died in process. If the process that had the lock is
+   alive but just very slow, it could end up deleting the changes we
+   make, or we could delete its changes. However, the score file can't
+   get trashed this way, since rename() is used to update the score file.
+
+   See comments in WriteScore about how the score file can get trashed,
+   though it's extremely unlikely.
+*/
 short LockScore(void)
 {
-     int i, fd;
+     int i, result;
 
-     for (i = 0; i < 10; i++) {
-	  fd = creat(LOCKFILE, 0666);
-	  if (fd < 0)
-	       sleep(1);
-	  else
-	       break;
+     for (i = 0; i < TIMEOUT; i++) {
+	  result = mkdir(LOCKFILE, 0);
+	  if (result < 0) {
+	       if (errno == EEXIST) sleep(1);
+	       else return E_WRITESCORE;
+	  } else {
+	      break;
+	  }
      }
 
-     if (fd < 0) {
-	  /* assume that the last process to muck with the score file */
-	  /* is dead						      */
-	  /* XXX Should really be checking the datestamps on the score*/
-	  /* file to make sure some other process hasn't mucked with  */
-	  /* in the last 10 seconds! */
-	  unlink(LOCKFILE);
-	  fd = creat(LOCKFILE, 0666);
+     if (result < 0) {
+	 struct stat s;
+	 time_t t = time(0);
+	 if (0 > stat(LOCKFILE, &s)) {
+	     fprintf(stderr, "Warning: Can't mkdir or stat %s\n", LOCKFILE);
+	     return E_WRITESCORE; /* disappeared? */
+	 }
+	 /* Check to make sure that the lock is still the same one we
+	    saw in the first place. This code assumes loosely synchronized
+	    clocks. To do it right, we'd have to create another file on
+	    the server machine, and compare timestamps. Not worth it.
+	 */
+	 if (t - s.st_ctime < TIMEOUT) {
+	     fprintf(stderr,
+     "Warning: some other process is mucking with with the lock file\n");
+	     return E_WRITESCORE;
+	 }
+	 /* Assume that the last process to muck with the score file
+	    is dead.
+	 */
+	 fprintf(stderr, "Warning: breaking old lock\n");
+	 if (0 > rmdir(LOCKFILE)) {
+	     fprintf(stderr, "Warning: Couldn't remove old lock %s\n",
+		     LOCKFILE);
+	     return E_WRITESCORE;
+	 }
+	 result = mkdir(LOCKFILE, 0);
      }
-
-     if (fd < 0)
-	  return E_WRITESCORE;
-     else {
-	  close(fd);
-	  return 0;
+     
+     if (result < 0) {
+	 fprintf(stderr, "Warning: Couldn't create %s\n", LOCKFILE);
+	 return E_WRITESCORE;
+     } else {
+	 return 0;
      }
 }
 
 void UnlockScore(void)
 {
-     unlink(LOCKFILE);
+     if (0 > rmdir(LOCKFILE)) {
+	 fprintf(stderr, "Warning: Couldn't remove lock %s\n", LOCKFILE);
+     }
 }
      
 /* print out the score list for level "level". If "level" == 0, show
@@ -289,15 +336,40 @@ short FindPos(void)
   return ((found) ? i - 1 : -1);
 }
 
-/* writes out the score table.  It uses ntoh() and hton() functions to make
- * the scorefile compatible across systems.
- */
+/*  WriteScore() writes out the score table.  It uses ntoh() and hton()
+    functions to make the scorefile compatible across systems. It and
+    LockScore() try to avoid trashing the score file, even across NFS.
+    However, they are not perfect.
+
+     The vulnerability here is that if we take more than 10 seconds to
+     finish this routine, AND someone else decides to break the lock,
+     AND they pick the same temporary name, they may write on top of
+     the same file. Then we could scramble the score file by suddenly
+     moving it with alacrity to SCOREFILE before they finish their
+     update. This is quite unlikely, but possible.
+
+     We could limit the damage by writing just the one score we're
+     adding to a temporary file *when we can't acquire the lock*. Then,
+     the next time someone comes by and gets the lock, they integrate
+     all the temporary files. Since the score change would be smaller
+     than one block, duplicate temporary file names means only that a
+     score change can be lost. This approach would not require a TIMEOUT.
+
+     The problem with that scheme is that if someone dies holding the
+     lock, the temporary files just pile up without getting applied.
+     Also, user intervention is required to blow away the lock; and
+     blowing away the lock can get us in the same trouble that happens
+     here.
+*/
 short WriteScore(void)
 {
   short ret = 0;
   long tmp;
 
-  if ((scorefile = fopen(SCOREFILE, "w")) == NULL)
+  char *tempfile = SCOREFILE "XXXXXX";
+  (void)mktemp(tempfile);
+
+  if ((scorefile = fopen(tempfile, "w")) == NULL)
     ret = E_FOPENSCORE;
   else {
     sfdbn = fileno(scorefile);
@@ -324,7 +396,17 @@ short WriteScore(void)
 	scoretable[tmp].ps = ntohs(scoretable[tmp].ps);
       }
     }
-    fclose(scorefile);
+    if (EOF == fclose(scorefile)) {
+	ret = E_WRITESCORE;
+	perror(SCOREFILE);
+    }
+  }
+  if (ret == 0) {
+      if (0 > rename(tempfile, SCOREFILE)) {
+	  return E_WRITESCORE;
+      }
+  } else {
+      (void)unlink(tempfile);
   }
   return ret;
 }
