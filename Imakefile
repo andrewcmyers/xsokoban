@@ -1,6 +1,5 @@
 EXTRA_DEFINES=	-DNDEBUG
 
-DEFINES=	$(CONFIG_DEFINES)
 SYS_LIBRARIES=	$(XLIB)
 SRCS=		display.c main.c resources.c play.c score.c screen.c save.c
 OBJS=		display.o main.o resources.o play.o score.o screen.o save.o
