@@ -23,6 +23,9 @@
 short scoreentries;
 struct st_entry scoretable[MAXSCOREENTRIES];
 
+/* Forward decls */
+static short ParseScoreText(char *text, Boolean all_users);
+
 #if !WWW
 static FILE *scorefile;
 static int sfdbn;
@@ -181,7 +184,7 @@ short MakeNewScore(char *textfile)
 	}
     }
     (void)close(fd);
-    if ((ret = ParseScoreText(text))) return ret;
+    if ((ret = ParseScoreText(text, _true_))) return ret;
     free(text);
   } else {
       scoreentries = 0;
@@ -793,12 +796,12 @@ short ReadScore_WWW()
     text = qtelnet(WWWHOST, WWWPORT, cmd);
 /* Now, skip past all the initial crud */
     if (!text) return E_READSCORE;
-    ret = ParseScoreText(text);
+    ret = ParseScoreText(text, _false_);
     free(text);
     return ret;
 }
 
-short ParseScoreText(char *text)
+short ParseScoreText(char *text, Boolean allusers)
 {
     char line[256];
     char *ws = " \t\r\n";
@@ -821,7 +824,7 @@ short ParseScoreText(char *text)
 	rank = atoi(rank_s);
 	user = strtok(line + 4, ws);
 	if (!user) break;
-	if (rank != 0 || 0 == strcmp(user, username)) {
+	if (rank != 0 || allusers || 0 == strcmp(user, username)) {
 	    level = atoi(strtok(0, ws));
 	    moves = atoi(strtok(0, ws));
 	    pushes = atoi(strtok(0, ws));

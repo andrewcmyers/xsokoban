@@ -148,7 +148,6 @@ extern void ShowScore(int);
 extern void CopyEntry(short, short);
 extern void FlushDeletedScores(Boolean[]);
 extern int SolnRank(int, Boolean *);
-extern short ParseScoreText(char *text);
 extern char *DateToASCII(time_t);
 
 /* stuff from screen.c */
