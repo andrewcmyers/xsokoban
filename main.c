@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -132,6 +133,19 @@ void main(int argc, char **argv)
   exit(ret);
 }
 
+char *FixUsername(char *name)
+{
+    char namebuf[MAXUSERNAME];
+    char *c = namebuf;
+    strncpy(namebuf, name, MAXUSERNAME);
+    namebuf[MAXUSERNAME-1] = 0;
+    while (*c) {
+	if (!isprint(*c) || *c == ' ') *c = '_';
+	c++;
+    }
+    return strdup(namebuf);
+}
+
 /* Oh boy, the fun stuff.. Follow along boys and girls as we parse the command
  * line up into little bitty pieces and merge in all the xdefaults that we
  * need.
@@ -193,7 +207,7 @@ short CheckCommandLine(int *argcP, char **argv)
 	  option++;
 	  optlevel = atoi(argv[option++]);
 	  if (!optlevel || !argv[option]) return E_USAGE;
-	  username = strdup(argv[option++]);
+	  username = FixUsername(argv[option++]);
 	  if (!argv[option]) return E_USAGE;
 	  movelen = atoi(argv[option++]);
 	  if (!movelen) return E_USAGE;
