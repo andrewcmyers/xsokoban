@@ -53,12 +53,12 @@
 #define MAXSCOREENTRIES 10000
 
 /**/
-/* NUMBESTSCORES: the number of best scores kept for a given level
+/* NUMBESTSCORES: the number of best scores kept for a given level */
 /**/
 #define NUMBESTSCORES 5
 
 /**/
-/* MAXLEVELS: The number of levels for which best scores are kept
+/* MAXLEVELS: The number of levels for which best scores are kept */
 /**/
 #define MAXLEVELS 50
 
@@ -88,6 +88,6 @@
 #define MAXSOLNRANK 5
 
 /**/
-/* STACKDEPTH: Number of previous positions remembered in the move stack
+/* STACKDEPTH: Number of previous positions remembered in the move stack */
 /**/
 #define STACKDEPTH 1000

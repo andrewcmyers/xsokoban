@@ -1,22 +1,40 @@
+#include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/Xresource.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "config_local.h"
+
+#if !defined(GETPASS_PROTO)
+extern char *getpass(char *);
+#endif
+
+#if !defined(CREAT_PROTO)
+extern int creat(const char *, mode_t);
+#endif
+
+#if !defined(FPRINTF_PROTO)
+extern int fprintf(FILE *, const char *, ...);
+#endif
+
+#if !defined(FCLOSE_PROTO)
+extern int fclose(FILE *);
+#endif
 
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
-
-/* local system calls that need externs */
-extern char *strrchr(char *, char);
-extern char *getenv(char *);
 
 /* stuff from display.c */
 extern short LoadBitmaps(void);
 extern void MakeHelpWindows(void);
 extern void ClearScreen(void);
 extern void RedisplayScreen(void);
+extern void SyncScreen(void);
 extern void ShowScreen(void);
-extern void MapChar(char, int, int, int);
+extern void MapChar(char, int, int, Boolean);
 extern Pixmap GetObjectPixmap(int, int, char);
 extern int PickWall(int, int);
 extern void DrawString(int, int, char *);

@@ -77,7 +77,7 @@ typedef char Map[MAXROW+1][MAXCOL+1];
 extern Map map;
 
 extern short rows, cols, level, moves, pushes, savepack, packets;
-extern short scorelevel, scoremoves, scorepushes;
+extern unsigned short scorelevel, scoremoves, scorepushes;
 extern POS ppos;
 extern Display *dpy;
 extern unsigned int bit_width, bit_height;

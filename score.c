@@ -1,15 +1,22 @@
+#include "config_local.h"
+
 #include <stdio.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <netinet/in.h>
 #include <assert.h>
+#include <string.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#ifdef NEED_ENDIAN
+#include <machine/endian.h> /* for ntohs */
+#endif
+
 #include "externs.h"
 #include "globals.h"
 
 extern FILE *fopen();
 
 extern char *username;
-extern short scorelevel, scoremoves, scorepushes;
 
 static short scoreentries;
 static struct st_entry {
@@ -60,7 +67,7 @@ short OutputScore(void)
 {
   short ret;
 
-  if (ret = LockScore())
+  if ((ret = LockScore()))
        return ret;
 
   if ((ret = ReadScore()) == 0)
@@ -74,7 +81,7 @@ short MakeNewScore(void)
 {
   short ret = 0;
 
-  if (ret = LockScore())
+  if ((ret = LockScore()))
        return ret;
   
   scoreentries = 0;
@@ -96,7 +103,7 @@ short GetUserLevel(short *lv)
 {
   short ret = 0, pos;
 
-  if (ret = LockScore())
+  if ((ret = LockScore()))
        return ret;
 
   if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
@@ -114,7 +121,7 @@ short Score(Boolean show)
 {
   short ret;
 
-  if (ret = LockScore())
+  if ((ret = LockScore()))
        return ret;
   if ((ret = ReadScore()) == 0)
     if ((ret = MakeScore()) == 0)
@@ -124,7 +131,7 @@ short Score(Boolean show)
   return ((ret == 0) ? E_ENDGAME : ret);
 }
 
-ntohs_entry(struct st_entry *entry)
+void ntohs_entry(struct st_entry *entry)
 {
     entry->lv = ntohs(entry->lv);
     entry->mv = ntohs(entry->mv);
@@ -176,7 +183,7 @@ short ReadScore(void)
 int SolnRank(int j, Boolean ignore[])
 {
     int i, rank = 1;
-    short level = scoretable[j].lv;
+    unsigned short level = scoretable[j].lv;
     for (i = 0; i < j; i++) {
 	if ((!ignore || !ignore[i]) && scoretable[i].lv == level) {
 	    if (scoretable[i].mv <= scoretable[j].mv &&
@@ -240,8 +247,7 @@ void FlushDeletedScores(Boolean delete[])
  */
 short MakeScore(void)
 {
-  short ret = 0, pos, i;
-  Boolean insert, build = _true_;
+  short pos, i;
 
   pos = FindPos();		/* find the new score position */
   if (pos > -1) {		/* score table not empty */

@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
+
 #include "externs.h"
 #include "globals.h"
 
@@ -30,11 +32,6 @@ static POS tpos1, tpos2, lastppos, lasttpos1, lasttpos2;
 static char lppc, ltp1c, ltp2c;
 static short action, lastaction;
 
-/** For the checkpoint save **/
-static Map  tmp_map;
-static short tmp_pushes, tmp_moves, tmp_savepack;
-static POS   tmp_ppos;
-static Boolean undolock = _true_;
 static Boolean shift = _false_;
 static Boolean cntrl = _false_;
 static KeySym oldmove;
@@ -54,7 +51,6 @@ struct move_r {
 };
 static struct move_r move_stack[STACKDEPTH];
 static int move_stack_sp; /* points to last saved move. If no saved move, -1 */
-static short last_moves, last_pushes;
 static Map prev_map;
 static void RecordChange(void);
 static void UndoChange(void);
@@ -66,7 +62,6 @@ static void InitMoveStack(void);
  */
 short Play(void)
 {
-  short c;
   short ret;
   int bufs = 1;
   char buf[1];
@@ -75,7 +70,6 @@ short Play(void)
   
   ClearScreen();
   ShowScreen();
-  TempSave();
   InitMoveStack();
   ret = 0;
   while (ret == 0) {
@@ -140,34 +134,21 @@ short Play(void)
 	    if(cntrl)
 	      RedisplayScreen();
 	    break;
-	  case XK_c:
-	    /* make a temp save */
-	    if(!cntrl) {
-		TempSave();
-		InitMoveStack();
-	    }
-	    break;
 	  case XK_U:
 	    /* Do a full screen reset */
 	    if(!cntrl) {
 	      moves = pushes = 0;
 	      ret = ReadScreen();
+	      InitMoveStack();
 	      if(ret == 0) {
 		ShowScreen();
-		undolock = _true_;
 	      }
 	    }
 	    break;
 	  case XK_u:
-	    if(cntrl) {
-	      /* Reset to last temp save */
-	      TempReset();
-	      undolock = _true_;
-	      InitMoveStack();
-	      ShowScreen();
-	    } else {
-	      UndoChange();
-	      ShowScreen();
+	    if(!cntrl) {
+		UndoChange();
+		ShowScreen();
 	    }
 	    break;
 	  case XK_k:
@@ -228,7 +209,6 @@ void MakeMove(KeySym sym)
       lasttpos2.y = tpos2.y;
       ltp2c = map[tpos2.x][tpos2.y];
       DoMove(lastaction);
-      undolock = _false_;
       /* store the current keysym so we can do the repeat. */
       oldmove = sym;
     }
@@ -373,36 +353,6 @@ void UndoMove(void)
   SyncScreen();
 }
 
-/* make a temporary save so we don't screw up too much at once */
-void TempSave(void)
-{
-  short i, j;
-
-  for( i = 0; i < rows; i++)
-    for( j = 0; j < cols; j++)
-       tmp_map[i][j] = map[i][j];
-  tmp_pushes = pushes;
-  tmp_moves = moves;
-  tmp_savepack = savepack;
-  tmp_ppos.x = ppos.x;
-  tmp_ppos.y = ppos.y;
-}
-
-/* restore from that little temp save */
-void TempReset(void)
-{
-  short i, j;
-
-  for( i = 0; i < rows; i++)
-    for( j = 0; j < cols; j++)
-      map[i][j] = tmp_map[i][j];
-  pushes = tmp_pushes;
-  moves = tmp_moves;
-  savepack = tmp_savepack;
-  ppos.x = tmp_ppos.x;
-  ppos.y = tmp_ppos.y;
-}
-
 /* Function used by the help pager.  We ONLY want to flip pages if a key
  * key is pressed.. We want to exit the help pager if ENTER is pressed.
  * As above, <shift> and <control> and other such fun keys are NOT counted
@@ -456,7 +406,7 @@ void FindTarget(int px, int py, int pathlen)
 /* Do all the fun movement stuff with the mouse */
 void MoveMan(int mx, int my)
 {
-  int i, j, x, y;
+  int x, y;
 
   shift = cntrl = _false_;
 
@@ -507,7 +457,7 @@ Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
     for (dir = 0; dir < 4; dir++) {
 	int dx, dy, x1, y1, dist;
 	switch(dir) {
-	    case 0: dx = 1; dy = 0; break;
+	    default: dx = 1; dy = 0; break; /* use "default" to please gcc */
 	    case 1: dx = -1; dy = 0; break;
 	    case 2: dx = 0; dy = 1; break;
 	    case 3: dx = 0; dy = -1; break;
@@ -543,7 +493,7 @@ Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
 /* Push a nearby stone to the position indicated by (mx, my). */
 void PushMan(int mx, int my)
 {
-  int i, j, x, y, ox, oy, dist;
+  int i, x, y, ox, oy, dist;
 
   shift = cntrl = _false_;
 
@@ -701,23 +651,29 @@ static void InitMoveStack()
     move_stack[0].moves = moves;
     move_stack[0].pushes = moves;
     move_stack[0].saved = savepack;
-    bcopy(map, prev_map, sizeof(map));
+    memcpy(prev_map, map, sizeof(map));
 }
 
 /* Add a record to the move stack that records the changes since the
    last map state (which is stored in "prev_map"). Update "prev_map"
    to contain the current map so the next call to "RecordChange()"
    will perform correctly.
+   
+   If the stack runs out of space, dump the oldest half of the
+   saved moves and continue. Undoing past that point will jump
+   back to the beginning of the level. If the user is using the
+   mouse or any skill, should never happen.
 */
 static void RecordChange()
 {
     struct move_r *r = &move_stack[++move_stack_sp];
     int x,y, ndeltas = 0;
     assert(move_stack_sp < STACKDEPTH);
-    if (move_stack_sp == STACKDEPTH) {
+    if (move_stack_sp == STACKDEPTH - 1) {
 	int shift = STACKDEPTH/2;
-	bcopy(&move_stack[shift], &move_stack[0],
+	memcpy(&move_stack[0], &move_stack[shift],
 	      sizeof(struct move_r) * (STACKDEPTH - shift));
+	move_stack_sp -= shift;
 	r -= shift;
     }
     r[1].moves = moves;
@@ -742,7 +698,10 @@ static void RecordChange()
 	}
     }
     r->ndeltas = ndeltas;
-    bcopy(map, prev_map, sizeof(map));
+    if (ndeltas == 0) {
+	move_stack_sp--; /* Why push an identical entry? */
+    }
+    memcpy(prev_map, map, sizeof(map));
 }
 
 static void UndoChange()
@@ -773,6 +732,6 @@ static void UndoChange()
 	    map[r->deltas[i].x][r->deltas[i].y] = r->deltas[i].oldchar;
 	}
 	move_stack_sp--;
-	bcopy(map, prev_map, sizeof(map));
+	memcpy(prev_map, map, sizeof(map));
     }
 }

@@ -2,6 +2,10 @@
 #include <pwd.h>
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
 #include "externs.h"
 #include "globals.h"
 #include "options.h"
@@ -10,7 +14,7 @@
 /* useful globals */
 Boolean scoring = _true_;
 short level, packets, savepack, moves, pushes, rows, cols;
-short scorelevel, scoremoves, scorepushes;
+unsigned short scorelevel, scoremoves, scorepushes;
 POS ppos;
 char map[MAXROW + 1][MAXCOL + 1];
 char *username = NULL, *progname = NULL, *bitpath = NULL;
@@ -117,7 +121,7 @@ void main(int argc, char **argv)
  */
 short CheckCommandLine(int *argcP, char **argv)
 {
-  XrmDatabase command, temp;
+  XrmDatabase command = NULL, temp = NULL;
   char *res;
   char buf[1024];
   int option;

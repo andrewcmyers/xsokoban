@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
+
 #include "externs.h"
 #include "globals.h"
 #include "defaults.h"
@@ -251,9 +254,9 @@ void DestroyDisplay(void)
   }
 }
 
-/* this loads in a single bitmap.  If this bitmap is the largest in the x or
+/* Load in a single bitmap.  If this bitmap is the largest in the x or
  * y direction, set bit_width or bit_height appropriately.  If your pixmaps
- * are of varying sizes, a bit_width by bit_height box is gaurenteed to be
+ * are of varying sizes, a bit_width by bit_height box is guaranteed to be
  * able to surround all of them.
  */
 Boolean LoadOneBitmap(char *fname, char *altname, Pixmap *pix)
@@ -293,32 +296,31 @@ Boolean LoadOneBitmap(char *fname, char *altname, Pixmap *pix)
       return _true_;
     }
   }
-  if(!bitpath || !*bitpath || load_fail) {
-    sprintf(buf, "%s/%s", BITPATH, fname);
-    if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-       BitmapSuccess) {
+  assert(!bitpath || !*bitpath || load_fail);
+  sprintf(buf, "%s/%s", BITPATH, fname);
+  if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
+     BitmapSuccess) {
       if(altname && *altname) {
-        fprintf(stderr, "%s: Cannot find '%s', trying alternate.\n",
-                progname, fname);
-        sprintf(buf, "%s/%s", BITPATH, fname);
-        if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-           BitmapSuccess) {
-          fprintf(stderr, "%s: Cannot find '%s'!\n", progname, altname);
-          return _false_;
-        } else {
-	  if(dum1 > bit_width) bit_width = dum1;
-	  if(dum2 > bit_height) bit_height = dum2;
-          return _true_;
-	}
+	  fprintf(stderr, "%s: Cannot find '%s', trying alternate.\n",
+		  progname, fname);
+	  sprintf(buf, "%s/%s", BITPATH, fname);
+	  if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
+	     BitmapSuccess) {
+	      fprintf(stderr, "%s: Cannot find '%s'!\n", progname, altname);
+	      return _false_;
+	  } else {
+	      if(dum1 > bit_width) bit_width = dum1;
+	      if(dum2 > bit_height) bit_height = dum2;
+	      return _true_;
+	  }
       } else {
-        fprintf(stderr, "%s: Cannot find '%s'!\n", progname, fname);
-        return _false_;
+	  fprintf(stderr, "%s: Cannot find '%s'!\n", progname, fname);
+	  return _false_;
       }
-    } else {
+  } else {
       if(dum1 > bit_width) bit_width = dum1;
       if(dum2 > bit_height) bit_height = dum2;
       return _true_;
-    }
   }
 }
 
