@@ -93,7 +93,7 @@
 /*
    ANYLEVEL: Allow any user to play any level and enter a score for it
 */
-#define ANYLEVEL 1
+#define ANYLEVEL 0
 
 /*
    MAXSOLNRANK: The maximum solution rank for which an entry is retained
