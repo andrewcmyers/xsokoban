@@ -68,7 +68,10 @@ unsigned long GetColorOrDefault(Display *dpy,
 	  val = default_name_8;
 	else
 	  val = default_white_2 ? "white" : "black";
-	if (XParseColor(dpy, cmap, default_name_8, &c) &&
+	if (XParseColor(dpy, cmap, val, &c) &&
+	    XAllocColor(dpy, cmap, &c))
+	  return c.pixel;
+	if (XParseColor(dpy, cmap, default_white_2 ? "white" : "black", &c) &&
 	    XAllocColor(dpy, cmap, &c))
 	  return c.pixel;
 	fprintf(stderr, "Cannot obtain color for %s\n", resource_name);
