@@ -10,6 +10,10 @@
 #include "globals.h"
 #include "defaults.h"
 
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE -1
+#endif
+
 static Boolean initted = _false_;
 static unsigned long sb_bg, panel_bg[3], border_color, panel_fg, 
   text_color, text_highlight, thumb_colors[3], separation_color;
@@ -218,13 +222,10 @@ static void PositionThumb(Window thumb)
 short DisplayScores_(Display *dpy, Window win)
 {
     Status status;
-    Window root;
-    int x, y;
     XEvent xev;
     Window scrollbar, panel, thumb;
     short ret = 0;
     Boolean dragging = _false_;
-    int drag_x, drag_y;
     Boolean scores_dirty = _false_;
 
     if (!initted) {
@@ -292,7 +293,7 @@ short DisplayScores_(Display *dpy, Window win)
 		PositionThumb(thumb);
 		XClearWindow(dpy, win);
 		DrawScores(&wa, win);
-		XSync(dpy, FALSE); /* make sure we don't get ahead */
+		XSync(dpy, False); /* make sure we don't get ahead */
 	    }
 	}
 	XNextEvent(dpy, &xev);
