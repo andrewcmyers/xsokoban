@@ -81,9 +81,9 @@ short LockScore(void)
 	    clocks. To do it right, we'd have to create another file on
 	    the server machine, and compare timestamps. Not worth it.
 	 */
-	 if (t - s.st_ctime < TIMEOUT) {
+	 if (t - s.st_ctime <= TIMEOUT) {
 	     fprintf(stderr,
-     "Warning: some other process is mucking with with the lock file\n");
+	 "Warning: some other process is mucking with the lock file\n");
 	     return E_WRITESCORE;
 	 }
 	 /* Assume that the last process to muck with the score file
@@ -96,14 +96,13 @@ short LockScore(void)
 	     return E_WRITESCORE;
 	 }
 	 result = mkdir(LOCKFILE, 0);
+	 if (result < 0) {
+	     fprintf(stderr, "Warning: Couldn't create %s\n", LOCKFILE);
+	     return E_WRITESCORE;
+	 }
      }
      
-     if (result < 0) {
-	 fprintf(stderr, "Warning: Couldn't create %s\n", LOCKFILE);
-	 return E_WRITESCORE;
-     } else {
-	 return 0;
-     }
+     return 0;
 }
 
 void UnlockScore(void)
@@ -142,7 +141,9 @@ short MakeNewScore(void)
     ret = E_FOPENSCORE;
   else {
     sfdbn = fileno(scorefile);
-    if (write(sfdbn, &scoreentries, 2) != 2)
+    if (write(sfdbn, SCORE_VERSION, 4) != 4)
+      ret = E_WRITESCORE;
+    else if (write(sfdbn, &scoreentries, 2) != 2)
       ret = E_WRITESCORE;
     fclose(scorefile);
   }
@@ -205,7 +206,7 @@ short ReadScore(void)
     char magic[5];
     if (read(sfdbn, &magic[0], 4) != 4) ret = E_READSCORE;
     magic[4] = 0;
-    if (0 == strcmp(magic, "xs01")) {
+    if (0 == strcmp(magic, SCORE_VERSION)) {
 	/* we have the right version */
     } else {
 	fprintf(stderr, "Warning: old-style score file\n");
@@ -365,11 +366,11 @@ short FindPos(void)
     However, they are not perfect.
 
      The vulnerability here is that if we take more than 10 seconds to
-     finish Score(), AND someone else decides to break the lock,
-     AND they pick the same temporary name, they may write on top of
-     the same file. Then we could scramble the score file by suddenly
-     moving it with alacrity to SCOREFILE before they finish their
-     update. This is quite unlikely, but possible.
+     finish Score(), AND someone else decides to break the lock, AND
+     they pick the same temporary name, they may write on top of the
+     same file. Then we could scramble the score file by moving it with
+     alacrity to SCOREFILE before they finish their update. This is
+     quite unlikely, but possible.
 
      We could limit the damage by writing just the one score we're
      adding to a temporary file *when we can't acquire the lock*. Then,
@@ -399,7 +400,6 @@ short WriteScore(void)
   scorefile = fopen(tempfile, "w");
   if (!scorefile) return E_FOPENSCORE;
   sfdbn = fileno(scorefile);
-  scorefile = fdopen(sfdbn, "w");
 
   scoreentries = htons(scoreentries);
   if (fwrite(SCORE_VERSION, 4, 1, scorefile) != 1) {
