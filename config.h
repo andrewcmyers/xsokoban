@@ -35,12 +35,7 @@
 #endif
 
 /*
-   BITPATH: the full pathname to the bitmap file defaults. If you want
-	    to support both color and B&W displays, change this to
-	    ROOTDIR "/bitmaps/defaults" and create symbolic links in
-	    that directory to all the files in bitmaps/color and
-	    bitmaps/bw. The program will automatically use the bitmaps
-	    if the display isn't 8 bits deep.
+   BITPATH: the full pathname to the bitmap/pixmap file defaults.
 */
 #ifndef BITPATH
 #define BITPATH ROOTDIR "/bitmaps/defaults"
