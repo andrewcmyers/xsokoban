@@ -8,6 +8,21 @@
    manually edit SCREENPATH, SAVEPATH, etc. to start with ROOTDIR.
 ***********************************************************************/
 
+/* HERE: Your local domain. This string will be appended to every user
+   name that is sent to the WWW sokoban server, in order to avoid collisions.
+   Change it!
+
+   For example, if you are at Stanford, a good value for HERE would be
+   "@stanford.edu". Making HERE specific to individual machines is a
+   bad idea.
+
+   Usernames that are specified through the "xsokoban.username" resource
+   do not have HERE appended to them.
+*/
+#ifndef HERE
+#define HERE "@somewhere.somedomain"
+#endif
+
 /*
    ROOTDIR: The directory below which the xsokoban data files, such as
 	    the bitmaps, score file, and saved games, are stored.  I
@@ -124,7 +139,7 @@
    to an public xsokoban server maintained by Andrew Myers. The xsokoban
    home page is at
     
-       http://clef.lcs.mit.edu/~andru/xsokoban.html
+       http://www.pmg.lcs.mit.edu/~andru/xsokoban.html
     
    In order to create your own WWW xsokoban score server, a few small
    shell scripts must be used; they are not provided in this

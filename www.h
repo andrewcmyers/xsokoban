@@ -5,7 +5,7 @@
    WWWHOST: Host where WWW scores are stored
 */
 #ifndef WWWHOST
-#define WWWHOST "clef.lcs.mit.edu"
+#define WWWHOST "www.pmg.lcs.mit.edu"
 #endif
 
 /*
@@ -13,21 +13,6 @@
 */
 #ifndef WWWPORT
 #define WWWPORT 80
-#endif
-
-/* HERE: Your local domain. This string will be appended to every user
-   name that is sent to the WWW sokoban server, in order to avoid collisions.
-   Change it!
-
-   For example, if you are at Stanford, a good value for HERE would be
-   "@stanford.edu". Making HERE specific to individual machines is a
-   bad idea.
-
-   Usernames that are specified through the "xsokoban.username" resource
-   do not have HERE appended to them.
-*/
-#ifndef HERE
-#define HERE "@lcs.mit.edu"
 #endif
 
 /*
