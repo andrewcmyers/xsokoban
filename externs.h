@@ -29,10 +29,6 @@
 extern char *getpass(char *);
 #endif
 
-#if !defined(CREAT_PROTO)
-extern int creat(const char *, mode_t);
-#endif
-
 #if !defined(FPRINTF_PROTO)
 extern int fprintf(FILE *, const char *, ...);
 #endif
@@ -60,6 +56,8 @@ extern int rename(char *from, char *to);
 #if !defined(STRDUP_PROTO)
 extern char *strdup(const char *);
 #endif
+
+extern int fsync(int);
 
 /* The boolean typedef */
 typedef enum { _false_ = 0, _true_ = 1 } Boolean;
