@@ -1,4 +1,6 @@
 EXTRA_DEFINES=	-DNDEBUG
+EXTRA_INCLUDES= -I/usr/local/include
+EXTRA_LIBRARIES=-L/usr/local/lib -lXpm
 
 SYS_LIBRARIES=	$(XLIB)
 SRCS=		display.c main.c resources.c play.c score.c screen.c save.c

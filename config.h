@@ -29,9 +29,10 @@
 #define SAVEPATH ROOTDIR "/saves"
 #endif
 
-/* BITPATH: the full pathname to the bitmap file defaults. */
+/* BITPATH: the full pathname to the bitmap file defaults. If you
+   are not using the color bitmaps, it should be "/bitmaps/bw". */
 #ifndef BITPATH
-#define BITPATH ROOTDIR "/bitmaps/defaults"
+#define BITPATH ROOTDIR "/bitmaps/color"
 #endif
 
 /**/
@@ -50,6 +51,15 @@
 #endif
 
 /**/
+/* USE_XPM: Look for color pixmaps to define the appearance of the game.     */
+/* This requires that you have the XPM library, which reads in ".xpm"        */
+/* files and produces pixmaps. Set the BITPATH variable, above, accordingly. */
+/**/
+#ifndef USE_XPM
+#define USE_XPM 1
+#endif
+
+/**/
 /* MAXUSERNAME: defines the maximum length of a system's user name */
 /**/
 #define MAXUSERNAME     32
@@ -60,7 +70,7 @@
 #define MAXSCOREENTRIES 10000
 
 /**/
-/* SUPERUSER: defines the name of the game superuser */
+/* SUPERUSER: defines the name of the local game owner. Almost never "root"! */
 /**/
 #ifndef SUPERUSER
 #define SUPERUSER "andru"

@@ -18,6 +18,9 @@
 /* Are "htons" and "ntohs" defined in <netinet/in.h>? */
 #undef NEED_NETINET_IN_H
 
+/* Are "htons" and "ntohs" defined in <sys/byteorder.h>? */
+#undef NEED_BYTEORDER
+
 /* Is there a prototype for "creat"? */
 #undef CREAT_PROTO
 

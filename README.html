@@ -18,6 +18,16 @@ Installation -
     else edit 'Makefile' to set the compiler and compiler flags correctly
     and select the right libraries to compile with.
 
+      - If you want to have the game run in color, you will need the
+	XPM library. In this case, make sure that in the previous step, the
+	option EXTRA_INCLUDES points to the directory containing
+	"xpm.h", and that EXTRA_LIBRARIES references the directory
+	containing the library "libXpm.a". Last time I checked, XPM
+	could be obtained by FTP from export.lcs.mit.edu:contrib. Make
+	sure your version of XPM is up to date. The current pixmaps
+	were produced for version 3.2g.
+    
+
   - Compile by typing 'make'.  If something goes wrong, and you can track
     down an error, send me a bug report (including what changes you needed
     to make, and I will see about fixing it for later distributions).

@@ -27,6 +27,31 @@ extern int abs(int);
 #define ISCLEAR(x,y) ((map[x][y] == ground) || (map[x][y] == store))
 #define ISPACKET(x,y) ((map[x][y] == packet) || (map[x][y] == save))
 
+/* Some macros useful in MultiPushPacket */
+#define D_RIGHT    0
+#define D_UP       1
+#define D_LEFT     2
+#define D_DOWN     3
+
+#define UNVISITED (BADMOVE+1)
+
+#define SETPACKET(x, y) map[x][y] = (map[x][y] == ground) ? packet : save
+#define CLEARPACKET(x, y) map[x][y] = (map[x][y] == packet) ? ground : store
+#define CAN_GO(x, y, d) \
+  (ISCLEAR(x+Dx[d], y+Dy[d]) && PossibleToReach(x-Dx[d], y-Dy[d]))
+#define OPDIR(d) ((d+2) % 4)
+
+/* Variables used in MultiPushPacket. */
+static int pmap[MAXROW+1][MAXCOL+1][4];
+static char dmap[MAXROW+1][MAXCOL+1][4];
+
+static int x1, y1;
+static int Dx[4] = {0, -1,  0, 1};
+static int Dy[4] = {1,  0, -1, 0};
+static int moveKeys[4] = {XK_Right, XK_Up, XK_Left, XK_Down};
+void MultiPushPacket(int, int);
+
+
 static XEvent xev;
 static POS tpos1, tpos2, lastppos, lasttpos1, lasttpos2;
 static char lppc, ltp1c, ltp2c;
@@ -55,6 +80,7 @@ static Map prev_map;
 static void RecordChange(void);
 static void UndoChange(void);
 static void InitMoveStack(void);
+
 
 /* play a particular level.
  * All we do here is wait for input, and dispatch to appropriate routines
@@ -429,10 +455,12 @@ void MoveMan(int mx, int my)
     return;
   }
 
+  /* If the click was on a packet then try to 'drag' the packet */
   if(ISPACKET(x, y)) {
-    HelpMessage();
+    MultiPushPacket(x, y);
     return;
   }
+
   /* if we clicked on the player or a wall (or an object but that was already
    * handled) the we don't want to move.
    */
@@ -496,6 +524,158 @@ Boolean FindOrthogonalObject(int x, int y, int *ox, int *oy)
     return foundOne ? _true_ : _false_ ;
 }
 
+
+/* Kind of a self explanatory name, ehh? */
+Boolean PossibleToReach(int x, int y)
+{
+  int i,j;
+
+  /* Fill the trace map */
+  for(i = 0; i <= MAXROW; i++)
+    for (j = 0; j <= MAXCOL; j++)
+      findmap[i][j] = BADMOVE;
+
+  /* flood fill search to find a shortest path to the push point. */
+  FindTarget(x, y, 0);
+  return (findmap[ppos.x][ppos.y] != BADMOVE);
+}
+
+/* Try to find the goal from (x, y), coming from 'direction', */
+/* having walked 'dist' units.                                */
+int PushFromDir(int x, int y, int direction, int dist)
+{
+  int r, res, d, fx = ppos.x, fy = ppos.y;
+
+  /* Have we been here before? */
+  if (pmap[x][y][direction] != UNVISITED) {
+    if (pmap[x][y][direction] == BADMOVE)
+      return BADMOVE;
+    else
+      return dist+pmap[x][y][direction]-1;
+  }
+
+  /* Have we found the target? */
+  if (x==x1 && y==y1) {
+    pmap[x][y][direction] = 1;
+    return dist;
+  }
+
+  /* Try going in all four directions. Choose the shortest path, if any */
+  res = BADMOVE;
+  pmap[x][y][direction] = BADMOVE;
+  for (d = 0; d < 4; d++) {
+    ppos.x = fx; ppos.y = fy;
+    if (CAN_GO(x, y, d)) {
+      CLEARPACKET(x, y);
+      SETPACKET(x+Dx[d], y+Dy[d]);
+      ppos.x = x;
+      ppos.y = y;
+      r = PushFromDir(x+Dx[d], y+Dy[d], OPDIR(d), dist+1);
+      if (r < res) {
+	dmap[x][y][direction] = d;
+	res = r;
+      }
+      SETPACKET(x, y);
+      CLEARPACKET(x+Dx[d], y+Dy[d]);
+    }
+  }
+  pmap[x][y][direction] = (res == BADMOVE) ? BADMOVE : res-dist+1;
+  ppos.x = fx;
+  ppos.y = fy;
+  return res;
+}
+
+/* 
+   The player has pressed button two on a packet.
+   Wait for the release of the button and then try to move the
+   packet from the button press coord to the button release coord.
+   Give help message (i.e. beep...) if it is not possible.
+   Code by Jan Sparud.
+*/
+void MultiPushPacket(int x0, int y0)
+{
+  int i, j, k, d = 0, r, result;
+  char manChar; 
+
+  /* Wait for button release */
+  XNextEvent(dpy, &xev);
+  while (!(xev.type == ButtonRelease &&
+      (xev.xbutton.button == Button2 ||
+       xev.xbutton.button == Button1)))
+    XNextEvent(dpy, &xev);
+
+  y1 = wX(xev.xbutton.x);
+  x1 = wY(xev.xbutton.y);
+
+  if (x0 == x1 && y0 == y1) {
+	/* Player just clicked on a stone. If man is next to stone,
+	   just push it once.
+        */
+    if(ISPLAYER(x0 - 1, y0))
+      MakeMove(XK_Down);
+    else if(ISPLAYER(x0 + 1, y0))
+      MakeMove(XK_Up);
+    else if(ISPLAYER(x0, y0 - 1))
+      MakeMove(XK_Right);
+    else if(ISPLAYER(x0, y0 + 1))
+      MakeMove(XK_Left);
+    else {
+      /* we weren't right next to the object */
+      HelpMessage();
+      return;
+    }
+    return;
+  }
+
+  if (!ValidPosn(x1, y1) || (!ISCLEAR(x1, y1) && !ISPLAYER(x1, y1))) {
+    HelpMessage();
+    return;
+  }
+
+  /* Remove (temporarily) the player from the board */
+  manChar = map[ppos.x][ppos.y];
+  map[ppos.x][ppos.y] = map[ppos.x][ppos.y] == player ? ground : store; 
+
+  /* Prepare the distance map */
+  for (i=0; i<MAXROW; i++)
+    for (j=0; j<MAXCOL; j++)
+      if (ISCLEAR(i, j) || (i==x0 && j==y0))
+	for (k=0; k<4; k++)
+	  pmap[i][j][k] = UNVISITED;
+      else
+	for (k=0; k<4; k++)
+	  pmap[i][j][k] = BADMOVE;
+
+  /* Try to go from the start position in all four directions */
+  result = BADMOVE;
+  for (k = 0; k < 4; k++)
+    if (CAN_GO(x0, y0, k)) {
+      r = PushFromDir(x0, y0, OPDIR(k), 1);
+      if (r < result) {
+	d = OPDIR(k);
+	result = r;
+      }
+    }
+
+  /* Put the player on the board again */
+  map[ppos.x][ppos.y] = manChar; 
+
+  /* If we found a way (i.e. result < BADMOVE) then follow the route */
+  if (result < BADMOVE) {
+    for (i = x0, j = y0; !(i==x1 && j==y1);) {
+      d = OPDIR(dmap[i][j][d]);
+      RunTo(i+Dx[d], j+Dy[d]);
+      i -= Dx[d];
+      j -= Dy[d];
+      MakeMove(moveKeys[OPDIR(d)]);
+    }
+  } else {
+    /* Otherwise, beep */
+    HelpMessage();
+    return;
+  }
+}
+
 /* Push a nearby stone to the position indicated by (mx, my). */
 void PushMan(int mx, int my)
 {
@@ -514,23 +694,9 @@ void PushMan(int mx, int my)
     return;
   }
 
-  /* if we are clicking on an object, and are right next to it, we want to
-   * move the object.
-   */
+  /* If the click was on a packet then try to 'drag' the packet */
   if(ISPACKET(x, y)) {
-    if(ISPLAYER(x - 1, y))
-      MakeMove(XK_Down);
-    else if(ISPLAYER(x + 1, y))
-      MakeMove(XK_Up);
-    else if(ISPLAYER(x, y - 1))
-      MakeMove(XK_Right);
-    else if(ISPLAYER(x, y + 1))
-      MakeMove(XK_Left);
-    else {
-      /* we weren't right next to the object */
-      HelpMessage();
-      return;
-    }
+    MultiPushPacket(x, y);
     return;
   }
 

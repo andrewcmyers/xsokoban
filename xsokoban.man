@@ -47,6 +47,12 @@ can be pushed in that direction, and the player is not directly between
 the destination and the object.  Before pushing the object, the player
 is moved optimally to start the push.
 
+Either the left or middle mouse buttons may be used to "drag" an object
+from an initial to a final position. If a straightforward way exists
+for the man to push the object without moving any other objects, the
+man will execute appropriate moves and pushes to get the object to
+the desired destination.
+
 The right button mouse undoes the last user action, and may be used any
 number of times.
 

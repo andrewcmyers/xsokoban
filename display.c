@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/limits.h>
 
 #include "externs.h"
 #include "globals.h"
 #include "defaults.h"
 #include "help.h"
+
+#if USE_XPM
+#include "xpm.h"
+#endif
 
 /* mnemonic defines to help orient some of the text/line drawing, sizes */
 #define HELPLINE ((bit_height * MAXROW) + 30)
@@ -15,7 +20,7 @@
 
 /* local to this file */
 static Window win;
-static GC gc, rgc, drgc;
+static GC gc, rgc, drgc, clr_gc;
 static unsigned int width, height, depth;
 static XFontStruct *finfo;
 static Boolean optwalls;
@@ -40,15 +45,15 @@ Colormap cmap;
  * wall bitmaps, they must use these names
  */
 static char *wallname[] = {
- "lonewall.xbm", "southwall.xbm", "westwall.xbm", "llcornerwall.xbm",
- "northwall.xbm", "vertiwall.xbm", "ulcornerwall.xbm", "west_twall.xbm",
- "eastwall.xbm", "lrcornerwall.xbm", "horizwall.xbm", "south_twall.xbm",
- "urcornerwall.xbm", "east_twall.xbm", "north_twall.xbm", "centerwall.xbm"
+ "lonewall", "southwall", "westwall", "llcornerwall",
+ "northwall", "vertiwall", "ulcornerwall", "west_twall",
+ "eastwall", "lrcornerwall", "horizwall", "south_twall",
+ "urcornerwall", "east_twall", "north_twall", "centerwall"
 };
 
-/* Do all the nasty stuff like makeing the windows, setting all the defaults
+/* Do all the nasty X stuff like making the windows, setting all the defaults,
  * creating all the pixmaps, loading everything, and mapping the window.
- * this does NOT do the XOpenDisplay() so that the -display switch can be
+ * This does NOT do the XOpenDisplay(), so that the -display switch can be
  * handled cleanly.
  */
 short InitX(void)
@@ -112,7 +117,7 @@ short InitX(void)
   if(rval != (char *)0)
     tmpwalls = StringToBoolean(rval);
 
-  /* walls are funny.  if a alternate bitpath has been defined, assume
+  /* Walls are funny.  If a alternate bitpath has been defined, assume
    * !fancywalls unless explicitly told fancy walls.  If the default 
    * bitpath is being used, you can assume fancy walls.
    */
@@ -148,7 +153,8 @@ short InitX(void)
   wattr.background_pixel = back;
   wattr.border_pixel = bord;
   wattr.backing_store = Always;
-  wattr.event_mask = (KeyPressMask | ExposureMask | ButtonPressMask);
+  wattr.event_mask = (KeyPressMask | ExposureMask | ButtonPressMask |
+		      ButtonReleaseMask);
   wattr.cursor = this_curs;
 
   /* whee, create the window, we create it with NO size so that we
@@ -203,7 +209,7 @@ short InitX(void)
   gc = XCreateGC(dpy, work, gc_mask, &val);
   rgc = XCreateGC(dpy, blank, gc_mask, &reval);
   drgc = XCreateGC(dpy, work, gc_mask, &reval);
-  
+
   /* make the help windows and the working bitmaps */
   /* we need to do this down here since it requires GCs to be allocated */
   for(i = 0; i < HELP_PAGES; i++)
@@ -262,73 +268,103 @@ void DestroyDisplay(void)
   }
 }
 
+static Boolean full_pixmap[256];
+
+static Boolean TryBitmapFile(char *template, Pixmap *pix, char *bitpath,
+			     char *fname, int map)
+{
+  unsigned int width, height;
+  int dum3, dum4;
+  sprintf(buf, template, bitpath, fname);
+
+  if(XReadBitmapFile(dpy, win, buf, &width, &height, pix, &dum3, &dum4) ==
+       BitmapSuccess) {
+       if (width > bit_width) bit_width = width;
+       if (height > bit_height) bit_height = height;
+       full_pixmap[map] = _false_;
+       return _true_;
+  }
+  return _false_;
+}
+
+#if USE_XPM
+/*
+   Try to load an XPM file. Return "_true_" if success, "_false_" otherwise.
+   Print an error message to stderr if an invalid XPM file was found.
+*/
+static Boolean TryPixmapFile(char *template, Pixmap *pix, char *bitpath,
+                             char *fname, int map)
+{
+    int ret;
+    XpmAttributes attr;
+    XWindowAttributes wa;
+    if (Success != (ret = XGetWindowAttributes(dpy, win, &wa)))
+#if 0
+    {
+	fprintf(stderr, "What? Can't get attributes of window\n");
+	abort();
+    }
+#else
+    ;
+#endif
+    attr.valuemask = XpmCloseness | XpmExactColors | XpmColorKey | XpmColormap |
+		    XpmDepth;
+    attr.colormap = wa.colormap;
+    attr.depth = wa.depth;
+    attr.color_key = XPM_COLOR;
+    attr.closeness = 2;
+    attr.exactColors = _false_;
+    sprintf(buf, template, bitpath, fname);
+    if ((ret = XpmReadFileToPixmap(dpy, win, buf, pix, NULL, &attr)) ==
+	 XpmSuccess) {
+	
+	if (attr.width > bit_width) bit_width = attr.width;
+	if (attr.height > bit_height) bit_height = attr.height;
+	full_pixmap[map] = _true_;
+	return _true_;
+    }
+    if (ret != XpmOpenFailed) {
+	char *errmsg;
+	switch(ret) {
+	    case 1: errmsg = "XPM: color error"; break;
+	    case 0: errmsg = "XPM: success"; break;
+	    case -1: errmsg = "XPM: open failed"; break;
+	    case -2: errmsg = "XPM: file format invalid"; break;
+	    case -3: errmsg = "XPM: No memory"; break;
+	    case -4: errmsg = "XPM: color failed"; break;
+	    default: errmsg = "Unknown error code from XPM"; break;
+	}
+	fprintf(stderr, "XpmReadFileToPixmap (%s) failed, %s\n", buf, errmsg);
+    }
+    return _false_;
+}
+#endif
+
 /* Load in a single bitmap.  If this bitmap is the largest in the x or
  * y direction, set bit_width or bit_height appropriately.  If your pixmaps
  * are of varying sizes, a bit_width by bit_height box is guaranteed to be
  * able to surround all of them.
  */
-Boolean LoadOneBitmap(char *fname, char *altname, Pixmap *pix)
+Boolean LoadOneBitmap(char *fname, char *altname, Pixmap *pix, int map)
 {
-  unsigned int dum1, dum2;
-  int dum3, dum4;
-  Boolean load_fail = _false_;
-
   if(bitpath && *bitpath) {
     /* we have something to try other than the default, let's do it */
-    sprintf(buf, "%s/%s", bitpath, fname);
-    if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-       BitmapSuccess) {
-      if(altname && *altname) {
-        fprintf(stderr, "%s: Cannot find '%s/%s', trying alternate.\n",
-                progname, bitpath, fname);
-        sprintf(buf, "%s/%s", bitpath, altname);
-        if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-           BitmapSuccess) {
-          load_fail = _true_;
-          fprintf(stderr, "%s: Cannot find '%s/%s', trying defaults.\n",
-                  progname, bitpath, altname);
-        } else {
-	  if(dum1 > bit_width) bit_width = dum1;
-	  if(dum2 > bit_height) bit_height = dum2;
-          return _true_;
-        }
-      } else {
-        load_fail = _true_;
-        fprintf(stderr, "%s: Cannot find '%s/%s', trying alternate.\n",
-                progname, bitpath, fname);
-      }
-    } else {
-      if(dum1 > bit_width) bit_width = dum1;
-      if(dum2 > bit_height) bit_height = dum2;
-      return _true_;
-    }
+#if USE_XPM
+    if (TryPixmapFile("%s/%s.xpm", pix, bitpath, fname, map)) return _true_;
+    if (TryPixmapFile("%s/%s.xpm", pix, bitpath, altname, map)) return _true_;
+#endif
+    if (TryBitmapFile("%s/%s.xbm", pix, bitpath, fname, map)) return _true_;
+    if (TryBitmapFile("%s/%s.xbm", pix, bitpath, altname, map)) return _true_;
+    return _false_;
   }
-  assert(!bitpath || !*bitpath || load_fail);
-  sprintf(buf, "%s/%s", BITPATH, fname);
-  if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-     BitmapSuccess) {
-      if(altname && *altname) {
-	  fprintf(stderr, "%s: Cannot find '%s', trying alternate.\n",
-		  progname, fname);
-	  sprintf(buf, "%s/%s", BITPATH, fname);
-	  if(XReadBitmapFile(dpy, win, buf, &dum1, &dum2, pix, &dum3, &dum4) !=
-	     BitmapSuccess) {
-	      fprintf(stderr, "%s: Cannot find '%s'!\n", progname, altname);
-	      return _false_;
-	  } else {
-	      if(dum1 > bit_width) bit_width = dum1;
-	      if(dum2 > bit_height) bit_height = dum2;
-	      return _true_;
-	  }
-      } else {
-	  fprintf(stderr, "%s: Cannot find '%s'!\n", progname, fname);
-	  return _false_;
-      }
-  } else {
-      if(dum1 > bit_width) bit_width = dum1;
-      if(dum2 > bit_height) bit_height = dum2;
-      return _true_;
-  }
+
+#if USE_XPM
+  if (TryPixmapFile("%s/%s.xpm", pix, BITPATH, fname, map)) return _true_;
+  if (TryPixmapFile("%s/%s.xpm", pix, BITPATH, altname, map)) return _true_;
+#endif
+  if (TryBitmapFile("%s/%s.xbm", pix, BITPATH, fname, map)) return _true_;
+  if (TryBitmapFile("%s/%s.xbm", pix, BITPATH, altname, map)) return _true_;
+  return _false_;
 }
 
 /* loads all the bitmaps in.. if any fail, it returns E_NOBITMAP up a level
@@ -339,26 +375,35 @@ short LoadBitmaps(void)
 {
   register int i;
 
-  if(!LoadOneBitmap("man.xbm", NULL, &man)) return E_NOBITMAP;
-  if(!LoadOneBitmap("saveman.xbm", "man.xbm", &saveman)) return E_NOBITMAP;
-  if(!LoadOneBitmap("object.xbm", NULL, &object)) return E_NOBITMAP;
-  if(!LoadOneBitmap("treasure.xbm", NULL, &treasure)) return E_NOBITMAP;
-  if(!LoadOneBitmap("goal.xbm", NULL, &goal)) return E_NOBITMAP;
-  if(!LoadOneBitmap("floor.xbm", NULL, &floor)) return E_NOBITMAP;
+  if(!LoadOneBitmap("man", NULL, &man, player)) return E_NOBITMAP;
+  if(!LoadOneBitmap("saveman", "man", &saveman, playerstore)) return E_NOBITMAP;
+  if(!LoadOneBitmap("object", NULL, &object, packet)) return E_NOBITMAP;
+  if(!LoadOneBitmap("treasure", NULL, &treasure, save)) return E_NOBITMAP;
+  if(!LoadOneBitmap("goal", NULL, &goal, store)) return E_NOBITMAP;
+  if(!LoadOneBitmap("floor", NULL, &floor, ground)) return E_NOBITMAP;
 
   if(optwalls) {
     for(i = 0; i < NUM_WALLS; i++) {
-      if(!LoadOneBitmap(wallname[i], "wall.xbm", &walls[i])) return E_NOBITMAP;
+      if(!LoadOneBitmap(wallname[i], "wall", &walls[i], wall))
+		return E_NOBITMAP;
     }
   } else {
-    if(!LoadOneBitmap("wall.xbm", NULL, &walls[0])) return E_NOBITMAP;
+    if(!LoadOneBitmap("wall", NULL, &walls[0], wall)) return E_NOBITMAP;
   }
   return 0;
 }
 
-/* create and draw all the help windows in.  This is not wholly fullproff with
- * the variable size bitmap code yet, as the constants to place things on the
- * screen, are just that, constants.  This could most likley be reworked.
+static void DrawPixmap(Drawable w, Pixmap p, int mapchar, int x, int y)
+{
+  if (full_pixmap[mapchar])
+      XCopyArea(dpy, p, w, gc, 0, 0, bit_width, bit_height, x, y);
+  else
+      XCopyPlane(dpy, p, w, gc, 0, 0, bit_width, bit_height, x, y, 1);
+}
+
+/* Create and draw all the help windows.  This is not wholly foolproof with
+ * the variable-size bitmap code yet, as the constants to place things on the
+ * screen, are just that, constants.  This should be rewritten.
  */
 void MakeHelpWindows(void)
 {
@@ -382,16 +427,13 @@ void MakeHelpWindows(void)
                      help_pages[i].ypos, help_pages[i].textline,
                      strlen(help_pages[i].textline));
   }
-  XCopyPlane(dpy, man, help[0], gc, 0, 0, bit_width, bit_height, 180, 360, 1);
-  XCopyPlane(dpy, goal, help[0], gc, 0, 0, bit_width, bit_height, 270, 360, 1);
-  XCopyPlane(dpy, walls[0], help[0], gc, 0, 0, bit_width, bit_height,
-	     369, 360, 1);
-  XCopyPlane(dpy, object, help[0], gc, 0, 0, bit_width, bit_height,
-	     477, 360, 1);
-  XCopyPlane(dpy, treasure, help[0], gc, 0, 0, bit_width, bit_height,
-	     270, 400, 1);
-  XCopyPlane(dpy, saveman, help[0], gc, 0, 0, bit_width, bit_height,
-	     477, 400, 1);
+
+  DrawPixmap(help[0], man, player, 180, 360);
+  DrawPixmap(help[0], goal, store, 280, 360);
+  DrawPixmap(help[0], walls[0], wall, 389, 360);
+  DrawPixmap(help[0], object, packet, 507, 360);
+  DrawPixmap(help[0], treasure, save, 270, 400);
+  DrawPixmap(help[0], saveman, playerstore, 507, 400);
 }
 
 /* wipe out the entire contents of the screen */
@@ -402,8 +444,7 @@ void ClearScreen(void)
   XFillRectangle(dpy, work, drgc, 0, 0, width, height);
   for(i = 0; i < MAXROW; i++)
     for(j = 0; j < MAXCOL; j++)
-      XCopyPlane(dpy, floor, work, gc, 0, 0, bit_width, bit_height,
-                 j*bit_width, i*bit_height, 1);
+      DrawPixmap(work, floor, ground, j*bit_width, i*bit_height);
   XDrawLine(dpy, work, gc, 0, bit_height*MAXROW, bit_width*MAXCOL,
             bit_height*MAXROW);
 }
@@ -453,6 +494,9 @@ void MapChar(char c, int i, int j, Boolean copy_area)
   Pixmap this;
 
   this = GetObjectPixmap(i, j, c); /* i, j are passed so walls can be done */
+  if (full_pixmap[c])
+  XCopyArea(dpy, this, work, gc, 0, 0, bit_width, bit_height, cX(j), cY(i));
+  else
   XCopyPlane(dpy, this, work, gc, 0, 0, bit_width, bit_height, cX(j), cY(i), 1);
   if (copy_area) {
     XCopyArea(dpy, work, win, gc, cX(j), cY(i), bit_width, bit_height,

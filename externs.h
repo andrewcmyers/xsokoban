@@ -19,6 +19,10 @@
 #include <machine/endian.h>
 #endif
 
+#ifdef NEED_BYTEORDER
+#include <sys/byteorder.h>
+#endif
+
 #include "config_local.h"
 
 #if !defined(GETPASS_PROTO)
