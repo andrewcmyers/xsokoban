@@ -10,9 +10,9 @@ CC = gcc
 #
 OPTIMIZER = -O -DNDEBUG
 #OPTIMIZER = -g -UNDEBUG
-INCS = 
+INCS = -I/usr/local/include -I/usr/local/include/X11 -I/usr/include/X11
 WARN = -Wall
-LIBS = -ldnet_stub  -lXpm -lX11
+LIBS = -lXpm -lX11
 DEFS =
 OWNER = andru
 
