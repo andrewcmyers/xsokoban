@@ -33,7 +33,7 @@ char *errmess[] = {
 
 /* usage message */
 #define USAGESTR \
- "usage: %s [-{s|c|r|<nn>} -display <disp> -{w|walls} -{f|font} \n\
+ "usage: %s [-{c|r|<nn>|C} -s[level] -display <disp> -{w|walls} -{f|font} \n\
                  -{rv|reverse} -{b|bitdir} <path> -{fg|foreground} <color> \n\
                  -{bg|background} <color> -{bd|border} <color> \n\
                  -{pr|pointer} <color> -xrm <arg>]\n\n"
@@ -41,8 +41,9 @@ char *errmess[] = {
 char *usages[] = {
   "\t-c                  : create a new score file (superuser only)\n",
   "\t-r                  : restore a saved game.\n",
-  "\t-s[level]           : show high score table.\n",
+  "\t-s [level]          : show high score table or a portion of it.\n",
   "\t-<nn>               : play level <nn> (<nn> must be greater than 0)\n",
+  "\t-C                  : use own colormap for displaying\n",
   "\t-display <disp>     : run on display <disp>\n",
   "\t-w                  :\n",
   "\t-walls              : use fancy walls\n",
