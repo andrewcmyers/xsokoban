@@ -9,6 +9,7 @@ AC_CONFIG_HEADER(config_local.h)
 
 AC_WITH(gcc,CC=gcc)
 
+AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CPP
 
@@ -23,10 +24,37 @@ if test $use_xpm = 1; then
     libxpm=1
     incxpm=1
     AC_HAVE_LIBRARY(-lXpm, [LIBS="$LIBS -lXpm"],
-	[ echo "Can't find libXpm.a! You must add to LIBS in Makefile.">&2
-	  ])
+	[ 
+	  libok=no;
+	  for lib in /usr/local/lib xpm*/lib ../xpm*/lib;
+	  do
+	    if test -r $lib/libXpm.a; then
+		echo "  Found it in $lib!" >&2;
+		LIBS="$LIBS -L$lib -lXpm";
+		libok=yes;
+		break;
+	    fi
+	  done
+	  if test $libok = no; then
+	      echo "Can't find libXpm.a! You must add to LIBS in Makefile.">&2
+	  fi
+	])
     AC_HEADER_CHECK(xpm.h,,
-	[echo "Can't find xpm.h! You must add to INCS in Makefile.">&2
+	[
+	  incok=no;
+	  for inc in /usr/local/include /usr/local/include/X11 \
+		xpm*/lib ../xpm*/lib;
+	  do
+	    if test -r $inc/xpm.h; then
+		echo "  Found it in $inc!" >&2;
+		INCS="$INCS -I$inc";
+		incok=yes;
+		break;
+	    fi
+	  done
+	  if test $incok = no; then
+	    echo "Can't find xpm.h! You must add to INCS in Makefile.">&2
+	  fi
 	  ])
 fi
 rm -f tmp.$$.c tmp2.$$
@@ -40,12 +68,12 @@ if test -n "$no_x"; then
   x_includes=
   x_libraries=-lX11
 else
-  if test x$x_includes != x &&
-     test x$x_includes != x/usr/include; then
+  if test "x$x_includes" != x &&
+     test "x$x_includes" != x/usr/include; then
     INCS="$INCS -I$x_includes"
   fi 
-  if test x$x_libraries != x &&
-     test x$x_libraries != x/usr/lib; then
+  if test "x$x_libraries" != x &&
+     test "x$x_libraries" != x/usr/lib; then
     LIBS="$LIBS -L$x_libraries"
   fi
   LIBS="$LIBS -lX11"
@@ -58,6 +86,15 @@ AC_SUBST(INCS)
 # DEC bogosity
 
 AC_HAVE_LIBRARY(-ldnet_stub)
+
+##############
+# Figure out SUPERUSER
+(cat config.h; echo "superuser=SUPERUSER;www=WWW") > tmp.$$.c
+$CPP tmp.$$.c | egrep -v "^#" > tmp2.$$
+. ./tmp2.$$
+SUPERUSER="$superuser"
+echo "game owner is $SUPERUSER"
+AC_SUBST(SUPERUSER)
 
 ####################################
 # Turn on all compiler warning flags
@@ -141,7 +178,10 @@ AC_HAVE_HEADERS(limits.h sys/select.h)
 echo "looking for htons, ntohs" >&2
 define(ACHTONS_CHECK,
     AC_COMPILE_CHECK([htons in $1],
-    [#include <$1>],
+    [
+#include <sys/types.h>
+#include <$1>
+    ],
     [short x,y; x = htons(y);],
     AC_DEFINE($2)))
 ACHTONS_CHECK(machine/endian.h, NEED_ENDIAN)
