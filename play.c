@@ -857,6 +857,16 @@ char move_history[MOVE_HISTORY_SIZE];
 
 Boolean Verify(int moveseqlen, char *moveseq)
 {
+    InitMoveStack();
+    tempsave = moves = pushes = 0;
+    if (ApplyMoves(moveseqlen, moveseq) && savepack == packets) {
+	scorelevel = level;
+	scoremoves = moves;
+	scorepushes = pushes;
+	return _true_;
+    } else {
+	return _false_;
+    }
 }
 
 /* ApplyMoves:
@@ -868,21 +878,26 @@ Boolean Verify(int moveseqlen, char *moveseq)
     "moveseqlen" must be the length in characters of "moveseq".
 
     A well-formed move string "moveseq" is a sequence of the characters
-    "h,j,k,l" and "0-9".
+    "h,j,k,l" and "1-9".
 
 	[hjkl]: move the man by one in the appropriate direction
+	[HJKL]: move the man by two in the appropriate direction
 	[1-9]: provide a count of how many times the next move
 		should be executed, divided by two. Thus, "1" means
 		repeat twice, "9" means repeat 18 times.  The next
-		move must be one of [hjkl].
+		character must be one of [hjklHJKL].
 */
 static Boolean SingleMove(char c)
 {
     switch(c) {
 	case 'h': MakeMove(XK_h); break;
+	case 'H': MakeMove(XK_h); MakeMove(XK_h); break;
 	case 'j': MakeMove(XK_j); break;
+	case 'J': MakeMove(XK_j); MakeMove(XK_j); break;
 	case 'k': MakeMove(XK_k); break;
+	case 'K': MakeMove(XK_k); MakeMove(XK_k); break;
 	case 'l': MakeMove(XK_l); break;
+	case 'L': MakeMove(XK_l); MakeMove(XK_l); break;
 	default: return _false_;
     }
     return _true_;
@@ -904,6 +919,7 @@ Boolean ApplyMoves(int moveseqlen, char *moveseq)
 	lastc = c;
 	switch (c) {
 	    case 'h': case 'j': case 'k': case 'l':
+	    case 'H': case 'J': case 'K': case 'L':
 		SingleMove(c);
 		break;
 	    case '1': case '2': case '3':
@@ -915,13 +931,14 @@ Boolean ApplyMoves(int moveseqlen, char *moveseq)
 			displaying = olddisp;
 			return _false_;
 		    }
+		    c = moveseq[i++];
+		    lastc = tolower(c);
 		    while (reps--) {
-			if (!(SingleMove(c) && SingleMove(c))) {
+			if (!SingleMove(c)) {
 			    displaying = olddisp;
 			    return _false_;
 			}
 		    }
-		    i++;
 		}
 		break;
 	}

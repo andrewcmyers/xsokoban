@@ -11,6 +11,8 @@
 #include "options.h"
 #include "errors.h"
 
+short VerifyScore(short optlevel);
+
 /* useful globals */
 Boolean scoring = _true_;
 short level, packets, savepack, moves, pushes, rows, cols;
@@ -23,8 +25,12 @@ Boolean ownColormap = _false_;
 
 static short optlevel = 0, userlevel;
 static Boolean optshowscore = _false_, optmakescore = _false_,
-	       optrestore = _false_, superuser = _false_;
+	       optrestore = _false_, superuser = _false_,
+	       optverify = _false_;
 static struct passwd *pwd;
+
+int movelen;
+/* Length of the verified move sequence waiting on stdin if -v is used */
 
 /* do all the setup foo, and make sure command line gets parsed. */
 void main(int argc, char **argv)
@@ -62,7 +68,9 @@ void main(int argc, char **argv)
     if(ret == 0) {
       if(optshowscore)
 	ret = OutputScore(optlevel);
-      else if(optmakescore) {
+      else if (optverify) {
+	ret = VerifyScore(optlevel);
+      } else if(optmakescore) {
 	if(superuser) {
 	  /* make sure of that, shall we? */
 	  ret = GetGamePassword();
@@ -152,7 +160,8 @@ short CheckCommandLine(int *argcP, char **argv)
     if(argv[option][0] == '-') {
       switch(argv[option][1]) {
 	case 's':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
+	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
+	     optverify)
 	    return E_USAGE;
 	  optshowscore = _true_;
 	  optlevel = atoi(&argv[option][2]);
@@ -163,7 +172,8 @@ short CheckCommandLine(int *argcP, char **argv)
 	    }
 	  break;
 	case 'c':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
+	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
+	     optverify)
 	    return E_USAGE;
 	  optmakescore = _true_;
 	  break;
@@ -171,12 +181,27 @@ short CheckCommandLine(int *argcP, char **argv)
 	  ownColormap = _true_;
 	  break;
 	case 'r':
-	  if(optshowscore || optmakescore || optrestore || (optlevel > 0))
+	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
+	     optverify)
 	    return E_USAGE;
 	  optrestore = _true_;
 	  break;
+	case 'v':
+	  if(optshowscore || optmakescore || optrestore || (optlevel > 0) ||
+	     optverify)
+	    return E_USAGE;
+	  option++;
+	  optlevel = atoi(argv[option++]);
+	  if (!optlevel || !argv[option]) return E_USAGE;
+	  username = strdup(argv[option++]);
+	  if (!argv[option]) return E_USAGE;
+	  movelen = atoi(argv[option++]);
+	  if (!movelen) return E_USAGE;
+	  optverify = _true_;
+	  break;
 	default:
-	  if(optshowscore || optrestore || optmakescore || (optlevel > 0))
+	  if(optshowscore || optrestore || optmakescore || (optlevel > 0) ||
+	     optverify)
 	    return E_USAGE;
 	  optlevel = atoi(argv[option]+1);
 	  if(optlevel == 0)
@@ -188,7 +213,8 @@ short CheckCommandLine(int *argcP, char **argv)
       return E_USAGE;
   }
 
-  if (optshowscore || optmakescore) return 0; /* Don't mess with X any more */
+  if (optshowscore || optmakescore || optverify)
+      return 0; /* Don't mess with X any more */
   /* okay.. NOW, find out what display we are currently attached to. This
    * allows us to put the display on another machine
    */
@@ -228,6 +254,39 @@ short CheckCommandLine(int *argcP, char **argv)
   /* now merge in the rest of the X command line options! */
   XrmMergeDatabases(command, &rdb);
   return 0;
+}
+
+/* Read a move sequence from stdin in a newly-allocated string. */
+static char *ReadMoveSeq()
+{
+    char *moveseq = (char *)malloc(movelen);
+    short ret;
+    int ch = 0;
+    while (ch < movelen) {
+	int n = read(0, moveseq, movelen); /* read from stdin */
+	if (n <= 0) { perror("Move sequence"); return 0; }
+	ch += n;
+    }
+    return moveseq;
+}
+  
+short VerifyScore(short optlevel)
+{
+    short ret;
+    char *moveseq = ReadMoveSeq();
+    if (!moveseq) { return E_WRITESCORE; }
+    level = optlevel;
+    ret = ReadScreen();
+    if (ret) return ret;
+    if (Verify(movelen, moveseq)) {
+	ret = Score(_false_);
+	scorelevel = 0; /* don't score again */
+	if (ret == 0) ret = E_ENDGAME;
+    } else {
+	ret = E_WRITESCORE;
+    }
+    free(moveseq);
+    return ret;
 }
 
 /* we just sit here and keep playing level after level after level after .. */

@@ -12,6 +12,7 @@
 #include <time.h>
 #include <sys/param.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include "externs.h"
 #include "globals.h"
@@ -56,6 +57,7 @@ static time_t lock_time;
 
 short LockScore(void)
 {
+#if !WWW
      int i, result;
 
      for (i = 0; i < TIMEOUT; i++) {
@@ -103,13 +105,18 @@ short LockScore(void)
      }
      
      return 0;
+#else
+     return 0;
+#endif
 }
 
 void UnlockScore(void)
 {
+#if !WWW
      if (0 > rmdir(LOCKFILE)) {
 	 fprintf(stderr, "Warning: Couldn't remove lock %s\n", LOCKFILE);
      }
+#endif
 }
      
 /* print out the score list for level "level". If "level" == 0, show
@@ -130,6 +137,7 @@ short OutputScore(int level)
 /* create a new score file */
 short MakeNewScore(void)
 {
+#if !WWW
   short ret = 0;
 
   if ((ret = LockScore()))
@@ -149,6 +157,9 @@ short MakeNewScore(void)
   }
   UnlockScore();
   return ((ret == 0) ? E_ENDGAME : ret);
+#else
+    fprintf(stderr, "Cannot make a new score in WWW mode\n");
+#endif
 }
 
 /* get the players current level based on the level they last scored on */
@@ -156,16 +167,20 @@ short GetUserLevel(short *lv)
 {
   short ret = 0, pos;
 
+#if !WWW
   if ((ret = LockScore()))
        return ret;
 
   if ((scorefile = fopen(SCOREFILE, "r")) == NULL)
     ret = E_FOPENSCORE;
   else {
+#endif
     if ((ret = ReadScore()) == 0)
       *lv = ((pos = FindUser()) > -1) ? scoretable[pos].lv + 1 : 1;
+#if !WWW
   }
   UnlockScore();
+#endif
   return (ret);
 }
 
@@ -194,11 +209,15 @@ void ntohs_entry(struct st_entry *entry)
 /* read in an existing score file.  Uses the ntoh() and hton() functions
  * so that the score files transfer across systems.
  */
+short ReadScore_WWW();
 short ReadScore(void)
 {
+#if WWW
+    return ReadScore_WWW();
+#else
   short ret = 0;
   long tmp;
-  
+
   sfdbn = open(SCOREFILE, O_RDONLY);
   if (0 > sfdbn)
     ret = E_FOPENSCORE;
@@ -226,6 +245,7 @@ short ReadScore(void)
     (void)close(sfdbn);
   }
   return ret;
+#endif
 }
 
 /* Return the solution rank for table index "j". The solution rank for
@@ -388,8 +408,13 @@ short FindPos(void)
 
 char const *tempnm = SCOREFILE "XXXXXX";
 
+short WriteScore_WWW();
+
 short WriteScore(void)
 {
+#if WWW
+  return WriteScore_WWW();
+#else
   short ret = 0;
   int tmp;
     
@@ -461,6 +486,7 @@ short WriteScore(void)
     }
     if (ret != 0) (void)unlink(tempfile);
     return ret;
+#endif
 }
 
 
@@ -490,4 +516,181 @@ void CopyEntry(short i1, short i2)
   scoretable[i1].lv = scoretable[i2].lv;
   scoretable[i1].mv = scoretable[i2].mv;
   scoretable[i1].ps = scoretable[i2].ps;
+}
+
+static int blurt(char *buf, int bufptr, int count, char c)
+{
+    if (count == 1) {
+	buf[bufptr++] = c;
+    } else if ((count & 1) && (count <= 9)) {
+	buf[bufptr++] = '0' + count;
+	buf[bufptr++] = c;
+    } else {
+	while (count >= 2) {
+	    int digit = count/2;
+	    if (digit > 9) digit = 9;
+	    count -= 2 * digit;
+	    if (digit>1) buf[bufptr++] = '0' + digit;
+	    buf[bufptr++] = toupper(c);
+	}
+	if (count) buf[bufptr++] = c;
+    }
+    return bufptr;
+}
+
+static int compress_moves(char *buf)
+{
+    int i;
+    int bufptr = 0;
+    int count = 0;
+    char lastc = 0;
+    for (i = 0; i < moves; i++) {
+	char c = move_history[i];
+	if (c != lastc && count) {
+	    bufptr = blurt(buf, bufptr, count, lastc);
+	    count = 1;
+	} else {
+	    count++;
+	}
+	lastc = c;
+    }
+    bufptr = blurt(buf, bufptr, count, lastc);
+    assert(bufptr <= MOVE_HISTORY_SIZE);
+    return bufptr;
+}
+
+static char movelist[MOVE_HISTORY_SIZE];
+static int movelen;
+
+char *url = WWWURL;
+
+/*
+    Copy the string in "template" to a newly-allocated string, which
+    should be freed with "free". Any occurrences of '$M' are subsituted
+    with the current compressed move history. Occurrences of '$L' are
+    subsituted with the current level. '$U' is substituted with the
+    current username. '$R' is substituted with the current WWW URL.
+    '$$' is substituted with the plain character '$'.
+*/
+char *subst_names(char const *template)
+{
+    char buffer[4096];
+    char *buf = &buffer[0];
+    while (*template) {
+	 if (*template != '$') {
+	    *buf++ = *template++;
+	 } else {
+	    template++;
+	    switch(*template++) {
+		case 'L':
+		    sprintf(buf, "%d", (int)level);
+		    buf += strlen(buf);
+		    break;
+		case 'U':
+		    strcpy(buf, username);
+		    buf += strlen(username);
+		    break;
+		case 'M':
+		    strcpy(buf, movelist);
+		    buf += strlen(movelist);
+		    break;
+		case 'N':
+		    sprintf(buf, "%d", movelen);
+		    buf += strlen(buf);
+		    break;
+		case 'R':
+		    strcpy(buf, url);
+		    buf += strlen(url);
+		    break;
+		case '$':
+		    *buf++ = '$';
+		    break;
+	    }
+	 }
+    }
+    *buf = 0;
+    return strdup(buffer);
+}
+
+static const char *www_score_command = WWWSCORECOMMAND;
+
+short WriteScore_WWW()
+{
+    int buflen;
+    char *cmd;
+    char *result;
+    buflen = compress_moves(movelist);
+    movelen = buflen;
+    movelist[movelen] = 0;
+#if 0
+    fprintf(stderr, "compressed %d moves to %d characters\n",
+		    moves, movelen);
+#endif
+    cmd = subst_names(www_score_command);
+    result = qtelnet(WWWHOST, WWWPORT, cmd);
+    free(cmd);
+    if (result) {
+#if 0
+	fprintf(stderr, "%s", result);
+#endif
+	free(result);
+    }
+    return 0;
+}
+
+/* Extract one line from "text".  Return 0 if there is no line to extract. */
+char *getline(char *text, char *linebuf)
+{
+    if (*text == 0) {
+	*linebuf = 0;
+	return 0;
+    }
+    while (*text != '\n' && *text) {
+	*linebuf++ = *text++;
+    }
+    *linebuf = 0;
+    return (*text) ? text + 1 : text ;
+}
+
+/*
+    Yes, it actually parses xsokoban's own output format! Pretty
+    disgusting!
+*/
+short ReadScore_WWW()
+{
+    char *cmd, *result, *c, *text;
+    char *ws = " \t\r\n";
+    char line[256];
+    char ibuf[20];
+    int len;
+    movelist[0] = 0;
+    cmd = subst_names(WWWREADSCORECMD);
+    result = qtelnet(WWWHOST, WWWPORT, cmd);
+/* Now, skip past all the initial crud */
+    text = result;
+    for (;;)  {
+	text = getline(text, line);
+	if (line[0] == '=') break;
+    }
+    scoreentries = 0;
+    for (;;) {
+	char *user;
+	int level, moves, pushes;
+	text = getline(text, line);
+	if (!text) break;
+	user = strtok(line + 5, ws);
+	if (!user) break;
+	level = atoi(strtok(0, ws));
+	moves = atoi(strtok(0, ws));
+	pushes = atoi(strtok(0, ws));
+	if (level == 0 || moves == 0 || pushes == 0) return E_READSCORE;
+	strncpy(scoretable[scoreentries].user, user, MAXUSERNAME);
+	scoretable[scoreentries].lv = (unsigned short)level;
+	scoretable[scoreentries].mv = (unsigned short)moves;
+	scoretable[scoreentries].ps = (unsigned short)pushes;
+	scoreentries++;
+    }
+
+    free(result);
+    return 0;
 }

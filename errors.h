@@ -36,7 +36,7 @@ char *errmess[] = {
  "usage: %s [-{c|r|<nn>|C} -s[level] -display <disp> -{w|walls} -{f|font} \n\
                  -{rv|reverse} -{b|bitdir} <path> -{fg|foreground} <color> \n\
                  -{bg|background} <color> -{bd|border} <color> \n\
-                 -{pr|pointer} <color> -xrm <arg>]\n\n"
+                 -{pr|pointer} <color> -xrm <arg>] [-v <level> <user> <bytes>\n\n"
 
 char *usages[] = {
   "\t-c                  : create a new score file (superuser only)\n",
@@ -62,5 +62,6 @@ char *usages[] = {
   "\t-pr <color>         :\n",
   "\t-pointer <color>    : use <color> as the pointer foreground color\n",
   "\t-xrm <arg>          : specify that <arg> is an X resource.\n",
+  "\t-v <level> <user> <bytes> : verify and score a solution. Soln on stdin.\n",
   NULL
 };

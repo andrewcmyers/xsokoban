@@ -14,6 +14,7 @@ xsokoban/help.h
 xsokoban/main.c
 xsokoban/options.h
 xsokoban/play.c
+xsokoban/qtelnet.c
 xsokoban/resources.c
 xsokoban/save.c
 xsokoban/score.c

@@ -4,29 +4,28 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <ctype.h>
+#include <stdlib.h>
 
-extern int atoi(char *);
-
-#define TRY(name,expr) if (0>(expr)) { perror(name); exit(-1); }
+#define TRY(name,expr) if (0>(expr)) { perror(name); return 0; }
 
 char buf[4096];
 
 int lingerval = 1;
  
-main(int argc, char **argv)
-{
-    char *hostname;
-    int port;
+/* Open a TCP-IP connection to machine "hostname" on port "port", and
+   send it the text in "msg". Return all output from the connection
+   in a newly-allocated string that must be freed to reclaim its
+   storage.
+
+   Return 0 on failure.
+*/
+char *qtelnet(char *hostname, int port, char *msg) {
     int sock;
-    int input_closed = 0;
     struct hostent *h;
     struct sockaddr_in client;
-    if (argc != 3) {
-	fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
-	exit(-1);
-    }
-    hostname = argv[1];
-    port = atoi(argv[2]);
+    char *retbuf = 0;
+    int retlen = 0;
+    int retpos = 0;
     TRY("socket", (sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)));
     TRY("setsockopt[SO_REUSEADDR,1]",
 	setsockopt(sock,
@@ -52,28 +51,40 @@ main(int argc, char **argv)
     client.sin_port = htons (port);
 
     TRY("connect", connect(sock, &client, sizeof(client)));
-    fprintf(stderr, "Connected.\n");
+#if 0
+    fprintf(stderr, "Connected to %s.\n", hostname);
+#endif
+    write(sock, msg, strlen(msg));
+
+    retlen = 4096;
+    retpos = 0;
+    retbuf = (char *)malloc(retlen);
+
     for(;;) {
 	fd_set rds;
 	int n;
 	FD_ZERO(&rds);
-	if (!input_closed) FD_SET(0, &rds);
 	FD_SET(sock, &rds);
 	n = select(sock+1, &rds, 0, 0, 0);
 	if (n>0) {
-	    if (FD_ISSET(0, &rds)) {
-		int ch = read(0, buf, sizeof(buf));
-		if (ch == 0) input_closed = 1;
-		write(sock, buf, ch);
-	    }
 	    if (FD_ISSET(sock, &rds)) {
 		int ch = read(sock, buf, sizeof(buf));
 		if (ch == 0) {
+#if 0
 		    fprintf(stderr, "Connection closed by remote host\n");
-		    exit(0);
+#endif
+		    break;
 		}
-		write(1, buf, ch);
+		if (retpos + ch >= retlen) {
+		    retlen *= 2;
+		    retbuf = (char *)realloc(retbuf, retlen);
+		}
+		memcpy(retbuf + retpos, buf, ch);
+		retpos += ch;
 	    }
 	}
     }
+    (void)close(sock);
+    retbuf[retpos] = 0;
+    return retbuf;
 }

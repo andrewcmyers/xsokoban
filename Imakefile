@@ -5,9 +5,9 @@ SYS_LIBRARIES=	-L/usr/local/lib -lXpm $(XLIB)
 # -lXpm is only needed if you are using Xpm.
 
 SRCS=		display.c main.c resources.c play.c score.c screen.c \
-		save.c scoredisp.c
+		save.c scoredisp.c qtelnet.c
 OBJS=		display.o main.o resources.o play.o score.o screen.o \
-		save.o scoredisp.o
+		save.o scoredisp.o qtelnet.o
 
 ComplexProgramTarget(xsokoban)
 
