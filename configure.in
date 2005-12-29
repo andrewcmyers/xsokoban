@@ -46,7 +46,7 @@ if test $use_xpm = 1; then
 	[ 
 	  libok=no;
 	  AC_MSG_CHECKING(other locations for libXpm)
-	  for lib in /usr/local/lib xpm*/lib ../xpm*/lib;
+	  for lib in /usr/local/lib xpm*/lib ../xpm*/lib /usr/X11*/lib /usr/local/*/lib /usr/X11*/lib;
 	  do
 	    if test -r $lib/libXpm.a; then
 		AC_MSG_RESULT(Found it in $lib!)
@@ -62,8 +62,9 @@ if test $use_xpm = 1; then
     AC_HEADER_CHECK(xpm.h,,
 	[
 	  incok=no;
-	  for inc in /usr/local/include /usr/local/include/X11* \
-		/usr/local/X11*/include xpm*/lib ../xpm*/lib;
+	  for inc in /usr/include/X11 /usr/local/include /usr/local/include/X11* \
+		/usr/local/X11*/include /usr/X11*/include /usr/include/X11*\
+		xpm*/lib ../xpm*/lib /usr/local/*/include/X11;
 	  do
 	    if test -r $inc/xpm.h; then
 		AC_MSG_RESULT(Found it in $inc!)
@@ -114,10 +115,32 @@ if test $www = 1; then
 fi
 
 ##############
+# Find installation directory
+
+AC_MSG_CHECKING(installation directory)
+AC_VAR_CHECK(ROOTDIR,ROOTDIR)
+ROOTDIR=`echo $ROOTDIR | sed -e 's/^"//' -e 's/"$//'`
+AC_MSG_RESULT($ROOTDIR)
+INSTALL_SCREENS=${ROOTDIR}/screens
+INSTALL_SCORES=${ROOTDIR}/scores
+AC_SUBST(ROOTDIR)
+
+##################
+# Solaris bogosities
+AC_CHECK_LIB(socket,main)
+AC_CHECK_LIB(nsl,main)
+
+#############################
+# DEC OSF/1 bogosity
+
+AC_CHECK_LIB(dnet_stub,main)
+
+##############
 # Figure out OWNER
 AC_MSG_CHECKING(owner of game)
 AC_VAR_CHECK(OWNER, OWNER)
-OWNER=`echo $OWNER | sed -e 's/"//g'`
+echo "OWNER=$OWNER"
+OWNER=`echo $OWNER | sed -e 's/^"//' -e 's/"$//'`
 AC_TRY_RUN([
 #include <stdio.h>
 #include <pwd.h>
@@ -132,13 +155,9 @@ if test -n "$ownerok"; then
     AC_MSG_RESULT("owner is $OWNER")
     AC_SUBST(OWNER)
 else
-    AC_MSG_WARN(\"$OWNER\" seems not to be a username. \nEdit \"config.h\" and change OWNER.),
+AC_MSG_WARN(\"$OWNER\" seems not to be a username.
+Edit \"config.h\" and change OWNER.),
 fi
-
-##############
-# DEC bogosity
-
-AC_CHECK_LIB(dnet_stub,main)
 
 ####################################
 # Turn on all compiler warning flags

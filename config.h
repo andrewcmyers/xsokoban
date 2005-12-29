@@ -20,7 +20,7 @@
    do not have HERE appended to them.
 */
 #ifndef HERE
-#define HERE "@somewhere.somedomain"
+#define HERE "@cs.cornell.edu"
 #endif
 
 /*
@@ -102,7 +102,7 @@
    PASSWORD: defines the password necessary for creating a new score file
 */
 #ifndef PASSWORD
-#define PASSWORD "score"
+#define PASSWORD "xsok"
 #endif
 
 /*

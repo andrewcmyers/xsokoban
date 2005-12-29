@@ -28,7 +28,11 @@ char *errmess[] = {
     "cannot open display",
     "cannot load font",
     "cannot allocate string memory",
-    "could not load requested color"
+    "could not load requested color",
+    "not a valid solution",
+    "level aborted",
+    "cached score file information is out of date",
+    "solution is invalid"
 };
 
 /* usage message */
