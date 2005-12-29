@@ -1,0 +1,6 @@
+#!/bin/sh
+
+(for i in $*
+do
+    awk -f afterpixels.awk $i
+done) | sed 's/"//' | ./split | sort | uniq -c | sort -rn

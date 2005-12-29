@@ -1,0 +1,44 @@
+#!/usr/local/bin/perl -i.bak
+
+system("hist ".$ARGV[0]." > tmp.$$");
+
+while (<>) {
+    print $_;
+    if ($_ =~ m| ncolors |) { goto done; }
+}
+
+done:
+
+$_ = <>;
+@i = split;
+
+system("wc < tmp.$$ > tmp2.$$");
+open(NC, "tmp2.$$");
+split(/[ \t\n]+/,<NC>);
+close(NC);
+unlink("tmp2.$$");
+
+print "$i[0] $i[1] $_[1] $i[3]\n";
+
+$_ = <>;
+print;
+# /* colors */
+
+
+while (<>) {
+    $line = $_;
+    if ($_ =~ /pixels/) {
+	print $_;
+	goto pixels;
+    }
+    s/[",]*//g;
+    split;
+    #print "### $_[0]";
+    if (0 == system("egrep '$_[0]' tmp.$$ > /dev/null")) {
+	print $line;
+    }
+}
+
+pixels:
+
+while (<>) { print; }

@@ -1,0 +1,28 @@
+/* XPM */
+static char *icons-40-128[] = {
+/* width height ncolors chars_per_pixel */
+"20 20 1 2",
+/* colors */
+"ct c #545454",
+/* pixels */
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+"ctctctctctctctctctctctctctctctctctctctct",
+};
