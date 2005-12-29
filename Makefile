@@ -1,4 +1,3 @@
-# Generated automatically from Makefile.in by configure.
 ############################################################
 # C compiler
 ############################################################
@@ -8,18 +7,18 @@ CC = gcc
 # C compiler flags
 ############################################################
 #
-OPTIMIZER = -O -DNDEBUG
-#OPTIMIZER = -g -UNDEBUG
-INCS = -I/usr/local/include -I/usr/local/include/X11 -I/usr/include/X11
+#OPTIMIZER = -O -DNDEBUG
+OPTIMIZER = -g -UNDEBUG
+INCS =  -I/usr/include/X11 -I/usr/X11R6/include
 WARN = -Wall
-LIBS = -lXpm -lX11
+LIBS =  -L/usr/X11R6/lib -lXpm -L/usr/X11R6/lib -lX11
 DEFS =
 OWNER = andru
 
 ############################################################
 # Other programs
 ############################################################
-INSTALL = /bin/installbsd -c -o $(OWNER)
+INSTALL = /usr/bin/install -c -o $(OWNER)
 CP = /bin/cp
 CHOWN = /bin/chown
 MKDIR = /bin/mkdir

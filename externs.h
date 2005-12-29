@@ -5,7 +5,14 @@
 #include <X11/Xresource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
+#endif
+
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
+#endif
 
 #ifdef NEED_NETINET_IN
 #include <netinet/in.h>

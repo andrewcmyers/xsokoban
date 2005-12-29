@@ -54,6 +54,8 @@
 /* Is there a <sys/select.h>? (AIX requires it for fd_sets) */
 #undef HAVE_SYS_SELECT_H
 
+#undef HAVE_MALLOC_H
+
 #undef BZERO_PROTO
 
 /* Does <time.h> have a localtime proto? */

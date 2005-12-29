@@ -155,8 +155,8 @@ if test -n "$ownerok"; then
     AC_MSG_RESULT("owner is $OWNER")
     AC_SUBST(OWNER)
 else
-AC_MSG_WARN(\"$OWNER\" seems not to be a username.
-Edit \"config.h\" and change OWNER.),
+AC_MSG_WARN(\"$OWNER\" seems not to be a username.");
+AC_MSG_WARN(Edit \"config.h\" and change OWNER.");
 fi
 
 ####################################
@@ -245,7 +245,7 @@ AC_DEFINE(HAVE_SYS_PARAM_H))
 
 AC_MSG_RESULT(yes)
 
-AC_HAVE_HEADERS(limits.h sys/limits.h sys/select.h)
+AC_HAVE_HEADERS(limits.h sys/limits.h sys/select.h malloc.h assert.h)
 
 
 found_htons=""

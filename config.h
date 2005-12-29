@@ -147,7 +147,7 @@
 */
 
 #ifndef WWW
-#define WWW 1
+#define WWW 0
 #endif
 
 #define DEBUG_SERVER(x)
