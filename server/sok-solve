@@ -1,0 +1,26 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:/usr/ucb:/usr/local/lib/httpd/cgi-bin
+
+echo Content-type: text/plain
+echo
+
+echo `date` "$QUERY_STRING" >> /tmp/xsokoban-solve-requests
+
+
+if [ x$REQUEST_METHOD != xPOST ]
+then
+    echo "$REQUEST_METHOD: Not a valid request"
+    exit 1
+fi
+
+level=`echo "$QUERY_STRING" | awk -F, '{print $1}'` || exit 1
+user=`echo "$QUERY_STRING" | awk -F, '{print $2}'` || exit 1
+
+case "$user" in
+    *@somewhere.somedomain)
+	echo "Bogus location ($user), score rejected"
+	exit 1;;
+esac
+
+/usr/local/bin/xsokoban-server -v "$level" "$user" "$CONTENT_LENGTH" \
+     2>&1 >>/tmp/xsokoban-solve-requests

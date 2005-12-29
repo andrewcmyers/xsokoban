@@ -1,0 +1,19 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:/usr/ucb
+
+echo Content-type: text/plain
+echo
+
+if [ x$REQUEST_METHOD != xGET ]
+then
+    echo "Not a valid request"
+    exit 1
+fi
+
+level=`echo "$QUERY_STRING" | sed 's/^level=//'`
+if [ -r "/usr/local/lib/xsokoban/screens/screen.$level" ]
+then
+    cat /usr/local/lib/xsokoban/screens/screen."$level"
+else
+    echo "$QUERY_STRING does not specify a valid level"
+fi

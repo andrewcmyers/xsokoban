@@ -1,0 +1,57 @@
+BEGIN { 
+	BITMAPPATH="bitmaps/"
+	cols=20
+	rows=20
+        nr = 0
+        wallname[0] = "lonewall";     wallname[1] = "southwall"
+	wallname[2] = "westwall";     wallname[3] = "llcornerwall"
+	wallname[4] = "northwall";    wallname[5] = "vertiwall"
+	wallname[6] = "ulcornerwall"; wallname[7] = "west_twall"
+	wallname[8] = "eastwall";     wallname[9]= "lrcornerwall"
+	wallname[10]= "horizwall";    wallname[11]= "south_twall"
+	wallname[12]= "urcornerwall"; wallname[13]= "east_twall"
+	wallname[14]= "north_twall";  wallname[15]= "centerwall"
+
+	wallname[20]= "man";          wallname[21]= "goal"
+	wallname[22]= "object";       wallname[23]= "floor"
+	
+      }
+{
+     for (j=1;j<rows;j++) {
+         MAPARR[nr,j] = substr($0,j,1)
+     }
+     nr++
+     next
+}
+
+END {
+    printf "<PRE>\n"
+    for (i=0; i<nr; i++) {
+	for (j=0;j<rows;j++) {	
+    	    printf "<IMG SRC=%s%s.xpm>",BITMAPPATH,wallname[PickWall(i,j)]
+	}
+        printf "\n"
+    }
+    printf "</PRE>\n"
+}
+
+
+
+
+function PickWall( i, j)
+{
+  ret = 0
+
+  if( MAPARR[i,j] == "@" ) return 20
+  if( MAPARR[i,j] == "." ) return 21
+  if( MAPARR[i,j] == "$" ) return 22
+  if( MAPARR[i,j] != "#" ) return 23
+  if(i > 0 && MAPARR[i-1,j] == "#")    ret += 1
+  if(j < cols && MAPARR[i,j+1] == "#")   ret += 2
+  if(i < rows && MAPARR[i+1,j] == "#") ret += 4
+  if(j > 0 && MAPARR[i,j-1] == "#")    ret += 8
+  return ret
+}
+
+
+

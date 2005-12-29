@@ -1,0 +1,28 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:/usr/ucb
+echo Content-type: text/html
+echo
+cat << XXX
+<head>
+<title>XSokoban High Score List</title>
+</head>
+<body>
+<h1><IMG SRC="http://clef.lcs.mit.edu/~andru/xsokoban-icon.gif" ALIGN=top> XSokoban High Score List</h1>
+
+<HR>
+
+<ul>
+<li><form action="/cgi-bin/sok-best-by-level">
+View best scores for a particular level:
+<input type="int" name="level" maxlength=2 size=2>
+</form><P>
+<li><a href="/~andru/xsokoban.html">Go to the <b>xsokoban</b> home page.</a>
+</ul>
+
+<HR>
+
+<plaintext>
+XXX
+
+/usr/local/bin/xsokoban-server -s | awk '/^...[^ ]/ { print $0; }' | \
+    sed 's/>/\&gt;/' | sed 's/</\&lt;/' | sed 's/&/\&amp;/'

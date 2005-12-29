@@ -1,0 +1,11 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:/usr/ucb:/usr/local/lib/httpd/cgi-bin
+echo Content-type: text/plain
+echo
+
+level=`echo "$QUERY_STRING" | sed 's/^level=//'`
+
+/usr/local/bin/xsokoban-server -s"$level" | awk '/^...[^ ]/ { print $0; }'
+echo
+echo
+cat /usr/local/lib/xsokoban/screens/screen."$level"

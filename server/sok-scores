@@ -1,0 +1,6 @@
+#!/bin/sh
+PATH=/bin
+echo Content-type: text/plain
+echo
+
+/usr/local/bin/xsokoban-server -s
