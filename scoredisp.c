@@ -64,7 +64,7 @@ extern short DisplayScores_(Display *dpy, Window win, short *newlev)
     if (!initted) {
 	char *msg = InitDisplayScores(dpy, win);
 	if (msg) {
-	    fprintf(stderr, msg);
+	    fprintf(stderr, "%s", msg);
 	    exit(EXIT_FAILURE);
 	}
     }

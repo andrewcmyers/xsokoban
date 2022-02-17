@@ -47,7 +47,7 @@ static struct passwd *pwd;
 static int movelen;
 /* Length of the verified move sequence waiting on stdin if -v is used */
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   short ret = 0;
 

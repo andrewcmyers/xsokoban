@@ -3936,6 +3936,7 @@ $as_echo_n "checking function prototypes... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdlib.h>
+#include <unistd.h>
 int
 main ()
 {
@@ -4120,11 +4121,11 @@ rm -f core conftest.err conftest.$ac_objext \
 
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <stdlib.h>
+#include <strings.h>
 int
 main ()
 {
-char *x; int l; bzero(x, l);
+char *x; size_t l; bzero(x, l);
   ;
   return 0;
 }

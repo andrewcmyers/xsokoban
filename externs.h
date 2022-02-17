@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -75,7 +78,7 @@ extern struct tm *localtime(time_t *);
 #endif
 
 #if !defined(BZERO_PROTO)
-extern void bzero(char *, int);
+extern void bzero(char *, size_t);
 #endif
 
 int fsync(int);

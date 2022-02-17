@@ -180,7 +180,8 @@ AC_SUBST(WARN)
 # Check for library functions and C++ prototypes
 
 AC_MSG_CHECKING(function prototypes)
-AC_TRY_LINK([#include <stdlib.h>],
+AC_TRY_LINK([#include <stdlib.h>
+#include <unistd.h>],
 [char *s = getpass("prompt");],
 AC_DEFINE(GETPASS_PROTO))
 
@@ -229,8 +230,8 @@ AC_DEFINE(HAS_USLEEP)
 AC_DEFINE(USLEEP_PROTO))
 
 AC_TRY_LINK(
-[#include <stdlib.h>],
-[char *x; int l; bzero(x, l);],
+[#include <strings.h>],
+[char *x; size_t l; bzero(x, l);],
 AC_DEFINE(BZERO_PROTO))
 
 AC_TRY_LINK(
