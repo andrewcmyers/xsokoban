@@ -810,7 +810,7 @@ static void RecordChange()
     r[1].px = ppos.x;
     r[1].py = ppos.y;
     for (x = 0; x <= MAXROW; x++) {
-	for (y = 0; y <= MAXROW; y++) {
+	for (y = 0; y <= MAXCOL; y++) {
 	    if (map[x][y] != prev_map[x][y]) {
 		assert(ndeltas < MAXDELTAS);
 		r->deltas[ndeltas].x = x;
