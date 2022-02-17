@@ -25,4 +25,6 @@ _$*
 *.elc
 *.ln
 core
+Makefile
+config_local.h
 # CVS default ignores end
